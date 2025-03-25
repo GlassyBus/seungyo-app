@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../viewmodel/splash_vm.dart';
@@ -22,10 +23,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
     return Scaffold(
       body: Center(
         child: Text(
-          '승요',
+          t.appTitle,
           style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
         ),
       ),
