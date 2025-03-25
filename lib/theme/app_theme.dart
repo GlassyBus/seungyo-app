@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'app_text_style.dart';
+import 'app_text_theme.dart';
 
 final ThemeData appTheme = ThemeData(
   fontFamily: 'KBO',
