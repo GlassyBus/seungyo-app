@@ -1,16 +1,11 @@
 import 'package:seungyo/constants.dart';
-
-import '../data/shared_preferences_helper.dart';
+import 'package:seungyo/model/data/shared_preferences_helper.dart';
 
 class AuthRepository {
   final SharedPreferencesHelper _prefsHelper = SharedPreferencesHelper();
 
   Future<bool> isLoggedIn() async {
     return await _prefsHelper.getBool(AppConstants.isLoggedInKey) ?? false;
-  }
-
-  Future<bool> hasPreviousLogin() async {
-    return await _prefsHelper.getBool(AppConstants.hasPreviousLoginKey) ?? false;
   }
 
   Future<void> setLoggedIn(bool value) async {

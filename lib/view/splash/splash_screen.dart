@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
-
-import '../../viewmodel/splash_vm.dart';
+import 'package:seungyo/viewmodel/splash_vm.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
@@ -14,10 +15,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SplashViewModel>(
-        context,
-        listen: false,
-      ).checkLoginStatus(context);
+      context.read<SplashViewModel>().handleNavigation(context);
     });
   }
 
@@ -27,9 +25,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
     return Scaffold(
       body: Center(
-        child: Text(
-          t.appTitle,
-          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/splash_symbol.png'),
+            const SizedBox(height: 13),
+            Opacity(
+              opacity: 0.6,
+              child: Text(
+                t.splashSubtitle,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+          ],
         ),
       ),
     );
