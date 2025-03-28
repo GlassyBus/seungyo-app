@@ -51,6 +51,8 @@ dependencies:
   # 관계형 데이터베이스 (Moor → Drift)
   drift: ^2.0.0
 
+  collection: ^1.17.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

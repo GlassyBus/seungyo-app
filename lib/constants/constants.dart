@@ -1,7 +1,9 @@
 import 'package:intl/intl.dart';
 
 class AppConstants {
-  // Shared Preferences Keys
+  // SharedPreferences Keys
   static const String isLoggedInKey = 'isLoggedIn';
   static const String hasPreviousLoginKey = 'hasPreviousLogin';
+  static const String selectedTeamKey = 'selected_team';
+  static const String nicknameKey = 'nickname';
 }

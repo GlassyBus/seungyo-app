@@ -1,34 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:seungyo/repository/auth_repository.dart';
 
 class AuthViewModel extends ChangeNotifier {
+  final AuthRepository _authRepo = AuthRepository();
+
   String? _team;
   String? _nickname;
   DateTime? _lastBackPressTime;
 
   String? get team => _team;
+
   String? get nickname => _nickname;
 
-  Future<void> selectTeam(String team) async {
+  void selectTeam(String? team) {
     _team = team;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selected_team', team);
     notifyListeners();
   }
 
-  Future<void> enterNickname(String nickname) async {
+  void setNickname(String nickname) {
     _nickname = nickname;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('nickname', nickname);
-    await prefs.setBool('isLoggedIn', true);
     notifyListeners();
+  }
+
+  Future<void> saveUserInfo() async {
+    if (_team != null) await _authRepo.setTeam(_team!);
+    if (_nickname != null) await _authRepo.setNickname(_nickname!);
+    await _authRepo.setLoggedIn(true);
   }
 
   Future<void> loadSavedData() async {
-    final prefs = await SharedPreferences.getInstance();
-    _team = prefs.getString('selected_team');
-    _nickname = prefs.getString('nickname');
+    _team = await _authRepo.getTeam();
+    _nickname = await _authRepo.getNickname();
     notifyListeners();
   }
 

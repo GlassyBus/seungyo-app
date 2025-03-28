@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:seungyo/model/repository/auth_repository.dart';
+import 'package:seungyo/repository/auth_repository.dart';
 import 'package:seungyo/routes.dart';
 
 class SplashViewModel extends ChangeNotifier {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:seungyo/routes.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
@@ -29,24 +30,46 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  void _previousPage() {
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AuthViewModel()..loadSavedData(),
+      create: (_) => AuthViewModel(),
       child: Consumer<AuthViewModel>(
         builder: (context, vm, _) {
-          return Scaffold(
-            body: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              child: PageView(
-                key: ValueKey(_currentPage),
+          return PopScope(
+            canPop: false,
+            onPopInvoked: (didPop) async {
+              if (didPop) return;
+
+              if (_currentPage == 0) {
+                final shouldExit = await vm.handleDoubleBackPress(context);
+                if (shouldExit) {
+                  SystemNavigator.pop();
+                }
+              }
+            },
+            child: Scaffold(
+              body: PageView(
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (index) => setState(() => _currentPage = index),
                 children: [
                   SelectTeamView(onNext: _nextPage),
-                  NicknameInputView(onNext: _nextPage),
-                  WelcomeView(onNext: _nextPage),
+                  NicknameInputView(onNext: _nextPage, onBack: _previousPage),
+                  WelcomeView(
+                    onNext:
+                        () => Navigator.pushReplacementNamed(
+                          context,
+                          Routes.main,
+                        ),
+                  ),
                 ],
               ),
             ),

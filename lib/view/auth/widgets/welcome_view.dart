@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:seungyo/model/team_data.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
-import 'package:seungyo/widgets/app_title_bar.dart';
 
 class WelcomeView extends StatefulWidget {
   final VoidCallback onNext;
@@ -19,6 +17,7 @@ class _WelcomeViewState extends State<WelcomeView> {
   @override
   void initState() {
     super.initState();
+    context.read<AuthViewModel>().loadSavedData();
     _startCountdown();
   }
 
@@ -36,16 +35,16 @@ class _WelcomeViewState extends State<WelcomeView> {
     final vm = context.watch<AuthViewModel>();
     final team = vm.team ?? '구단';
     final nickname = vm.nickname ?? '승요';
-    final teamInfo = TeamData.getByName(team);
 
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
-        appBar: const AppTitleBar(
-          center: Text(
-            '회원가입 완료',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+        appBar: AppBar(
+          title: const Text('회원가입 완료'),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
         ),
         body: SafeArea(
           child: Center(
@@ -54,8 +53,7 @@ class _WelcomeViewState extends State<WelcomeView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 128),
-                  // 엠블럼 생략
+                  const SizedBox(height: 64),
                   const SizedBox(height: 16),
                   Text(
                     '$team 승요\n$nickname님!',
@@ -70,7 +68,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                   ),
                   const SizedBox(height: 50),
                   Text(
-                    '$_countdown',
+                    '${_countdown}sec',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
