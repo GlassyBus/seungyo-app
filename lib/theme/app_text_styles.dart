@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppTextStyles {
+  static const String fontFamily = 'KBO';
+
   static const double _letterSpacing2 = -0.02;
   static const double _letterSpacing3 = -0.03;
 
@@ -9,7 +11,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     height: 1.2,
     letterSpacing: _letterSpacing2,
-    fontFamily: 'KBO',
+    fontFamily: fontFamily,
   );
 
   static const TextStyle h2 = TextStyle(
@@ -17,7 +19,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     height: 1.2,
     letterSpacing: _letterSpacing2,
-    fontFamily: 'KBO',
+    fontFamily: fontFamily,
   );
 
   static const TextStyle h3 = TextStyle(
@@ -25,7 +27,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     height: 1.3,
     letterSpacing: _letterSpacing2,
-    fontFamily: 'KBO',
+    fontFamily: fontFamily,
   );
 
   static const TextStyle subtitle1 = TextStyle(
@@ -33,7 +35,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     height: 1.4,
     letterSpacing: _letterSpacing2,
-    fontFamily: 'KBO',
+    fontFamily: fontFamily,
   );
 
   static const TextStyle subtitle2 = TextStyle(
@@ -41,7 +43,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     height: 1.4,
     letterSpacing: _letterSpacing3,
-    fontFamily: 'KBO',
+    fontFamily: fontFamily,
   );
 
   static const TextStyle body1 = TextStyle(
@@ -49,7 +51,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w700,
     height: 1.4,
     letterSpacing: _letterSpacing3,
-    fontFamily: 'KBO',
+    fontFamily: fontFamily,
   );
 
   static const TextStyle body2 = TextStyle(
@@ -57,7 +59,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     height: 1.4,
     letterSpacing: _letterSpacing3,
-    fontFamily: 'KBO',
+    fontFamily: fontFamily,
   );
 
   static const TextStyle body3 = TextStyle(
@@ -65,7 +67,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     height: 1.4,
     letterSpacing: _letterSpacing3,
-    fontFamily: 'KBO',
+    fontFamily: fontFamily,
   );
 
   static const TextStyle caption = TextStyle(
@@ -73,6 +75,22 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     height: 1.4,
     letterSpacing: _letterSpacing3,
-    fontFamily: 'KBO',
+    fontFamily: fontFamily,
+  );
+
+  static const TextStyle button1 = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    height: 1.4,
+    letterSpacing: _letterSpacing3,
+    fontFamily: fontFamily,
+  );
+
+  static const TextStyle button2 = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    height: 1.4,
+    letterSpacing: _letterSpacing3,
+    fontFamily: fontFamily,
   );
 }
