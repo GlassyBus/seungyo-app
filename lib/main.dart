@@ -10,23 +10,28 @@ import 'package:seungyo/view/main/main_screen.dart';
 import 'package:seungyo/view/splash/splash_screen.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
 import 'package:seungyo/viewmodel/splash_vm.dart';
+import 'package:seungyo/theme/theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
+      statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: Colors.white,
+      systemNavigationBarContrastEnforced: false,
+      systemNavigationBarDividerColor: Colors.transparent,
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
 
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  // 앱 전체에서 사용할 최대 너비 상수
+  static const double maxServiceWidth = 540.0;
+
   const MyApp({super.key});
 
   @override
@@ -38,31 +43,25 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: '승요',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          fontFamily: 'KBO',
-          scaffoldBackgroundColor: Colors.white,
-          // appBarTheme: const AppBarTheme(
-          //   backgroundColor: Colors.white,
-          //   iconTheme: IconThemeData(color: Colors.black),
-          //   titleTextStyle: TextStyle(
-          //     color: Colors.black,
-          //     fontSize: 20,
-          //     fontWeight: FontWeight.bold,
-          //   ),
-          //   elevation: 0,
-          // ),
-        ),
+        theme: createLightTheme(),
+        darkTheme: createDarkTheme(),
+        // 앱 전체의 최대 너비 제한을 적용하는 builder
+        builder: (context, child) {
+          return Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: maxServiceWidth),
+              child: child!,
+            ),
+          );
+        },
+        themeMode: ThemeMode.light,
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        supportedLocales: const [
-          Locale('ko'),
-          // Locale('en'), // 나중에 영어 추가 시
-        ],
+        supportedLocales: const [Locale('ko')],
         locale: const Locale('ko'),
         initialRoute: Routes.splash,
         routes: {
