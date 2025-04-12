@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:seungyo/constants/team_data.dart';
-import 'package:seungyo/components/team_button.dart';
-import 'package:seungyo/components/next_button.dart';
+import 'package:seungyo/components/primary_button.dart';
 import 'package:seungyo/components/title_header.dart';
+import 'package:seungyo/view/auth/widgets/components/team_button.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
 
 /// 팀 선택 화면 위젯
@@ -133,7 +133,10 @@ class _SelectTeamViewState extends State<SelectTeamView> {
         _horizontalPadding,
         8,
       ),
-      child: NextButton(onTap: widget.onNext, isEnabled: vm.team != null),
+      child: PrimaryButton.next(
+        onTap: widget.onNext,
+        isEnabled: vm.team != null,
+      ),
     );
   }
 }

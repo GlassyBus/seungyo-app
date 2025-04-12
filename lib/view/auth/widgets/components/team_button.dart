@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:seungyo/constants/team_data.dart';
 
-/// 팀 선택 버튼 컴포넌트
+/// 팀 선택 화면에서 사용하는 팀 버튼 컴포넌트
 ///
-/// 사용자가 팀을 선택할 수 있는 원형 버튼을 제공합니다.
+/// 사용자가 응원하는 팀을 선택할 수 있는 원형 버튼을 제공합니다.
+/// 선택된 팀은 강조 색상과 밑줄로 표시됩니다.
+///
 /// [team]은 표시할 팀 정보, [isSelected]는 선택 상태, [onTap]은 클릭 이벤트 핸들러입니다.
 class TeamButton extends StatelessWidget {
   /// 표시할 팀 정보
@@ -80,7 +82,11 @@ class TeamButton extends StatelessWidget {
                   border: Border.all(color: borderColor, width: borderWidth),
                 ),
                 child: Center(
-                  child: Image.asset(team.emblem, fit: BoxFit.none),
+                  child: Image.asset(
+                    team.emblem,
+                    fit: BoxFit.none,
+                    semanticLabel: '${team.name} 팀 엠블럼',
+                  ),
                 ),
               ),
 
