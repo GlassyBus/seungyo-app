@@ -45,7 +45,7 @@ class _AuthScreenState extends State<AuthScreen> {
         builder: (context, vm, _) {
           return PopScope(
             canPop: false,
-            onPopInvoked: (didPop) async {
+            onPopInvokedWithResult: (bool didPop, dynamic result) async {
               if (didPop) return;
 
               if (_currentPage == 0) {
@@ -63,13 +63,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 children: [
                   SelectTeamView(onNext: _nextPage),
                   NicknameInputView(onNext: _nextPage, onBack: _previousPage),
-                  WelcomeView(
-                    onNext:
-                        () => Navigator.pushReplacementNamed(
-                          context,
-                          Routes.main,
-                        ),
-                  ),
+                  WelcomeView(onNext: () => Navigator.pushReplacementNamed(context, Routes.main)),
                 ],
               ),
             ),

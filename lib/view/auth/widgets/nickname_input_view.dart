@@ -6,11 +6,7 @@ class NicknameInputView extends StatefulWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
 
-  const NicknameInputView({
-    super.key,
-    required this.onNext,
-    required this.onBack,
-  });
+  const NicknameInputView({super.key, required this.onNext, required this.onBack});
 
   @override
   State<NicknameInputView> createState() => _NicknameInputViewState();
@@ -44,7 +40,7 @@ class _NicknameInputViewState extends State<NicknameInputView> {
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (!didPop) {
           FocusScope.of(context).unfocus();
           widget.onBack();
@@ -103,9 +99,7 @@ class _NicknameInputViewState extends State<NicknameInputView> {
                       widget.onNext();
                     }
                     : null,
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-            ),
+            style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
             child: const Text('등록 완료'),
           ),
         ),
