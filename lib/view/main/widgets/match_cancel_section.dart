@@ -40,7 +40,7 @@ class MatchCancelSection extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 실제 적용시: Image.asset('assets/images/cancel_baseball.png', height: 120),
+                Image.asset('assets/images/umbrella-120px.png', height: 120),
                 const SizedBox(height: 16),
                 Text(
                   '우천으로 취소되었어요.',
