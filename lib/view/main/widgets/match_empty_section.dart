@@ -22,7 +22,7 @@ class MatchEmptySection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '2025. 04. 07(월)',
+            '2025. 04. 13(일)',
             style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: AppColors.navy,
@@ -40,10 +40,10 @@ class MatchEmptySection extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 실제 적용시: Image.asset('assets/images/empty_baseball.png', height: 120),
+                Image.asset('assets/images/break-time-120px.png', height: 120),
                 const SizedBox(height: 16),
                 Text(
-                  '경기가 없는 날이에요.',
+                  '경기가 없어요.',
                   style: textTheme.titleMedium?.copyWith(
                     color: AppColors.navy,
                     fontWeight: FontWeight.bold,
@@ -51,10 +51,10 @@ class MatchEmptySection extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
-                  '일주일에 하루밖에 없는 화나지 않는 날',
-                  style: textTheme.bodyLarge?.copyWith(
+                  '다른 날짜를 확인해보세요.',
+                  style: textTheme.bodyMedium?.copyWith(
                     color: AppColors.gray60,
                     fontSize: 16,
                   ),

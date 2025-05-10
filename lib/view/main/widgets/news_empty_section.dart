@@ -31,7 +31,7 @@ class NewsEmptySection extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 실제 적용시: Image.asset('assets/images/empty_news.png', height: 100),
+                Image.asset('assets/images/silent-120px.png', height: 120),
                 const SizedBox(height: 16),
                 Text(
                   '소식이 없어요.',
