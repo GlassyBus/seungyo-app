@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:seungyo/constants/team_data.dart';
 import 'package:seungyo/repository/auth_repository.dart';
 
 class AuthViewModel extends ChangeNotifier {
@@ -12,6 +13,13 @@ class AuthViewModel extends ChangeNotifier {
   String? get team => _team;
 
   String? get nickname => _nickname;
+
+  // team 코드에 해당하는 팀 이름을 반환하는 getter
+  String? get teamName {
+    if (_team == null) return null;
+    final teamData = TeamData.getByCode(_team!);
+    return teamData?.name;
+  }
 
   void selectTeam(String? team) {
     _team = team;
@@ -37,8 +45,7 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<bool> handleDoubleBackPress(BuildContext context) async {
     final now = DateTime.now();
-    if (_lastBackPressTime == null ||
-        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+    if (_lastBackPressTime == null || now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
       _lastBackPressTime = now;
       Fluttertoast.showToast(msg: '뒤로 버튼을 한 번 더 누르면 앱이 종료됩니다');
       return false;
