@@ -8,7 +8,6 @@ class NewsMocks {
       title: "'전 NC' 하트, 5시즌 만에 빅리그 복귀해 MLB 첫 승리",
       description:
           "샌디에이고 유니폼 입고 치른 첫 경기서 5이닝 2실점 2024년 한국프로야구 KBO리그 투수 부문 골든글러브 수상자인 카일 하트(32·샌디에이고... KBO리그는 빅리그 복귀를 위한 지렛대였다.",
-      imageUrl: 'assets/images/news1.png',
       sourceUrl: 'https://example.com/news/1',
       publishedDate: DateTime(2024, 4, 5),
     ),
@@ -16,7 +15,6 @@ class NewsMocks {
       title: "\"2030세대가 푹 빠졌다\"…티빙, 'KBO 리그' 개막에 야구팬 몰려",
       description:
           "정규 시즌이 시작되기도 전에 팬들의 관심은 이미 달아올랐다. 올해 KBO 리그 시범경기 시청 UV는 전년 대비 15% 증가,",
-      imageUrl: 'assets/images/news2.png',
       sourceUrl: 'https://example.com/news/2',
       publishedDate: DateTime(2024, 4, 4),
     ),
@@ -24,7 +22,6 @@ class NewsMocks {
       title: "'창원의 비극' 슬픔 함께한 KBO리그…팬들도 '응원 자제'",
       description:
           "2024 한국시리즈 리턴매치다. 지난해에는 KIA가 12승4패로 압도했다. KIA는 이 분위기를 잇고 싶다. 삼성은 반을 원한다.",
-      imageUrl: 'assets/images/news3.png',
       sourceUrl: 'https://example.com/news/3',
       publishedDate: DateTime(2024, 4, 3),
     ),
