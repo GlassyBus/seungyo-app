@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// 뉴스 항목 모델
 class NewsItem {
   /// 뉴스 제목
