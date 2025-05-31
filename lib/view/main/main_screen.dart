@@ -9,6 +9,7 @@ import 'components/record_stats_component.dart';
 import 'repository/game_repository.dart';
 import 'repository/news_repository.dart';
 import 'repository/user_repository.dart';
+import 'package:seungyo/view/record/record_screen.dart';
 
 /// 메인 스크린
 ///
@@ -106,12 +107,15 @@ class _MainScreenState extends State<MainScreen> {
         currentIndex: _currentTabIndex,
         onTabChanged: _handleTabChanged,
       ),
-      // 테스트용 버튼 추가 (화면 상태 변경을 위한 임시 기능)
-      floatingActionButton: FloatingActionButton(
-        onPressed: _onTestButtonPressed,
-        tooltip: '테스트 날짜 변경',
-        child: const Icon(Icons.calendar_today),
-      ),
+      // 기록 탭이 아닐 때만 테스트용 FloatingActionButton 표시
+      floatingActionButton:
+          _currentTabIndex != 1
+              ? FloatingActionButton(
+                onPressed: _onTestButtonPressed,
+                tooltip: '테스트 날짜 변경',
+                child: const Icon(Icons.calendar_today),
+              )
+              : null,
     );
   }
 
@@ -179,12 +183,7 @@ class _MainScreenState extends State<MainScreen> {
 
   /// 기록 탭
   Widget _buildRecordTab() {
-    return const Center(
-      child: Text(
-        '기록 탭 준비 중...',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-      ),
-    );
+    return const RecordListPage();
   }
 
   /// 일정 탭

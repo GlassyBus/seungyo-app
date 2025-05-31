@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:seungyo/routes.dart';
 import 'package:seungyo/view/auth/auth_screen.dart';
@@ -10,8 +11,11 @@ import 'package:seungyo/viewmodel/auth_vm.dart';
 import 'package:seungyo/viewmodel/splash_vm.dart';
 import 'package:seungyo/theme/theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 한국어 locale 데이터 초기화
+  await initializeDateFormatting('ko_KR', null);
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
