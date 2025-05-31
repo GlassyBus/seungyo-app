@@ -9,6 +9,7 @@ import 'package:seungyo/view/main/main_screen.dart';
 import 'package:seungyo/view/splash/splash_screen.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
 import 'package:seungyo/viewmodel/splash_vm.dart';
+import 'package:seungyo/providers/schedule_provider.dart';
 import 'package:seungyo/theme/theme.dart';
 
 void main() async {
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SplashViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => ScheduleProvider()),
       ],
       child: MaterialApp(
         title: '승요',

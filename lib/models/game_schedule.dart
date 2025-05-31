@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:seungyo/models/game_record.dart';
 
 /// 게임 상태 열거형
 enum GameStatus {
@@ -45,6 +46,23 @@ class GameSchedule extends Equatable {
   /// 게임 날짜 (시간 제외)
   DateTime get gameDate =>
       DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+  /// 경기 결과 (종료된 경기에 대해서만)
+  GameResult get result {
+    if (status != GameStatus.finished ||
+        homeScore == null ||
+        awayScore == null) {
+      throw StateError('경기가 종료되지 않았거나 점수가 없습니다');
+    }
+
+    if (homeScore! > awayScore!) {
+      return GameResult.win;
+    } else if (homeScore! < awayScore!) {
+      return GameResult.lose;
+    } else {
+      return GameResult.draw;
+    }
+  }
 
   /// 복사본 생성
   GameSchedule copyWith({

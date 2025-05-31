@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import '../schedules/schedules_screen.dart';
 import 'components/footer_component.dart';
 import 'components/games_today_component.dart';
 import 'components/header_component.dart';
@@ -188,12 +189,7 @@ class _MainScreenState extends State<MainScreen> {
 
   /// 일정 탭
   Widget _buildScheduleTab() {
-    return const Center(
-      child: Text(
-        '일정 탭 준비 중...',
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-      ),
-    );
+    return const SchedulePage();
   }
 
   /// 게임 탭 이벤트 핸들러

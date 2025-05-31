@@ -48,59 +48,72 @@ class _RecordListPageState extends State<RecordListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: AppColors.gray5,
-      appBar: _buildAppBar(),
-      body: _isLoading ? _buildLoadingState() : _buildContent(),
+      backgroundColor: colorScheme.surfaceContainer,
+      appBar: _buildAppBar(context),
+      body: _isLoading ? _buildLoadingState(context) : _buildContent(context),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return AppBar(
-      backgroundColor: AppColors.gray5,
+      backgroundColor: colorScheme.surfaceContainer,
       elevation: 0,
       title: Text(
         '직관 기록',
-        style: TextStyle(
-          color: AppColors.black,
-          fontSize: 20,
+        style: textTheme.titleLarge?.copyWith(
+          color: colorScheme.onSurface,
           fontWeight: FontWeight.w600,
         ),
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.add, color: AppColors.black),
+          icon: Icon(Icons.add, color: colorScheme.onSurface),
           onPressed: _handleAdd,
         ),
       ],
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildLoadingState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: AppColors.navy),
+          CircularProgressIndicator(color: colorScheme.primary),
           const SizedBox(height: 16),
           Text(
             '기록을 불러오는 중...',
-            style: TextStyle(color: AppColors.gray70, fontSize: 16),
+            style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     return Column(
-      children: [_buildFilterSection(), Expanded(child: _buildRecordsList())],
+      children: [
+        _buildFilterSection(context),
+        Expanded(child: _buildRecordsList()),
+      ],
     );
   }
 
-  Widget _buildFilterSection() {
+  Widget _buildFilterSection(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
-      color: AppColors.navy.withOpacity(0.3),
+      color: colorScheme.secondaryContainer,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
@@ -114,25 +127,34 @@ class _RecordListPageState extends State<RecordListPage> {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: _showOnlyFavorites ? AppColors.navy : Colors.white,
+                color:
+                    _showOnlyFavorites
+                        ? colorScheme.primary
+                        : colorScheme.surface,
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
-                  color: _showOnlyFavorites ? AppColors.navy : AppColors.gray30,
+                  color:
+                      _showOnlyFavorites
+                          ? colorScheme.primary
+                          : colorScheme.outline,
                   width: 2,
                 ),
               ),
               child:
                   _showOnlyFavorites
-                      ? Icon(Icons.check, color: Colors.white, size: 16)
+                      ? Icon(
+                        Icons.check,
+                        color: colorScheme.onPrimary,
+                        size: 16,
+                      )
                       : null,
             ),
           ),
           const SizedBox(width: 8),
           Text(
             '하트만 보기',
-            style: TextStyle(
-              color: AppColors.black,
-              fontSize: 16,
+            style: textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSecondaryContainer,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -164,6 +186,9 @@ class _RecordListPageState extends State<RecordListPage> {
   }
 
   Widget _buildEmptyState() {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -171,14 +196,13 @@ class _RecordListPageState extends State<RecordListPage> {
           Icon(
             Icons.sports_baseball_outlined,
             size: 80,
-            color: AppColors.gray70,
+            color: colorScheme.outline,
           ),
           const SizedBox(height: 24),
           Text(
             _showOnlyFavorites ? '즐겨찾기한 기록이 없습니다' : '아직 기록이 없습니다',
-            style: TextStyle(
-              color: AppColors.black,
-              fontSize: 20,
+            style: textTheme.headlineSmall?.copyWith(
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -186,8 +210,8 @@ class _RecordListPageState extends State<RecordListPage> {
           Text(
             _showOnlyFavorites
                 ? '기록에 하트를 눌러 즐겨찾기에 추가해보세요!'
-                : '우측 하단의 + 버튼을 눌러 첫 기록을 추가해보세요!',
-            style: TextStyle(color: AppColors.gray70, fontSize: 16),
+                : '상단의 + 버튼을 눌러 첫 기록을 추가해보세요!',
+            style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline),
             textAlign: TextAlign.center,
           ),
         ],

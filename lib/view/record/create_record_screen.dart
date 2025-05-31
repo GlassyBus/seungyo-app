@@ -5,8 +5,6 @@ import 'dart:io';
 import '../../models/game_record_form.dart';
 import '../../models/game_record.dart';
 import '../../theme/app_colors.dart';
-import '../../theme/app_text_styles.dart';
-import '../../constants/team_data.dart';
 import 'widgets/date_time_picker_modal.dart';
 import 'widgets/score_input_modal.dart';
 import 'widgets/stadium_picker_modal.dart';
@@ -81,7 +79,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             : IconButton(
               icon: Icon(
                 Icons.check,
-                color: _canSave() ? colorScheme.primary : AppColors.gray30,
+                color: _canSave() ? colorScheme.primary : colorScheme.outline,
               ),
               onPressed: _canSave() ? _handleSave : null,
             ),
@@ -124,9 +122,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         width: double.infinity,
         height: 200,
         decoration: BoxDecoration(
-          color: AppColors.gray10,
+          color: colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.gray20),
+          border: Border.all(color: colorScheme.outline),
         ),
         child:
             _isImageLoading
@@ -138,7 +136,10 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                       const SizedBox(height: 16),
                       Text(
                         '이미지 로딩 중...',
-                        style: TextStyle(color: AppColors.gray70, fontSize: 14),
+                        style: TextStyle(
+                          color: colorScheme.outline,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
@@ -154,12 +155,15 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                     Icon(
                       Icons.add_photo_alternate_outlined,
                       size: 48,
-                      color: AppColors.gray50,
+                      color: colorScheme.outline,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '사진 추가',
-                      style: TextStyle(color: AppColors.gray50, fontSize: 16),
+                      style: TextStyle(
+                        color: colorScheme.outline,
+                        fontSize: 16,
+                      ),
                     ),
                   ],
                 ),
@@ -197,14 +201,15 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     VoidCallback onTap,
     TextTheme textTheme,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isPlaceholder = value.contains('선택해주세요') || value.contains('입력해주세요');
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.gray20)),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
         ),
         child: Row(
           children: [
@@ -212,7 +217,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
               width: 60,
               child: Text(
                 label,
-                style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.outline,
+                ),
               ),
             ),
             const SizedBox(width: 20),
@@ -220,11 +227,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
               child: Text(
                 value,
                 style: textTheme.bodyLarge?.copyWith(
-                  color: isPlaceholder ? AppColors.gray50 : null,
+                  color: isPlaceholder ? colorScheme.outline : null,
                 ),
               ),
             ),
-            Icon(Icons.chevron_right, color: AppColors.gray50),
+            Icon(Icons.chevron_right, color: colorScheme.outline),
           ],
         ),
       ),
@@ -232,10 +239,12 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   Widget _buildSeatInput(TextTheme textTheme) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.gray20)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
@@ -243,7 +252,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             width: 60,
             child: Text(
               '좌석',
-              style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70),
+              style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline),
             ),
           ),
           const SizedBox(width: 20),
@@ -253,7 +262,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
               decoration: InputDecoration(
                 hintText: '좌석을 입력해주세요.',
                 hintStyle: textTheme.bodyLarge?.copyWith(
-                  color: AppColors.gray50,
+                  color: colorScheme.outline,
                 ),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
@@ -277,14 +286,14 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       children: [
         Text(
           '경기 정보',
-          style: textTheme.titleLarge?.copyWith(color: AppColors.gray70),
+          style: textTheme.titleLarge?.copyWith(color: colorScheme.outline),
         ),
         const SizedBox(height: 16),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.navy5,
+            color: colorScheme.secondaryContainer,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -302,16 +311,18 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   Widget _buildTeamLabels(TextTheme textTheme) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           '응원팀',
-          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
+          style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
         ),
         Text(
           '상대팀',
-          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
+          style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
         ),
       ],
     );
@@ -340,13 +351,13 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                   color:
                       _form.homeScore != null
                           ? colorScheme.onSurface
-                          : AppColors.gray50,
+                          : colorScheme.outline,
                 ),
               ),
               Text(
                 ':',
                 style: textTheme.displayMedium?.copyWith(
-                  color: AppColors.gray50,
+                  color: colorScheme.outline,
                 ),
               ),
               Text(
@@ -355,7 +366,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                   color:
                       _form.awayScore != null
                           ? colorScheme.onSurface
-                          : AppColors.gray50,
+                          : colorScheme.outline,
                 ),
               ),
             ],
@@ -377,18 +388,20 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     VoidCallback onTap,
     TextTheme textTheme,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.navy,
+          color: colorScheme.primary,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
           teamName ?? '팀 선택',
           style: textTheme.bodyMedium?.copyWith(
-            color: Colors.white,
+            color: colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -397,6 +410,8 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   Widget _buildGameMinimumCheckbox(TextTheme textTheme) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         GestureDetector(
@@ -409,10 +424,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             width: 20,
             height: 20,
             decoration: BoxDecoration(
-              color: _isGameMinimum ? AppColors.navy : Colors.white,
+              color: _isGameMinimum ? colorScheme.primary : Colors.white,
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
-                color: _isGameMinimum ? AppColors.navy : AppColors.gray30,
+                color:
+                    _isGameMinimum ? colorScheme.primary : colorScheme.outline,
                 width: 2,
               ),
             ),
@@ -425,7 +441,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         const SizedBox(width: 8),
         Text(
           '경기최소',
-          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
+          style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
         ),
       ],
     );
@@ -437,7 +453,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       children: [
         Text(
           '코멘트',
-          style: textTheme.titleLarge?.copyWith(color: AppColors.gray70),
+          style: textTheme.titleLarge?.copyWith(color: colorScheme.outline),
         ),
         const SizedBox(height: 16),
         TextField(
@@ -445,7 +461,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
           focusNode: _commentFocusNode,
           decoration: InputDecoration(
             hintText: '코멘트를 남겨주세요.',
-            hintStyle: textTheme.bodyLarge?.copyWith(color: AppColors.gray50),
+            hintStyle: textTheme.bodyLarge?.copyWith(
+              color: colorScheme.outline,
+            ),
             border: InputBorder.none,
             contentPadding: EdgeInsets.zero,
           ),
@@ -479,7 +497,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       children: [
         Text(
           '기억에 남는 경기였나요?',
-          style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70),
+          style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline),
         ),
         const SizedBox(height: 16),
         GestureDetector(
