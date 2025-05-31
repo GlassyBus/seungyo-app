@@ -1,4 +1,4 @@
-import '../models/news_item.dart';
+import '../../../models/news_item.dart';
 import '../../../data/mocks/mocks.dart';
 
 /// 뉴스 데이터 접근을 위한 Repository

@@ -1,4 +1,4 @@
-import 'package:seungyo/view/main/models/news_item.dart';
+import 'package:seungyo/models/news_item.dart';
 
 /// 뉴스 관련 Mock 데이터
 class NewsMocks {
