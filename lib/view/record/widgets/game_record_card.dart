@@ -21,6 +21,7 @@ class GameRecordCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
@@ -31,11 +32,11 @@ class GameRecordCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              _buildGameImage(),
+              _buildGameImage(colorScheme),
               const SizedBox(width: 16),
-              Expanded(child: _buildGameInfo(textTheme)),
+              Expanded(child: _buildGameInfo(textTheme, colorScheme)),
               const SizedBox(width: 16),
-              _buildResultSection(textTheme),
+              _buildResultSection(textTheme, colorScheme),
             ],
           ),
         ),
@@ -43,14 +44,14 @@ class GameRecordCard extends StatelessWidget {
     );
   }
 
-  Widget _buildGameImage() {
+  Widget _buildGameImage(ColorScheme colorScheme) {
     return Stack(
       children: [
         Container(
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: AppColors.gray10,
+            color: colorScheme.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(8),
           ),
           child:
@@ -61,10 +62,11 @@ class GameRecordCard extends StatelessWidget {
                       record.imageUrl!,
                       fit: BoxFit.cover,
                       errorBuilder:
-                          (context, error, stackTrace) => _buildDefaultImage(),
+                          (context, error, stackTrace) =>
+                              _buildDefaultImage(colorScheme),
                     ),
                   )
-                  : _buildDefaultImage(),
+                  : _buildDefaultImage(colorScheme),
         ),
         if (onFavoriteToggle != null)
           Positioned(
@@ -80,7 +82,7 @@ class GameRecordCard extends StatelessWidget {
                 ),
                 child: Icon(
                   record.isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: record.isFavorite ? AppColors.negative : Colors.white,
+                  color: record.isFavorite ? colorScheme.error : Colors.white,
                   size: 12,
                 ),
               ),
@@ -90,17 +92,17 @@ class GameRecordCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDefaultImage() {
-    return Icon(Icons.sports_baseball, color: AppColors.gray50, size: 24);
+  Widget _buildDefaultImage(ColorScheme colorScheme) {
+    return Icon(Icons.sports_baseball, color: colorScheme.outline, size: 24);
   }
 
-  Widget _buildGameInfo(TextTheme textTheme) {
+  Widget _buildGameInfo(TextTheme textTheme, ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           DateFormatter.formatFullDateTime(record.dateTime),
-          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
+          style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
         ),
         const SizedBox(height: 4),
         Text(
@@ -113,7 +115,7 @@ class GameRecordCard extends StatelessWidget {
             Text(
               record.homeTeam.shortName,
               style: textTheme.bodyLarge?.copyWith(
-                color: AppColors.navy,
+                color: colorScheme.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -123,7 +125,7 @@ class GameRecordCard extends StatelessWidget {
             Text(
               record.awayTeam.shortName,
               style: textTheme.bodyLarge?.copyWith(
-                color: AppColors.navy,
+                color: colorScheme.primary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -133,8 +135,8 @@ class GameRecordCard extends StatelessWidget {
     );
   }
 
-  Widget _buildResultSection(TextTheme textTheme) {
-    final (resultColor, textColor) = _getResultColors();
+  Widget _buildResultSection(TextTheme textTheme, ColorScheme colorScheme) {
+    final (resultColor, textColor) = _getResultColors(colorScheme);
 
     return Column(
       children: [
@@ -161,14 +163,14 @@ class GameRecordCard extends StatelessWidget {
     );
   }
 
-  (Color, Color) _getResultColors() {
+  (Color, Color) _getResultColors(ColorScheme colorScheme) {
     switch (record.result) {
       case GameResult.win:
-        return (AppColors.mint, Colors.white);
+        return (colorScheme.secondary, colorScheme.onSecondary);
       case GameResult.lose:
-        return (AppColors.warning, Colors.white);
+        return (colorScheme.errorContainer, colorScheme.onErrorContainer);
       case GameResult.draw:
-        return (AppColors.gray40, AppColors.black);
+        return (colorScheme.surfaceContainerHigh, colorScheme.onSurface);
     }
   }
 }
