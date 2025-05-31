@@ -79,17 +79,53 @@ class GameSchedule extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        dateTime,
-        stadium,
-        homeTeam,
-        awayTeam,
-        homeTeamLogo,
-        awayTeamLogo,
-        homeScore,
-        awayScore,
-        status,
-        hasAttended,
-        attendedRecordId,
-      ];
+    id,
+    dateTime,
+    stadium,
+    homeTeam,
+    awayTeam,
+    homeTeamLogo,
+    awayTeamLogo,
+    homeScore,
+    awayScore,
+    status,
+    hasAttended,
+    attendedRecordId,
+  ];
+
+  /// JSON으로부터 GameSchedule 객체 생성
+  factory GameSchedule.fromJson(Map<String, dynamic> json) {
+    return GameSchedule(
+      id: json['id'],
+      dateTime: DateTime.parse(json['dateTime']),
+      stadium: json['stadium'],
+      homeTeam: json['homeTeam'],
+      awayTeam: json['awayTeam'],
+      homeTeamLogo: json['homeTeamLogo'],
+      awayTeamLogo: json['awayTeamLogo'],
+      homeScore: json['homeScore'],
+      awayScore: json['awayScore'],
+      status: GameStatus.values.firstWhere((e) => e.name == json['status']),
+      hasAttended: json['hasAttended'] ?? false,
+      attendedRecordId: json['attendedRecordId'],
+    );
+  }
+
+  /// GameSchedule 객체를 JSON으로 변환
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'dateTime': dateTime.toIso8601String(),
+      'stadium': stadium,
+      'homeTeam': homeTeam,
+      'awayTeam': awayTeam,
+      'homeTeamLogo': homeTeamLogo,
+      'awayTeamLogo': awayTeamLogo,
+      'homeScore': homeScore,
+      'awayScore': awayScore,
+      'status': status.name,
+      'hasAttended': hasAttended,
+      'attendedRecordId': attendedRecordId,
+    };
+  }
 }
