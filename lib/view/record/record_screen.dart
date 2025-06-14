@@ -3,6 +3,7 @@ import 'package:seungyo/mocks/mock_data.dart';
 import 'package:seungyo/widgets/custom_checkbox.dart';
 import 'package:seungyo/view/record/create_record_screen.dart';
 import 'package:seungyo/widgets/custom_app_bar.dart';
+import '../../mocks/mock_data.dart';
 import '../../models/game_record.dart';
 import 'record_detail_screen.dart';
 import 'widgets/game_record_card.dart';

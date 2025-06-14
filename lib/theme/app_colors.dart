@@ -61,7 +61,13 @@ class AppColors {
   static const Color gray90 = Color(0xFF4C4F5D);
   static const Color gray100 = Color(0xFF313345);
 
-  // === ColorScheme Light ===
+  // === Commonly used aliases for convenience ===
+  static const Color background = gray5;
+  static const Color primary = navy;
+  static const Color textPrimary = black;
+  static const Color textSecondary = gray70;
+  static const Color textTertiary = gray50;
+  static const Color border = gray30;
   static final ColorScheme lightColorScheme = ColorScheme(
     brightness: Brightness.light,
     // 기본 색상

@@ -162,6 +162,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       });
     } catch (e) {
       // 오류 발생 시 기본값 유지
+      print('Error loading home data: $e');
     } finally {
       setState(() {
         _isLoading = false;

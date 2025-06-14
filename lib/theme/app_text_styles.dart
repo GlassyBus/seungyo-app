@@ -93,4 +93,12 @@ class AppTextStyles {
     letterSpacing: _letterSpacing3,
     fontFamily: fontFamily,
   );
+
+  // === Common aliases for convenience ===
+  static const TextStyle titleLarge = h1;
+  static const TextStyle titleMedium = h2;
+  static const TextStyle titleSmall = h3;
+  static const TextStyle bodyLarge = body1;
+  static const TextStyle bodyMedium = body2;
+  static const TextStyle bodySmall = caption;
 }
