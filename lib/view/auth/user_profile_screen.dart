@@ -45,6 +45,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _loadUserData() async {
+    print('UserProfilePage: Loading user data...');
     setState(() {
       _isLoading = true;
     });
@@ -53,6 +54,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final profile = await _userService.getUserProfile();
       final team = await _userService.getUserFavoriteTeam();
 
+      print('UserProfilePage: Profile loaded - Nickname: ${profile.nickname}');
+      print('UserProfilePage: Team loaded - Name: ${team?.name}, Logo: ${team?.logo}');
+
       setState(() {
         _userProfile = profile;
         _favoriteTeam = team;
@@ -60,6 +64,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _nicknameController.text = profile.nickname;
       });
     } catch (e, stackTrace) {
+      print('UserProfilePage: Error loading user data: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('사용자 정보를 불러오는 중 오류가 발생했습니다: $e')));
       }
@@ -103,7 +108,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
         Navigator.of(context).pop(_hasChanges);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: ${e.toString()}')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: ${e.toString()}')));
+      }
     } finally {
       setState(() {
         _isSaving = false;
@@ -211,12 +218,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.gray20, width: 2),
               ),
-              child: Center(
-                child:
-                    _favoriteTeam != null
-                        ? Text(_favoriteTeam!.logo ?? '⚾', style: const TextStyle(fontSize: 32))
-                        : Icon(Icons.sports_baseball, size: 32, color: AppColors.gray50),
-              ),
+              child: ClipOval(child: Padding(padding: const EdgeInsets.all(16.0), child: _buildTeamLogo())),
             ),
             const SizedBox(width: 20),
             Expanded(
@@ -263,7 +265,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               hintStyle: textTheme.bodyLarge?.copyWith(color: AppColors.gray50),
             ),
             style: textTheme.bodyLarge,
-            maxLength: 20,
+            maxLength: 10,
             buildCounter: (context, {required currentLength, required isFocused, maxLength}) {
               return Text('$currentLength/$maxLength', style: textTheme.bodySmall?.copyWith(color: AppColors.gray50));
             },
@@ -307,5 +309,41 @@ class _UserProfilePageState extends State<UserProfilePage> {
         ),
       ),
     );
+  }
+
+  /// 팀 로고 빌드
+  Widget _buildTeamLogo() {
+    if (_favoriteTeam?.logo != null && _favoriteTeam!.logo!.isNotEmpty) {
+      if (_favoriteTeam!.logo!.startsWith('assets/')) {
+        // Assets 이미지
+        return Image.asset(
+          _favoriteTeam!.logo!,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            print('UserProfilePage: Error loading team logo: ${_favoriteTeam!.logo}');
+            return _buildFallbackLogo();
+          },
+        );
+      } else {
+        // 이모지나 다른 텍스트
+        return Center(child: Text(_favoriteTeam!.logo!, style: const TextStyle(fontSize: 32)));
+      }
+    } else {
+      return _buildFallbackLogo();
+    }
+  }
+
+  /// 대체 로고 (팀명 첫 글자 또는 기본 아이콘)
+  Widget _buildFallbackLogo() {
+    if (_favoriteTeam?.shortName != null && _favoriteTeam!.shortName.isNotEmpty) {
+      return Center(
+        child: Text(
+          _favoriteTeam!.shortName.substring(0, 1),
+          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.navy),
+        ),
+      );
+    } else {
+      return const Center(child: Icon(Icons.sports_baseball, size: 32, color: AppColors.navy));
+    }
   }
 }
