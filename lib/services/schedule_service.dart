@@ -38,27 +38,37 @@ class ScheduleService {
 
   // 특정 월의 경기 일정 가져오기
   Future<List<GameSchedule>> getSchedulesByMonth(int year, int month) async {
-    final allSchedules = await getAllSchedules();
-    return allSchedules
-        .where(
-          (schedule) =>
-              schedule.dateTime.year == year &&
-              schedule.dateTime.month == month,
-        )
-        .toList();
+    try {
+      final allSchedules = await getAllSchedules();
+      return allSchedules
+          .where(
+            (schedule) =>
+                schedule.dateTime.year == year &&
+                schedule.dateTime.month == month,
+          )
+          .toList();
+    } catch (e) {
+      print('Error getting schedules by month: $e');
+      return [];
+    }
   }
 
   // 특정 날짜의 경기 일정 가져오기
   Future<List<GameSchedule>> getSchedulesByDate(DateTime date) async {
-    final allSchedules = await getAllSchedules();
-    return allSchedules
-        .where(
-          (schedule) =>
-              schedule.dateTime.year == date.year &&
-              schedule.dateTime.month == date.month &&
-              schedule.dateTime.day == date.day,
-        )
-        .toList();
+    try {
+      final allSchedules = await getAllSchedules();
+      return allSchedules
+          .where(
+            (schedule) =>
+                schedule.dateTime.year == date.year &&
+                schedule.dateTime.month == date.month &&
+                schedule.dateTime.day == date.day,
+          )
+          .toList();
+    } catch (e) {
+      print('Error getting schedules by date: $e');
+      return [];
+    }
   }
 
   // 직관 기록과 경기 일정 연동
@@ -70,23 +80,23 @@ class ScheduleService {
 
       bool hasChanges = false;
 
-      for (var schedule in schedules) {
+      for (int i = 0; i < schedules.length; i++) {
+        final schedule = schedules[i];
+        
         // 같은 날짜, 같은 팀의 경기 찾기
-        final matchingRecords = records.where(
-          (record) =>
-              record.gameDate.year == schedule.dateTime.year &&
+        final matchingRecords = records.where((record) {
+          return record.gameDate.year == schedule.dateTime.year &&
               record.gameDate.month == schedule.dateTime.month &&
               record.gameDate.day == schedule.dateTime.day &&
               ((record.homeTeam.name == schedule.homeTeam &&
                       record.awayTeam.name == schedule.awayTeam) ||
                   (record.homeTeam.name == schedule.awayTeam &&
-                      record.awayTeam.name == schedule.homeTeam)),
-        );
+                      record.awayTeam.name == schedule.homeTeam));
+        }).toList();
 
         if (matchingRecords.isNotEmpty) {
           final matchingRecord = matchingRecords.first;
-          final index = schedules.indexOf(schedule);
-          schedules[index] = schedule.copyWith(
+          schedules[i] = schedule.copyWith(
             hasAttended: true,
             attendedRecordId: matchingRecord.id,
             homeScore: matchingRecord.homeScore,
@@ -118,8 +128,13 @@ class ScheduleService {
 
   // 로컬 파일 경로 가져오기
   Future<File> _getLocalFile() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return File('${directory.path}/$_fileName');
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      return File('${directory.path}/$_fileName');
+    } catch (e) {
+      print('Error getting local file: $e');
+      rethrow;
+    }
   }
 
   // 샘플 데이터 생성

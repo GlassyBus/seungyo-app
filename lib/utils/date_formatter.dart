@@ -33,15 +33,9 @@ class DateFormatter {
     }
   }
 
-  /// 날짜 포맷 (커스텀 패턴)
-  static String formatDate(DateTime dateTime, String pattern) {
-    try {
-      final formatter = DateFormat(pattern, 'ko_KR');
-      return formatter.format(dateTime);
-    } catch (e) {
-      // Fallback format
-      return '${dateTime.year}. ${dateTime.month.toString().padLeft(2, '0')}. ${dateTime.day.toString().padLeft(2, '0')}';
-    }
+  /// 기본 날짜 포맷 (예: 2024.03.15)
+  static String formatDate(DateTime dateTime) {
+    return formatDateOnly(dateTime);
   }
 
   /// 간단한 날짜 포맷 (예: 3월 15일)

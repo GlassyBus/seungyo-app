@@ -11,12 +11,16 @@ import 'package:seungyo/viewmodel/auth_vm.dart';
 import 'package:seungyo/viewmodel/splash_vm.dart';
 import 'package:seungyo/providers/schedule_provider.dart';
 import 'package:seungyo/theme/theme.dart';
+import 'package:seungyo/services/database_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 한국어 locale 데이터 초기화
   await initializeDateFormatting('ko_KR', null);
+
+  // 데이터베이스 초기화
+  await DatabaseService().initialize();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

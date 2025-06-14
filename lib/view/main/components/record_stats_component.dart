@@ -7,42 +7,26 @@ class RecordStatsComponent extends StatelessWidget {
   /// 섹션 제목
   final String title;
 
-  /// 총 경기 수
+  /// 통계 데이터
   final int totalGames;
-
-  /// 승리 수
   final int wins;
-
-  /// 무승부 수
   final int draws;
-
-  /// 패배 수
   final int losses;
-
-  /// 승률 (0 ~ 1)
   final double winRate;
 
   /// 생성자
   const RecordStatsComponent({
     Key? key,
     this.title = '지금까지 직관 기록은',
-    this.totalGames = 0,
-    this.wins = 0,
-    this.draws = 0,
-    this.losses = 0,
-    this.winRate = 0.0,
+    required this.totalGames,
+    required this.wins,
+    required this.draws,
+    required this.losses,
+    required this.winRate,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // 계산된 통계 데이터
-    final List<Map<String, String>> stats = [
-      {'label': '직관', 'value': totalGames.toString()},
-      {'label': '승리', 'value': wins.toString()},
-      {'label': '무', 'value': draws.toString()},
-      {'label': '패배', 'value': losses.toString()},
-    ];
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -61,20 +45,26 @@ class RecordStatsComponent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _buildStatsCards(stats),
+          _buildStatsCards(),
         ],
       ),
     );
   }
 
   /// 통계 카드들을 가로로 배열한 레이아웃을 빌드합니다.
-  Widget _buildStatsCards(List<Map<String, String>> stats) {
+  Widget _buildStatsCards() {
+    final List<Map<String, String>> statsData = [
+      {'label': '직관', 'value': totalGames.toString()},
+      {'label': '승리', 'value': wins.toString()},
+      {'label': '무승부', 'value': draws.toString()},
+      {'label': '패배', 'value': losses.toString()},
+    ];
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children:
-          stats
-              .map((stat) => _buildStatCard(stat['label']!, stat['value']!))
-              .toList(),
+      children: statsData
+          .map((stat) => _buildStatCard(stat['label']!, stat['value']!))
+          .toList(),
     );
   }
 
