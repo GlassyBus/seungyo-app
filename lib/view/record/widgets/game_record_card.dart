@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:seungyo/theme/app_text_styles.dart';
 import 'package:seungyo/utils/date_formatter.dart';
+
 import '../../../models/game_record.dart';
 import 'dotted_line_painter.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 /// 게임 기록 카드 위젯 - DB 데이터를 사용하여 모든 데이터를 props로 받음
 class GameRecordCard extends StatelessWidget {
@@ -64,10 +67,10 @@ class GameRecordCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // DB에서 photos 배열의 첫 번째 이미지 사용
+              // DB에서 photos 배열의 첫 번째 이미지 사용 (로컬 파일 경로)
               record.photos.isNotEmpty
-                  ? Image.network(
-                    record.photos.first,
+                  ? Image.file(
+                    File(record.photos.first),
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => _buildDefaultImagePlaceholder(),
                   )

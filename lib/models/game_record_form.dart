@@ -7,7 +7,8 @@ class GameRecordForm {
   final int? awayScore;
   final String? seatInfo;
   final String? comment;
-  final String? imagePath;
+  final String? imagePath; // 하위 호환성을 위해 유지
+  final List<String>? imagePaths; // 새로운 배열 필드
   final bool isFavorite;
   final bool canceled;
 
@@ -21,6 +22,7 @@ class GameRecordForm {
     this.seatInfo,
     this.comment,
     this.imagePath,
+    this.imagePaths,
     this.isFavorite = false,
     this.canceled = false,
   });
@@ -39,6 +41,7 @@ class GameRecordForm {
     String? seatInfo,
     String? comment,
     String? imagePath,
+    List<String>? imagePaths,
     bool? isFavorite,
     bool? canceled,
   }) {
@@ -52,6 +55,7 @@ class GameRecordForm {
       seatInfo: seatInfo ?? this.seatInfo,
       comment: comment ?? this.comment,
       imagePath: imagePath ?? this.imagePath,
+      imagePaths: imagePaths ?? this.imagePaths,
       isFavorite: isFavorite ?? this.isFavorite,
       canceled: canceled ?? this.canceled,
     );
@@ -68,6 +72,7 @@ class GameRecordForm {
       'seatInfo': seatInfo,
       'comment': comment,
       'imagePath': imagePath,
+      'imagePaths': imagePaths,
       'isFavorite': isFavorite,
       'canceled': canceled,
     };
@@ -84,6 +89,7 @@ class GameRecordForm {
       seatInfo: json['seatInfo'],
       comment: json['comment'],
       imagePath: json['imagePath'],
+      imagePaths: json['imagePaths']?.cast<String>(),
       isFavorite: json['isFavorite'] ?? false,
       canceled: json['canceled'] ?? false,
     );
