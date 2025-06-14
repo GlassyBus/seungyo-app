@@ -385,7 +385,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const UserProfilePage()),
-    );
+    ).then((hasChanges) {
+      // 변경사항이 있으면 홈 데이터 새로고침
+      if (hasChanges == true) {
+        _loadHomeData();
+      }
+    });
   }
 
   void _showNotificationSettings() {

@@ -20,17 +20,27 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Team? _favoriteTeam;
   bool _isLoading = true;
   bool _isSaving = false;
+  String _originalNickname = '';
+  bool _hasChanges = false;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _nicknameController.addListener(_onNicknameChanged);
   }
 
   @override
   void dispose() {
+    _nicknameController.removeListener(_onNicknameChanged);
     _nicknameController.dispose();
     super.dispose();
+  }
+
+  void _onNicknameChanged() {
+    setState(() {
+      // 텍스트 변경 시 UI 업데이트
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -45,6 +55,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       setState(() {
         _userProfile = profile;
         _favoriteTeam = team;
+        _originalNickname = profile.nickname;
         _nicknameController.text = profile.nickname;
       });
     } catch (e) {
@@ -61,22 +72,42 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Future<void> _saveChanges() async {
     if (_userProfile == null) return;
 
+    final newNickname = _nicknameController.text.trim();
+
+    // 빈 닉네임 체크
+    if (newNickname.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('닉네임을 입력해주세요')));
+      return;
+    }
+
     setState(() {
       _isSaving = true;
     });
 
     try {
-      await _userService.updateNickname(_nicknameController.text.trim());
+      final updatedProfile = await _userService.updateNickname(newNickname);
+
+      setState(() {
+        _userProfile = updatedProfile;
+        _originalNickname = newNickname;
+        _hasChanges = true;
+      });
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('변경사항이 저장되었습니다')));
 
-      Navigator.pop(context, true); // 변경사항이 있음을 알림
+      // 저장 완료 후 화면 닫기
+      if (mounted) {
+        Navigator.of(context).pop(_hasChanges);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
+      print('Save error: $e'); // 디버깅용 로그
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('저장 중 오류가 발생했습니다: ${e.toString()}')),
+      );
     } finally {
       setState(() {
         _isSaving = false;
@@ -98,6 +129,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         await _userService.updateFavoriteTeam(selectedTeam.id);
         await _loadUserData(); // 데이터 새로고침
 
+        setState(() {
+          _hasChanges = true;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('응원 구단이 ${selectedTeam.name}로 변경되었습니다')),
         );
@@ -114,19 +149,27 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text('정보 확인', style: textTheme.titleLarge),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
-          onPressed: () => Navigator.pop(context),
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pop(_hasChanges);
+        return false; // 기본 pop 동작 방지
+      },
+      child: Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: Text('정보 확인', style: textTheme.titleLarge),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+            onPressed: () {
+              Navigator.of(context).pop(_hasChanges);
+            },
+          ),
         ),
+        body:
+            _isLoading
+                ? _buildLoadingState()
+                : _buildContent(colorScheme, textTheme),
       ),
-      body:
-          _isLoading
-              ? _buildLoadingState()
-              : _buildContent(colorScheme, textTheme),
     );
   }
 
@@ -285,9 +328,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Widget _buildBottomButton(ColorScheme colorScheme, TextTheme textTheme) {
-    final hasChanges =
-        _userProfile != null &&
-        _nicknameController.text.trim() != _userProfile!.nickname;
+    final hasChanges = _nicknameController.text.trim() != _originalNickname;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -307,7 +348,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           ),
           child:
               _isSaving
-                  ? SizedBox(
+                  ? const SizedBox(
                     width: 24,
                     height: 24,
                     child: CircularProgressIndicator(

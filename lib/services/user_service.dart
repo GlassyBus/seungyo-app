@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 import '../models/team.dart';
 import '../mocks/data/mock_teams.dart';
 
 class UserService {
-  static const String _fileName = 'user_profile.json';
+  static const String _profileKey = 'user_profile';
 
   // 싱글톤 패턴 구현
   static final UserService _instance = UserService._internal();
@@ -28,15 +27,16 @@ class UserService {
   // 사용자 프로필 가져오기
   Future<UserProfile> getUserProfile() async {
     try {
-      final file = await _getLocalFile();
-      if (!await file.exists()) {
-        // 파일이 없으면 기본 프로필 생성 후 저장
+      final prefs = await SharedPreferences.getInstance();
+      final profileJson = prefs.getString(_profileKey);
+
+      if (profileJson == null) {
+        // 프로필이 없으면 기본 프로필 생성 후 저장
         await saveUserProfile(_defaultProfile);
         return _defaultProfile;
       }
 
-      final contents = await file.readAsString();
-      final json = jsonDecode(contents);
+      final json = jsonDecode(profileJson);
       return UserProfile.fromJson(json);
     } catch (e) {
       print('Error loading user profile: $e');
@@ -47,46 +47,70 @@ class UserService {
   // 사용자 프로필 저장
   Future<void> saveUserProfile(UserProfile profile) async {
     try {
-      final file = await _getLocalFile();
+      final prefs = await SharedPreferences.getInstance();
       final json = profile.toJson();
-      await file.writeAsString(jsonEncode(json));
-    } catch (e) {
+      final jsonString = jsonEncode(json);
+
+      print('Saving profile data: $jsonString'); // 디버깅용 로그
+
+      final success = await prefs.setString(_profileKey, jsonString);
+
+      if (success) {
+        print('Profile saved successfully'); // 디버깅용 로그
+      } else {
+        throw Exception('SharedPreferences 저장 실패');
+      }
+    } catch (e, stackTrace) {
       print('Error saving user profile: $e');
-      throw Exception('프로필 저장 중 오류가 발생했습니다');
+      print('Stack trace: $stackTrace');
+      throw Exception('프로필 저장 중 오류가 발생했습니다: ${e.toString()}');
     }
   }
 
   // 닉네임 업데이트
   Future<UserProfile> updateNickname(String nickname) async {
-    final currentProfile = await getUserProfile();
-    final updatedProfile = currentProfile.copyWith(
-      nickname: nickname,
-      updatedAt: DateTime.now(),
-    );
-    await saveUserProfile(updatedProfile);
-    return updatedProfile;
+    try {
+      print('Updating nickname to: $nickname'); // 디버깅용 로그
+
+      final currentProfile = await getUserProfile();
+      print('Current profile: ${currentProfile.toJson()}'); // 디버깅용 로그
+
+      final updatedProfile = currentProfile.copyWith(
+        nickname: nickname,
+        updatedAt: DateTime.now(),
+      );
+
+      print('Updated profile: ${updatedProfile.toJson()}'); // 디버깅용 로그
+
+      await saveUserProfile(updatedProfile);
+      return updatedProfile;
+    } catch (e, stackTrace) {
+      print('Error updating nickname: $e');
+      print('Stack trace: $stackTrace');
+      throw Exception('닉네임 업데이트 중 오류가 발생했습니다: ${e.toString()}');
+    }
   }
 
   // 응원 팀 업데이트
   Future<UserProfile> updateFavoriteTeam(String teamId) async {
-    final currentProfile = await getUserProfile();
-    final updatedProfile = currentProfile.copyWith(
-      favoriteTeamId: teamId,
-      updatedAt: DateTime.now(),
-    );
-    await saveUserProfile(updatedProfile);
-    return updatedProfile;
+    try {
+      final currentProfile = await getUserProfile();
+      final updatedProfile = currentProfile.copyWith(
+        favoriteTeamId: teamId,
+        updatedAt: DateTime.now(),
+      );
+      await saveUserProfile(updatedProfile);
+      return updatedProfile;
+    } catch (e, stackTrace) {
+      print('Error updating favorite team: $e');
+      print('Stack trace: $stackTrace');
+      throw Exception('응원 팀 업데이트 중 오류가 발생했습니다: ${e.toString()}');
+    }
   }
 
   // 사용자의 응원 팀 정보 가져오기
   Future<Team?> getUserFavoriteTeam() async {
     final profile = await getUserProfile();
     return MockTeams.findById(profile.favoriteTeamId);
-  }
-
-  // 로컬 파일 경로 가져오기
-  Future<File> _getLocalFile() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return File('${directory.path}/$_fileName');
   }
 }
