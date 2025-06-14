@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:seungyo/constants/team_data.dart';
+import 'package:seungyo/models/team.dart' as app_models;
+import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/theme/app_colors.dart';
 import 'package:seungyo/theme/app_text_styles.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
@@ -17,27 +18,64 @@ class WelcomeView extends StatefulWidget {
 class _WelcomeViewState extends State<WelcomeView> {
   int _countdown = 4;
 
+  // 팀 데이터 관련
+  List<app_models.Team> _teams = [];
+  app_models.Team? _selectedTeam;
+  bool _isLoadingTeams = true;
+
   @override
   void initState() {
     super.initState();
     context.read<AuthViewModel>().loadSavedData();
+    _loadTeams();
     _startCountdown();
+  }
+
+  Future<void> _loadTeams() async {
+    try {
+      print('WelcomeView: Loading teams from database...');
+      final teams = await DatabaseService().getTeamsAsAppModels();
+      print('WelcomeView: Loaded ${teams.length} teams');
+
+      setState(() {
+        _teams = teams;
+        _isLoadingTeams = false;
+      });
+
+      // 선택된 팀 찾기
+      final vm = context.read<AuthViewModel>();
+      if (vm.team != null && _teams.isNotEmpty) {
+        final selectedTeam = _teams.where((team) => team.id == vm.team).firstOrNull;
+        setState(() {
+          _selectedTeam = selectedTeam;
+        });
+        print('WelcomeView: Selected team - ${selectedTeam?.name}');
+      }
+    } catch (e) {
+      print('WelcomeView: Error loading teams: $e');
+      setState(() {
+        _isLoadingTeams = false;
+      });
+    }
   }
 
   Future<void> _startCountdown() async {
     while (_countdown > 1) {
       await Future.delayed(const Duration(seconds: 1));
-      setState(() => _countdown--);
+      if (mounted) {
+        setState(() => _countdown--);
+      }
     }
     await Future.delayed(const Duration(seconds: 1));
-    widget.onNext();
+    if (mounted) {
+      widget.onNext();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<AuthViewModel>();
-    final teamCode = vm.team ?? 'bears';
-    final teamName = vm.teamName ?? 'LG 트윈스';
+    final teamName = _selectedTeam?.name ?? 'LG 트윈스';
     final nickname = vm.nickname ?? 'LG승리요정';
 
     return PopScope(
@@ -75,10 +113,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                               border: Border.all(color: AppColors.gray30, width: 1),
                             ),
                             child: ClipOval(
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Image.asset(TeamData.getByCode(teamCode)?.emblem ?? '', fit: BoxFit.contain),
-                              ),
+                              child: Padding(padding: const EdgeInsets.all(20.0), child: _buildTeamLogo()),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -148,6 +183,43 @@ class _WelcomeViewState extends State<WelcomeView> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTeamLogo() {
+    if (_isLoadingTeams) {
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.navy));
+    }
+
+    if (_selectedTeam != null) {
+      if (_selectedTeam!.logo != null && _selectedTeam!.logo!.isNotEmpty) {
+        if (_selectedTeam!.logo!.startsWith('assets/')) {
+          return Image.asset(
+            _selectedTeam!.logo!,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildFallbackLogo();
+            },
+          );
+        } else {
+          // 이모지나 다른 텍스트
+          return Center(child: Text(_selectedTeam!.logo!, style: const TextStyle(fontSize: 40)));
+        }
+      } else {
+        return _buildFallbackLogo();
+      }
+    } else {
+      // 팀을 찾을 수 없는 경우 기본 아이콘
+      return const Center(child: Icon(Icons.sports_baseball, size: 40, color: AppColors.navy));
+    }
+  }
+
+  Widget _buildFallbackLogo() {
+    return Center(
+      child: Text(
+        _selectedTeam != null && _selectedTeam!.shortName.isNotEmpty ? _selectedTeam!.shortName.substring(0, 1) : '⚾',
+        style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.navy),
       ),
     );
   }

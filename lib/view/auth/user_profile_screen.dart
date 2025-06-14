@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../../models/team.dart';
 import '../../models/user_profile.dart';
 import '../../services/user_service.dart';
 import '../../theme/theme.dart';
-import 'team_selection_screen.dart';
+import 'widgets/select_team_view.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({Key? key}) : super(key: key);
@@ -61,9 +62,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
       });
     } catch (e, stackTrace) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('사용자 정보를 불러오는 중 오류가 발생했습니다: $e')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('사용자 정보를 불러오는 중 오류가 발생했습니다: $e')));
       }
     } finally {
       if (mounted) {
@@ -81,9 +80,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     // 빈 닉네임 체크
     if (newNickname.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('닉네임을 입력해주세요')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('닉네임을 입력해주세요')));
       return;
     }
 
@@ -100,18 +97,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _hasChanges = true;
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('변경사항이 저장되었습니다')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('변경사항이 저장되었습니다')));
 
       // 저장 완료 후 화면 닫기
       if (mounted) {
         Navigator.of(context).pop(_hasChanges);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('저장 중 오류가 발생했습니다: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: ${e.toString()}')));
     } finally {
       setState(() {
         _isSaving = false;
@@ -123,8 +116,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final selectedTeam = await Navigator.push<Team>(
       context,
       MaterialPageRoute(
-        builder:
-            (context) => TeamSelectionPage(currentTeamId: _favoriteTeam?.id),
+        builder: (context) => SelectTeamView(isStandalone: true, currentTeamId: _favoriteTeam?.id, title: '응원 구단 변경'),
       ),
     );
 
@@ -137,13 +129,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
           _hasChanges = true;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('응원 구단이 ${selectedTeam.name}로 변경되었습니다')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('응원 구단이 ${selectedTeam.name}로 변경되었습니다')));
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('구단 변경 중 오류가 발생했습니다: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('구단 변경 중 오류가 발생했습니다: $e')));
       }
     }
   }
@@ -169,10 +157,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             },
           ),
         ),
-        body:
-            _isLoading
-                ? _buildLoadingState()
-                : _buildContent(colorScheme, textTheme),
+        body: _isLoading ? _buildLoadingState() : _buildContent(colorScheme, textTheme),
       ),
     );
   }
@@ -182,14 +167,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
           const SizedBox(height: 16),
-          Text(
-            '사용자 정보를 불러오는 중...',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text('사용자 정보를 불러오는 중...', style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );
@@ -216,17 +196,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  Widget _buildFavoriteTeamSection(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
+  Widget _buildFavoriteTeamSection(ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '응원 구단',
-          style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70),
-        ),
+        Text('응원 구단', style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70)),
         const SizedBox(height: 16),
         Row(
           children: [
@@ -241,24 +215,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
               child: Center(
                 child:
                     _favoriteTeam != null
-                        ? Text(
-                          _favoriteTeam!.logo ?? '⚾',
-                          style: const TextStyle(fontSize: 32),
-                        )
-                        : Icon(
-                          Icons.sports_baseball,
-                          size: 32,
-                          color: AppColors.gray50,
-                        ),
+                        ? Text(_favoriteTeam!.logo ?? '⚾', style: const TextStyle(fontSize: 32))
+                        : Icon(Icons.sports_baseball, size: 32, color: AppColors.gray50),
               ),
             ),
             const SizedBox(width: 20),
             Expanded(
               child: Text(
                 _favoriteTeam?.name ?? '팀을 선택해주세요',
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(width: 16),
@@ -267,21 +232,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.navy,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
-              child: Text(
-                '변경',
-                style: textTheme.bodyLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: Text('변경', style: textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -293,10 +247,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '닉네임',
-          style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70),
-        ),
+        Text('닉네임', style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70)),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -314,16 +265,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ),
             style: textTheme.bodyLarge,
             maxLength: 20,
-            buildCounter: (
-              context, {
-              required currentLength,
-              required isFocused,
-              maxLength,
-            }) {
-              return Text(
-                '$currentLength/$maxLength',
-                style: textTheme.bodySmall?.copyWith(color: AppColors.gray50),
-              );
+            buildCounter: (context, {required currentLength, required isFocused, maxLength}) {
+              return Text('$currentLength/$maxLength', style: textTheme.bodySmall?.copyWith(color: AppColors.gray50));
             },
           ),
         ),
@@ -346,19 +289,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
             foregroundColor: Colors.white,
             disabledBackgroundColor: AppColors.gray30,
             disabledForegroundColor: AppColors.gray50,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           child:
               _isSaving
                   ? const SizedBox(
                     width: 24,
                     height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   )
                   : Text(
                     '변경 완료',
