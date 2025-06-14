@@ -19,7 +19,13 @@ class RecordDetailPage extends StatefulWidget {
 }
 
 class _RecordDetailPageState extends State<RecordDetailPage> {
-  bool isGameMinimum = true;
+  late bool isGameMinimum;
+
+  @override
+  void initState() {
+    super.initState();
+    isGameMinimum = widget.game.canceled;
+  }
 
   @override
   Widget build(BuildContext context) {
