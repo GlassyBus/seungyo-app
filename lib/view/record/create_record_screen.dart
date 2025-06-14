@@ -48,7 +48,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     _form = GameRecordForm();
     _loadStadiums();
     _loadTeams();
-    
+
     // 디버그: DB 상태 확인
     _debugDatabaseStatus();
   }
@@ -729,9 +729,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
     if (!_form.isValid) {
       print('CreateRecordScreen: Form isValid check failed');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'), backgroundColor: Colors.red),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'), backgroundColor: Colors.red));
       return;
     }
 
@@ -749,9 +749,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     } catch (e) {
       print('CreateRecordScreen: Error in _submitForm: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('기록 저장 중 오류가 발생했습니다: $e'), backgroundColor: Colors.red),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('기록 저장 중 오류가 발생했습니다: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) {

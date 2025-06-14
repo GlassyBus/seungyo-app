@@ -105,49 +105,48 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _loadHomeData() async {
+    print('MainScreen: Starting to load home data...');
     setState(() {
       _isLoading = true;
     });
 
     try {
+      print('MainScreen: Loading records from database...');
       final recordService = RecordService();
       final allRecords = await recordService.getAllRecords();
+      print('MainScreen: Loaded ${allRecords.length} records');
 
+      print('MainScreen: Loading user profile...');
       final userProfile = await _userService.getUserProfile();
       final favoriteTeam = await _userService.getUserFavoriteTeam();
+      print('MainScreen: User profile loaded - Nickname: ${userProfile.nickname}, Favorite team: ${favoriteTeam?.name}');
 
       // 오늘의 경기 데이터 로드
+      print('MainScreen: Loading today\'s games...');
       final today = DateTime.now();
       final todayGames = await _scheduleService.getSchedulesByDate(today);
+      print('MainScreen: Loaded ${todayGames.length} today\'s games');
 
       // 통계 계산 (경기 취소나 동점 제외)
-      final validRecords =
-          allRecords.where((record) {
-            return record.result == GameResult.win ||
-                record.result == GameResult.lose ||
-                record.result == GameResult.draw;
-          }).toList();
+      print('MainScreen: Calculating statistics...');
+      final validRecords = allRecords.where((record) {
+        return record.result == GameResult.win ||
+            record.result == GameResult.lose ||
+            record.result == GameResult.draw;
+      }).toList();
 
       final totalGames = validRecords.length;
-      final winCount =
-          validRecords
-              .where((record) => record.result == GameResult.win)
-              .length;
-      final drawCount =
-          validRecords
-              .where((record) => record.result == GameResult.draw)
-              .length;
-      final loseCount =
-          validRecords
-              .where((record) => record.result == GameResult.lose)
-              .length;
+      final winCount = validRecords.where((record) => record.result == GameResult.win).length;
+      final drawCount = validRecords.where((record) => record.result == GameResult.draw).length;
+      final loseCount = validRecords.where((record) => record.result == GameResult.lose).length;
+      
+      print('MainScreen: Statistics - Total: $totalGames, Win: $winCount, Draw: $drawCount, Lose: $loseCount');
 
       // 뉴스 데이터 로드 (응원 구단 키워드 포함)
+      print('MainScreen: Loading news...');
       final teamKeyword = favoriteTeam?.name ?? '두산';
-      final newsItems = await _newsService.getNewsByKeyword(
-        teamKeyword,
-        limit: 4,
-      );
+      final newsItems = await _newsService.getNewsByKeyword(teamKeyword, limit: 4);
+      print('MainScreen: Loaded ${newsItems.length} news items');
 
       setState(() {
         _allRecords = allRecords;
@@ -160,9 +159,22 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _favoriteTeam = favoriteTeam;
         _newsItems = newsItems;
       });
+      
+      print('MainScreen: Home data loaded successfully');
     } catch (e) {
-      // 오류 발생 시 기본값 유지
-      print('Error loading home data: $e');
+      print('MainScreen: Error loading home data: $e');
+      print('MainScreen: Error stack trace: ${StackTrace.current}');
+      
+      // 오류 발생 시에도 기본값으로라도 UI 표시
+      setState(() {
+        _allRecords = [];
+        _todayGames = [];
+        _totalGames = 0;
+        _winCount = 0;
+        _drawCount = 0;
+        _loseCount = 0;
+        _newsItems = [];
+      });
     } finally {
       setState(() {
         _isLoading = false;

@@ -60,10 +60,7 @@ class ProfileComponent extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FB),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFF7F8FB), borderRadius: BorderRadius.circular(12)),
       child: Row(
         children: [
           _buildTeamLogoImage(teamLogo),
@@ -82,10 +79,7 @@ class ProfileComponent extends StatelessWidget {
       height: 60,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        image: DecorationImage(
-          image: AssetImage(logoPath),
-          fit: BoxFit.contain,
-        ),
+        image: DecorationImage(image: AssetImage(logoPath), fit: BoxFit.contain),
         color: Colors.white,
         border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
       ),
@@ -113,10 +107,7 @@ class ProfileComponent extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.only(left: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFD700),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: BoxDecoration(color: const Color(0xFFFFD700), borderRadius: BorderRadius.circular(12)),
                 child: const Text(
                   'PREMIUM',
                   style: TextStyle(
@@ -149,10 +140,7 @@ class ProfileComponent extends StatelessWidget {
     return Container(
       width: 40,
       height: 40,
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Color(0xFF09004C),
-      ),
+      decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF09004C)),
       child: Center(
         child: Text(
           'Lv.$level',
