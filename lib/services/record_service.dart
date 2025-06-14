@@ -1,17 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+
 import 'package:drift/drift.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../database/database.dart';
-import '../models/game_record_form.dart';
 import '../models/game_record.dart';
+import '../models/game_record_form.dart';
 import '../services/database_service.dart';
 
 class RecordService {
   // 싱글톤 패턴 구현
   static final RecordService _instance = RecordService._internal();
+
   factory RecordService() => _instance;
+
   RecordService._internal();
 
   AppDatabase get _database => DatabaseService().database;
@@ -21,14 +24,14 @@ class RecordService {
     try {
       final dbRecords = await _database.getAllRecords();
       final gameRecords = <GameRecord>[];
-      
+
       for (final record in dbRecords) {
         final gameRecord = await DatabaseService().convertRecordToGameRecord(record);
         if (gameRecord != null) {
           gameRecords.add(gameRecord);
         }
       }
-      
+
       return gameRecords;
     } catch (e) {
       print('Error loading records: $e');
@@ -67,7 +70,7 @@ class RecordService {
   }
 
   // 특정 팀의 기록 가져오기
-  Future<List<Record>> getRecordsByTeam(int teamId) async {
+  Future<List<Record>> getRecordsByTeam(String teamId) async {
     try {
       return await _database.getRecordsByTeam(teamId);
     } catch (e) {
@@ -79,6 +82,11 @@ class RecordService {
   // 새 기록 추가
   Future<int> addRecord(GameRecordForm form) async {
     try {
+      // 필수 필드 검증
+      if (!form.isValid) {
+        throw Exception('필수 정보가 누락되었습니다.');
+      }
+
       // 이미지 파일 처리
       List<String> photosPaths = [];
       if (form.imagePath != null) {
@@ -90,16 +98,16 @@ class RecordService {
       final recordId = await _database.insertRecord(
         RecordsCompanion.insert(
           date: form.gameDateTime!,
-          stadiumId: form.stadiumId ?? 1, // 기본값 처리 필요
-          homeTeamId: form.homeTeamId ?? 1, // 기본값 처리 필요
-          awayTeamId: form.awayTeamId ?? 1, // 기본값 처리 필요
+          stadiumId: form.stadiumId!,
+          homeTeamId: form.homeTeamId!,
+          awayTeamId: form.awayTeamId!,
           homeScore: form.homeScore ?? 0,
           awayScore: form.awayScore ?? 0,
-          canceled: Value(false),
+          canceled: Value(form.canceled),
           seat: Value(form.seatInfo),
           comment: Value(form.comment),
           photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
-          isFavorite: Value(false),
+          isFavorite: Value(form.isFavorite),
         ),
       );
 
@@ -210,17 +218,13 @@ class RecordService {
   }
 
   // 통계 관련 메서드
-  Future<Map<String, int>> getStats(int myTeamId) async {
+  Future<Map<String, int>> getStats(String myTeamId) async {
     try {
       final winCount = await _database.getWinCount(myTeamId);
       final loseCount = await _database.getLoseCount(myTeamId);
       final totalCount = await _database.getTotalGameCount(myTeamId);
 
-      return {
-        'win': winCount,
-        'lose': loseCount,
-        'total': totalCount,
-      };
+      return {'win': winCount, 'lose': loseCount, 'total': totalCount};
     } catch (e) {
       print('Error getting stats: $e');
       return {'win': 0, 'lose': 0, 'total': 0};

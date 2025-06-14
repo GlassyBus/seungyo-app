@@ -1,9 +1,15 @@
+import 'dart:io';
+
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:seungyo/models/game_record_form.dart';
+import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/services/record_service.dart';
-import 'dart:io';
-import '../../models/game_record_form.dart';
+
 import '../../models/game_record.dart';
+import '../../models/stadium.dart' as app_models;
+import '../../models/team.dart' as app_models;
 import '../../theme/app_colors.dart';
 import 'widgets/date_time_picker_modal.dart';
 import 'widgets/score_input_modal.dart';
@@ -20,15 +26,67 @@ class CreateRecordScreen extends StatefulWidget {
 }
 
 class _CreateRecordScreenState extends State<CreateRecordScreen> {
-  final GameRecordForm _form = GameRecordForm();
+  final _formKey = GlobalKey<FormState>();
+  late RecordService _recordService;
+  late GameRecordForm _form;
   final TextEditingController _seatController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
   File? _selectedImage;
   bool _isMemorableGame = false;
   bool _isGameMinimum = false;
+  bool _isLoading = false;
   bool _isImageLoading = false;
   bool _isSaving = false;
+  List<app_models.Stadium> _stadiums = [];
+  List<app_models.Team> _teams = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _recordService = RecordService();
+    _form = GameRecordForm();
+    _loadStadiums();
+    _loadTeams();
+  }
+
+  Future<void> _loadStadiums() async {
+    try {
+      final stadiums = await DatabaseService().getStadiumsAsAppModels();
+      setState(() {
+        _stadiums = stadiums;
+      });
+    } catch (e) {
+      print('Error loading stadiums: $e');
+    }
+  }
+
+  Future<void> _loadTeams() async {
+    try {
+      final teams = await DatabaseService().getTeamsAsAppModels();
+      setState(() {
+        _teams = teams;
+      });
+    } catch (e) {
+      print('Error loading teams: $e');
+    }
+  }
+
+  String _getStadiumNameById(String stadiumId) {
+    final stadium = _stadiums.firstWhereOrNull((s) => s.id == stadiumId);
+    if (stadium != null) {
+      return stadium.name;
+    }
+    return stadiumId; // fallback to ID if stadium not found
+  }
+
+  String _getTeamNameById(String teamId) {
+    final team = _teams.firstWhereOrNull((t) => t.id == teamId);
+    if (team != null) {
+      return team.name;
+    }
+    return teamId; // fallback to ID if team not found
+  }
 
   @override
   void dispose() {
@@ -40,29 +98,29 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      resizeToAvoidBottomInset: true,
-      appBar: _buildAppBar(colorScheme, textTheme),
-      body: _buildBody(colorScheme, textTheme),
+    return WillPopScope(
+      onWillPop: () async {
+        _handleBackPress();
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        resizeToAvoidBottomInset: true,
+        appBar: _buildAppBar(),
+        body: _buildBody(),
+      ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
+  PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.close, color: colorScheme.onSurface),
+        icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface),
         onPressed: _handleBackPress,
       ),
-      title: Text('직관 기록 작성', style: textTheme.titleLarge),
+      title: Text('직관 기록 작성', style: Theme.of(context).textTheme.titleLarge),
       actions: [
         _isSaving
             ? Padding(
@@ -70,16 +128,13 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
               child: SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: colorScheme.primary,
-                ),
+                child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.primary),
               ),
             )
             : IconButton(
               icon: Icon(
                 Icons.check,
-                color: _canSave() ? colorScheme.primary : colorScheme.outline,
+                color: _canSave() ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
               ),
               onPressed: _canSave() ? _handleSave : null,
             ),
@@ -87,44 +142,45 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     );
   }
 
-  Widget _buildBody(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildBody() {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImageSection(colorScheme),
-            const SizedBox(height: 32),
-            _buildInfoSection(colorScheme, textTheme),
-            const SizedBox(height: 32),
-            _buildGameInfoSection(colorScheme, textTheme),
-            const SizedBox(height: 32),
-            _buildCommentSection(colorScheme, textTheme),
-            const SizedBox(height: 32),
-            _buildMemorableGameSection(colorScheme, textTheme),
-            // 키보드가 표시될 때 충분한 공간 확보
-            SizedBox(
-              height: MediaQuery.of(context).viewInsets.bottom > 0 ? 300 : 100,
-            ),
-          ],
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildImageSection(),
+              const SizedBox(height: 32),
+              _buildInfoSection(),
+              const SizedBox(height: 32),
+              _buildGameInfoSection(),
+              const SizedBox(height: 32),
+              _buildCommentSection(),
+              const SizedBox(height: 32),
+              _buildMemorableGameSection(),
+              // 키보드가 표시될 때 충분한 공간 확보
+              SizedBox(height: MediaQuery.of(context).viewInsets.bottom > 0 ? 300 : 100),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildImageSection(ColorScheme colorScheme) {
+  Widget _buildImageSection() {
     return GestureDetector(
       onTap: _showImagePicker,
       child: Container(
         width: double.infinity,
         height: 200,
         decoration: BoxDecoration(
-          color: colorScheme.surfaceContainer,
+          color: Theme.of(context).colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colorScheme.outline),
+          border: Border.all(color: Theme.of(context).colorScheme.outline),
         ),
         child:
             _isImageLoading
@@ -132,15 +188,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(color: colorScheme.primary),
+                      CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
                       const SizedBox(height: 16),
-                      Text(
-                        '이미지 로딩 중...',
-                        style: TextStyle(
-                          color: colorScheme.outline,
-                          fontSize: 14,
-                        ),
-                      ),
+                      Text('이미지 로딩 중...', style: TextStyle(color: Theme.of(context).colorScheme.outline, fontSize: 14)),
                     ],
                   ),
                 )
@@ -152,55 +202,36 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                 : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.add_photo_alternate_outlined,
-                      size: 48,
-                      color: colorScheme.outline,
-                    ),
+                    Icon(Icons.add_photo_alternate_outlined, size: 48, color: Theme.of(context).colorScheme.outline),
                     const SizedBox(height: 8),
-                    Text(
-                      '사진 추가',
-                      style: TextStyle(
-                        color: colorScheme.outline,
-                        fontSize: 16,
-                      ),
-                    ),
+                    Text('사진 추가', style: TextStyle(color: Theme.of(context).colorScheme.outline, fontSize: 16)),
                   ],
                 ),
       ),
     );
   }
 
-  Widget _buildInfoSection(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildInfoSection() {
     return Column(
       children: [
         _buildInfoRow(
           '일정',
-          _form.gameDateTime != null
-              ? _formatDateTime(_form.gameDateTime!)
-              : '날짜를 선택해주세요.',
+          _form.gameDateTime != null ? _formatDateTime(_form.gameDateTime!) : '날짜를 선택해주세요.',
           () => _showDateTimePicker(),
-          textTheme,
         ),
         const SizedBox(height: 16),
         _buildInfoRow(
           '위치',
-          _form.stadium ?? '경기장을 선택해주세요.',
+          _form.stadiumId != null ? _getStadiumNameById(_form.stadiumId!) : '경기장을 선택해주세요.',
           () => _showStadiumPicker(),
-          textTheme,
         ),
         const SizedBox(height: 16),
-        _buildSeatInput(textTheme),
+        _buildSeatInput(),
       ],
     );
   }
 
-  Widget _buildInfoRow(
-    String label,
-    String value,
-    VoidCallback onTap,
-    TextTheme textTheme,
-  ) {
+  Widget _buildInfoRow(String label, String value, VoidCallback onTap) {
     final colorScheme = Theme.of(context).colorScheme;
     final isPlaceholder = value.contains('선택해주세요') || value.contains('입력해주세요');
 
@@ -208,27 +239,20 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-        ),
+        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: colorScheme.outlineVariant))),
         child: Row(
           children: [
             SizedBox(
               width: 60,
-              child: Text(
-                label,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.outline,
-                ),
-              ),
+              child: Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
             ),
             const SizedBox(width: 20),
             Expanded(
               child: Text(
                 value,
-                style: textTheme.bodyLarge?.copyWith(
-                  color: isPlaceholder ? colorScheme.outline : null,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: isPlaceholder ? colorScheme.outline : null),
               ),
             ),
             Icon(Icons.chevron_right, color: colorScheme.outline),
@@ -238,22 +262,17 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     );
   }
 
-  Widget _buildSeatInput(TextTheme textTheme) {
+  Widget _buildSeatInput() {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
-      ),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: colorScheme.outlineVariant))),
       child: Row(
         children: [
           SizedBox(
             width: 60,
-            child: Text(
-              '좌석',
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline),
-            ),
+            child: Text('좌석', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
           ),
           const SizedBox(width: 20),
           Expanded(
@@ -261,16 +280,14 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
               controller: _seatController,
               decoration: InputDecoration(
                 hintText: '좌석을 입력해주세요.',
-                hintStyle: textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.outline,
-                ),
+                hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colorScheme.outline),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.zero,
               ),
-              style: textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge,
               onChanged: (value) {
                 setState(() {
-                  _form.seatInfo = value.isEmpty ? null : value;
+                  _form = _form.copyWith(seatInfo: value.isEmpty ? null : value);
                 });
               },
             ),
@@ -280,29 +297,29 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     );
   }
 
-  Widget _buildGameInfoSection(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildGameInfoSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '경기 정보',
-          style: textTheme.titleLarge?.copyWith(color: colorScheme.outline),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.outline),
         ),
         const SizedBox(height: 16),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: colorScheme.secondaryContainer,
+            color: Theme.of(context).colorScheme.secondaryContainer,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
             children: [
-              _buildTeamLabels(textTheme),
+              _buildTeamLabels(),
               const SizedBox(height: 16),
-              _buildTeamSelection(textTheme, colorScheme),
+              _buildTeamSelection(),
               const SizedBox(height: 20),
-              _buildGameMinimumCheckbox(textTheme),
+              _buildGameMinimumCheckbox(),
             ],
           ),
         ),
@@ -310,106 +327,78 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     );
   }
 
-  Widget _buildTeamLabels(TextTheme textTheme) {
+  Widget _buildTeamLabels() {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          '응원팀',
-          style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
-        ),
-        Text(
-          '상대팀',
-          style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
-        ),
+        Text('응원팀', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.outline)),
+        Text('상대팀', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.outline)),
       ],
     );
   }
 
-  Widget _buildTeamSelection(TextTheme textTheme, ColorScheme colorScheme) {
+  Widget _buildTeamSelection() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildTeamButton(
-          '응원팀',
-          _form.homeTeam,
-          () => _showTeamPicker(true),
-          textTheme,
-        ),
+        _buildTeamButton('응원팀', _form.homeTeamId, () => _showTeamPicker(true)),
         GestureDetector(
-          onTap:
-              _form.homeTeam != null && _form.awayTeam != null
-                  ? _showScoreInput
-                  : null,
+          onTap: _form.homeTeamId != null && _form.awayTeamId != null ? _showScoreInput : null,
           child: Row(
             children: [
               Text(
                 _form.homeScore != null ? '${_form.homeScore}' : '-',
-                style: textTheme.displayMedium?.copyWith(
+                style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   color:
                       _form.homeScore != null
-                          ? colorScheme.onSurface
-                          : colorScheme.outline,
+                          ? Theme.of(context).colorScheme.onSurface
+                          : Theme.of(context).colorScheme.outline,
                 ),
               ),
               Text(
                 ':',
-                style: textTheme.displayMedium?.copyWith(
-                  color: colorScheme.outline,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.displayMedium?.copyWith(color: Theme.of(context).colorScheme.outline),
               ),
               Text(
                 _form.awayScore != null ? '${_form.awayScore}' : '-',
-                style: textTheme.displayMedium?.copyWith(
+                style: Theme.of(context).textTheme.displayMedium?.copyWith(
                   color:
                       _form.awayScore != null
-                          ? colorScheme.onSurface
-                          : colorScheme.outline,
+                          ? Theme.of(context).colorScheme.onSurface
+                          : Theme.of(context).colorScheme.outline,
                 ),
               ),
             ],
           ),
         ),
-        _buildTeamButton(
-          '상대팀',
-          _form.awayTeam,
-          () => _showTeamPicker(false),
-          textTheme,
-        ),
+        _buildTeamButton('상대팀', _form.awayTeamId, () => _showTeamPicker(false)),
       ],
     );
   }
 
-  Widget _buildTeamButton(
-    String label,
-    String? teamName,
-    VoidCallback onTap,
-    TextTheme textTheme,
-  ) {
+  Widget _buildTeamButton(String label, String? teamId, VoidCallback onTap) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: colorScheme.primary,
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(8)),
         child: Text(
-          teamName ?? '팀 선택',
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onPrimary,
-            fontWeight: FontWeight.bold,
-          ),
+          teamId != null ? _getTeamNameById(teamId) : '팀 선택',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 
-  Widget _buildGameMinimumCheckbox(TextTheme textTheme) {
+  Widget _buildGameMinimumCheckbox() {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
@@ -426,34 +415,24 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             decoration: BoxDecoration(
               color: _isGameMinimum ? colorScheme.primary : Colors.white,
               borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color:
-                    _isGameMinimum ? colorScheme.primary : colorScheme.outline,
-                width: 2,
-              ),
+              border: Border.all(color: _isGameMinimum ? colorScheme.primary : colorScheme.outline, width: 2),
             ),
-            child:
-                _isGameMinimum
-                    ? const Icon(Icons.check, color: Colors.white, size: 14)
-                    : null,
+            child: _isGameMinimum ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          '경기최소',
-          style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
-        ),
+        Text('경기최소', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.outline)),
       ],
     );
   }
 
-  Widget _buildCommentSection(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildCommentSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '코멘트',
-          style: textTheme.titleLarge?.copyWith(color: colorScheme.outline),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.outline),
         ),
         const SizedBox(height: 16),
         TextField(
@@ -461,17 +440,15 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
           focusNode: _commentFocusNode,
           decoration: InputDecoration(
             hintText: '코멘트를 남겨주세요.',
-            hintStyle: textTheme.bodyLarge?.copyWith(
-              color: colorScheme.outline,
-            ),
+            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.outline),
             border: InputBorder.none,
             contentPadding: EdgeInsets.zero,
           ),
-          style: textTheme.bodyLarge,
+          style: Theme.of(context).textTheme.bodyLarge,
           maxLines: 3,
           onChanged: (value) {
             setState(() {
-              _form.comment = value.isEmpty ? null : value;
+              _form = _form.copyWith(comment: value.isEmpty ? null : value);
             });
           },
           onTap: () {
@@ -489,15 +466,12 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     );
   }
 
-  Widget _buildMemorableGameSection(
-    ColorScheme colorScheme,
-    TextTheme textTheme,
-  ) {
+  Widget _buildMemorableGameSection() {
     return Column(
       children: [
         Text(
           '기억에 남는 경기였나요?',
-          style: textTheme.bodyMedium?.copyWith(color: colorScheme.outline),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.outline),
         ),
         const SizedBox(height: 16),
         GestureDetector(
@@ -509,11 +483,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
           child: AnimatedScale(
             scale: _isMemorableGame ? 1.1 : 1.0,
             duration: const Duration(milliseconds: 200),
-            child: Icon(
-              Icons.favorite,
-              color: _isMemorableGame ? AppColors.negative : AppColors.gray30,
-              size: 80,
-            ),
+            child: Icon(Icons.favorite, color: _isMemorableGame ? AppColors.negative : AppColors.gray30, size: 80),
           ),
         ),
       ],
@@ -528,10 +498,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
           (context) => Container(
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
             ),
             child: SafeArea(
               child: Column(
@@ -541,10 +508,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                   Container(
                     width: 40,
                     height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.gray30,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+                    decoration: BoxDecoration(color: AppColors.gray30, borderRadius: BorderRadius.circular(2)),
                   ),
                   const SizedBox(height: 24),
                   ListTile(
@@ -586,13 +550,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
         setState(() {
           _selectedImage = File(pickedFile.path);
-          _form.imagePath = pickedFile.path;
+          _form = _form.copyWith(imagePath: pickedFile.path);
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
     } finally {
       setState(() {
         _isImageLoading = false;
@@ -610,7 +572,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             initialDateTime: _form.gameDateTime,
             onDateTimeSelected: (dateTime) {
               setState(() {
-                _form.gameDateTime = dateTime;
+                _form = _form.copyWith(gameDateTime: dateTime);
               });
             },
           ),
@@ -624,10 +586,10 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       isScrollControlled: true,
       builder:
           (context) => StadiumPickerModal(
-            selectedStadium: _form.stadium,
-            onStadiumSelected: (stadium) {
+            selectedStadium: _form.stadiumId,
+            onStadiumSelected: (stadiumId) {
               setState(() {
-                _form.stadium = stadium;
+                _form = _form.copyWith(stadiumId: stadiumId);
               });
             },
           ),
@@ -642,13 +604,13 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       builder:
           (context) => TeamPickerModal(
             title: isHomeTeam ? '응원팀 선택' : '상대팀 선택',
-            selectedTeam: isHomeTeam ? _form.homeTeam : _form.awayTeam,
-            onTeamSelected: (team) {
+            selectedTeam: isHomeTeam ? _form.homeTeamId : _form.awayTeamId,
+            onTeamSelected: (teamId) {
               setState(() {
                 if (isHomeTeam) {
-                  _form.homeTeam = team;
+                  _form = _form.copyWith(homeTeamId: teamId);
                 } else {
-                  _form.awayTeam = team;
+                  _form = _form.copyWith(awayTeamId: teamId);
                 }
               });
             },
@@ -657,7 +619,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   void _showScoreInput() {
-    if (_form.homeTeam == null || _form.awayTeam == null) return;
+    if (_form.homeTeamId == null || _form.awayTeamId == null) return;
 
     showModalBottomSheet(
       context: context,
@@ -665,14 +627,13 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       isScrollControlled: true,
       builder:
           (context) => ScoreInputModal(
-            homeTeam: _form.homeTeam!,
-            awayTeam: _form.awayTeam!,
+            homeTeam: _form.homeTeamId!,
+            awayTeam: _form.awayTeamId!,
             initialHomeScore: _form.homeScore,
             initialAwayScore: _form.awayScore,
             onScoreSelected: (homeScore, awayScore) {
               setState(() {
-                _form.homeScore = homeScore;
-                _form.awayScore = awayScore;
+                _form = _form.copyWith(homeScore: homeScore, awayScore: awayScore);
               });
             },
           ),
@@ -681,9 +642,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   bool _canSave() {
     return _form.gameDateTime != null &&
-        _form.stadium != null &&
-        _form.homeTeam != null &&
-        _form.awayTeam != null;
+        _form.stadiumId != null &&
+        _form.homeTeamId != null &&
+        _form.awayTeamId != null;
   }
 
   Future<void> _handleSave() async {
@@ -694,17 +655,17 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         _isSaving = true;
       });
 
-      final recordService = RecordService();
-      await recordService.addRecord(_form);
+      // 폼 데이터 업데이트
+      _form = _form.copyWith(
+        seatInfo: _seatController.text.isEmpty ? null : _seatController.text,
+        comment: _commentController.text.isEmpty ? null : _commentController.text,
+        isFavorite: _isMemorableGame, // 기억에 남는 경기는 자동으로 즐겨찾기에 추가
+        canceled: _isGameMinimum, // 경기최소는 취소된 경기로 처리
+      );
 
-      Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('직관 기록이 저장되었습니다')));
+      await _submitForm();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
     } finally {
       setState(() {
         _isSaving = false;
@@ -712,93 +673,42 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     }
   }
 
-  void _handleBackPress() {
-    if (_hasUnsavedChanges()) {
-      _showExitConfirmDialog();
-    } else {
-      Navigator.pop(context);
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    _formKey.currentState!.save();
+
+    if (!_form.isValid) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'), backgroundColor: Colors.red));
+      return;
+    }
+
+    try {
+      setState(() => _isSaving = true);
+      await _recordService.addRecord(_form);
+      if (mounted) {
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('기록 저장 중 오류가 발생했습니다: $e'), backgroundColor: Colors.red));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
-  bool _hasUnsavedChanges() {
-    return _form.gameDateTime != null ||
-        _form.stadium != null ||
-        _form.homeTeam != null ||
-        _form.awayTeam != null ||
-        _seatController.text.isNotEmpty ||
-        _commentController.text.isNotEmpty ||
-        _selectedImage != null ||
-        _isMemorableGame ||
-        _isGameMinimum;
-  }
-
-  void _showExitConfirmDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.gray10,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(
-                    Icons.warning_outlined,
-                    color: AppColors.gray70,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text('작성을 그만두시겠어요?'),
-              ],
-            ),
-            content: const Text('지금까지 작성된 내용은 저장되지 않아요.'),
-            actions: [
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: TextButton.styleFrom(
-                        backgroundColor: AppColors.navy,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('작성 계속하기'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Close dialog
-                        Navigator.pop(context); // Close screen
-                      },
-                      style: TextButton.styleFrom(
-                        backgroundColor: AppColors.negativeBG,
-                        foregroundColor: AppColors.negative,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text('삭제하고 나가기'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-    );
+  void _handleBackPress() {
+    if (_isSaving) return;
+    Navigator.of(context).pop();
   }
 
   String _formatDateTime(DateTime dateTime) {

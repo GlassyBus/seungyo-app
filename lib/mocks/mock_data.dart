@@ -1,64 +1,90 @@
-import '../models/game_record.dart';
-import '../models/team.dart';
-import '../models/stadium.dart';
 import 'package:flutter/material.dart';
+
+import '../models/game_record.dart';
+import '../models/stadium.dart';
+import '../models/team.dart';
+import '../services/database_service.dart';
 
 /// Mock 데이터 제공자
 class MockData {
   MockData._();
 
-  /// Mock 팀 데이터
-  static final List<Team> teams = [
-    Team(
-      id: 'doosan',
-      name: '두산 베어스',
-      shortName: '두산',
-      primaryColor: Color(0xFF131230),
-      secondaryColor: Color(0xFFD4AF37),
-      logoUrl: '🐻',
-    ),
-    Team(
-      id: 'kia',
-      name: 'KIA 타이거즈',
-      shortName: 'KIA',
-      primaryColor: Color(0xFFEA002C),
-      secondaryColor: Color(0xFF000000),
-      logoUrl: '🐅',
-    ),
-    Team(
-      id: 'lg',
-      name: 'LG 트윈스',
-      shortName: 'LG',
-      primaryColor: Color(0xFFC30452),
-      secondaryColor: Color(0xFF000000),
-      logoUrl: '⚾',
-    ),
-    Team(
-      id: 'samsung',
-      name: '삼성 라이온즈',
-      shortName: '삼성',
-      primaryColor: Color(0xFF074CA1),
-      secondaryColor: Color(0xFFFFFFFF),
-      logoUrl: '🦁',
-    ),
-  ];
+  /// DB에서 팀 데이터 가져오기
+  static Future<List<Team>> getTeams() async {
+    try {
+      return await DatabaseService().getTeamsAsAppModels();
+    } catch (e) {
+      print('Error getting teams from DB: $e');
+      // DB에서 가져오지 못할 경우 기본값 반환
+      return [
+        Team(
+          id: '1',
+          name: '두산 베어스',
+          shortName: '두산',
+          primaryColor: Color(0xFF131230),
+          secondaryColor: Color(0xFFD4AF37),
+          logoUrl: '🐻',
+        ),
+        Team(
+          id: '2',
+          name: 'KIA 타이거즈',
+          shortName: 'KIA',
+          primaryColor: Color(0xFFEA002C),
+          secondaryColor: Color(0xFF000000),
+          logoUrl: '🐅',
+        ),
+      ];
+    }
+  }
 
-  /// Mock 구장 데이터
-  static const List<Stadium> stadiums = [
-    Stadium(id: 'jamsil', name: '잠실야구장', city: '서울', capacity: 25000),
-    Stadium(id: 'gocheok', name: '고척스카이돔', city: '서울', capacity: 16744),
-  ];
+  /// DB에서 구장 데이터 가져오기
+  static Future<List<Stadium>> getStadiums() async {
+    try {
+      return await DatabaseService().getStadiumsAsAppModels();
+    } catch (e) {
+      print('Error getting stadiums from DB: $e');
+      // DB에서 가져오지 못할 경우 기본값 반환
+      return [Stadium(id: 'jamsil', name: '잠실야구장', city: '서울'), Stadium(id: 'gocheok', name: '고척스카이돔', city: '서울')];
+    }
+  }
 
   /// Mock 게임 기록 데이터
-  static List<GameRecord> getGameRecords() {
+  static Future<List<GameRecord>> getGameRecords() async {
+    final stadiums = await getStadiums();
+    final teams = await getTeams();
     final now = DateTime.now();
+
+    if (stadiums.isEmpty || teams.isEmpty) {
+      return [];
+    }
+
     return [
       GameRecord(
         id: 1,
         dateTime: now.subtract(const Duration(days: 1)),
-        stadium: stadiums[0],
-        homeTeam: teams[0],
-        awayTeam: teams[1],
+        stadium: stadiums.isNotEmpty ? stadiums[0] : Stadium(id: 'jamsil', name: '잠실야구장', city: '서울'),
+        homeTeam:
+            teams.isNotEmpty
+                ? teams[0]
+                : Team(
+                  id: '1',
+                  name: '두산 베어스',
+                  shortName: '두산',
+                  primaryColor: Color(0xFF131230),
+                  secondaryColor: Color(0xFFD4AF37),
+                  logoUrl: '🐻',
+                ),
+        awayTeam:
+            teams.length > 1
+                ? teams[1]
+                : Team(
+                  id: '2',
+                  name: 'KIA 타이거즈',
+                  shortName: 'KIA',
+                  primaryColor: Color(0xFFEA002C),
+                  secondaryColor: Color(0xFF000000),
+                  logoUrl: '🐅',
+                ),
         homeScore: 5,
         awayScore: 3,
         result: GameResult.win,
@@ -72,9 +98,29 @@ class MockData {
       GameRecord(
         id: 2,
         dateTime: now.subtract(const Duration(days: 3)),
-        stadium: stadiums[0],
-        homeTeam: teams[2],
-        awayTeam: teams[0],
+        stadium: stadiums.isNotEmpty ? stadiums[0] : Stadium(id: 'jamsil', name: '잠실야구장', city: '서울'),
+        homeTeam:
+            teams.length > 2
+                ? teams[2]
+                : Team(
+                  id: '3',
+                  name: 'LG 트윈스',
+                  shortName: 'LG',
+                  primaryColor: Color(0xFFC30452),
+                  secondaryColor: Color(0xFF000000),
+                  logoUrl: '⚾',
+                ),
+        awayTeam:
+            teams.isNotEmpty
+                ? teams[0]
+                : Team(
+                  id: '1',
+                  name: '두산 베어스',
+                  shortName: '두산',
+                  primaryColor: Color(0xFF131230),
+                  secondaryColor: Color(0xFFD4AF37),
+                  logoUrl: '🐻',
+                ),
         homeScore: 2,
         awayScore: 4,
         result: GameResult.lose,
@@ -88,9 +134,29 @@ class MockData {
       GameRecord(
         id: 3,
         dateTime: now.subtract(const Duration(days: 7)),
-        stadium: stadiums[1],
-        homeTeam: teams[0],
-        awayTeam: teams[3],
+        stadium: stadiums.length > 1 ? stadiums[1] : Stadium(id: 'gocheok', name: '고척스카이돔', city: '서울'),
+        homeTeam:
+            teams.isNotEmpty
+                ? teams[0]
+                : Team(
+                  id: '1',
+                  name: '두산 베어스',
+                  shortName: '두산',
+                  primaryColor: Color(0xFF131230),
+                  secondaryColor: Color(0xFFD4AF37),
+                  logoUrl: '🐻',
+                ),
+        awayTeam:
+            teams.length > 3
+                ? teams[3]
+                : Team(
+                  id: '4',
+                  name: '삼성 라이온즈',
+                  shortName: '삼성',
+                  primaryColor: Color(0xFF074CA1),
+                  secondaryColor: Color(0xFFFFFFFF),
+                  logoUrl: '🦁',
+                ),
         homeScore: 3,
         awayScore: 3,
         result: GameResult.draw,
@@ -104,9 +170,10 @@ class MockData {
     ];
   }
 
-  /// 오늘의 경기 데이터
-  static List<Map<String, dynamic>> getTodayGames() {
-    // 랜덤으로 경기가 있는 날과 없는 날을 결정
+  /// 오늘의 경기 데이터 (DB 기반)
+  static Future<List<Map<String, dynamic>>> getTodayGames() async {
+    // 실제 앱에서는 DB나 API에서 오늘의 경기 정보를 가져올 수 있음
+    // 현재는 랜덤으로 경기가 있는 날과 없는 날을 결정
     final random = DateTime.now().day % 3;
 
     if (random == 0) {
@@ -162,9 +229,9 @@ class MockData {
     };
   }
 
-  /// 홈 데이터
-  static Map<String, dynamic> getHomeData() {
-    final records = getGameRecords();
+  /// 홈 데이터 (DB 기반)
+  static Future<Map<String, dynamic>> getHomeData() async {
+    final records = await getGameRecords();
     final totalGames = records.length;
     final wins = records.where((r) => r.result == GameResult.win).length;
     final draws = records.where((r) => r.result == GameResult.draw).length;

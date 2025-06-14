@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:seungyo/theme/app_colors.dart';
-import 'package:seungyo/theme/app_text_styles.dart';
 import 'package:seungyo/view/record/create_record_screen.dart';
-import 'package:seungyo/widgets/custom_app_bar.dart';
+
 import '../../mocks/mock_data.dart';
 import '../../models/game_record.dart';
 import 'record_detail_screen.dart';
@@ -33,7 +31,7 @@ class _RecordListPageState extends State<RecordListPage> {
 
     await Future.delayed(const Duration(milliseconds: 500));
 
-    final records = MockData.getGameRecords();
+    final records = await MockData.getGameRecords();
 
     setState(() {
       _records = records;
@@ -42,9 +40,7 @@ class _RecordListPageState extends State<RecordListPage> {
   }
 
   List<GameRecord> get _filteredRecords {
-    return _showOnlyFavorites
-        ? _records.where((record) => record.isFavorite).toList()
-        : _records;
+    return _showOnlyFavorites ? _records.where((record) => record.isFavorite).toList() : _records;
   }
 
   @override
@@ -62,22 +58,14 @@ class _RecordListPageState extends State<RecordListPage> {
         children: [
           CircularProgressIndicator(color: colorScheme.primary),
           const SizedBox(height: 16),
-          Text(
-            '기록을 불러오는 중...',
-            style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline),
-          ),
+          Text('기록을 불러오는 중...', style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline)),
         ],
       ),
     );
   }
 
   Widget _buildContent(BuildContext context) {
-    return Column(
-      children: [
-        _buildFilterSection(context),
-        Expanded(child: _buildRecordsList()),
-      ],
-    );
+    return Column(children: [_buildFilterSection(context), Expanded(child: _buildRecordsList())]);
   }
 
   Widget _buildFilterSection(BuildContext context) {
@@ -99,36 +87,17 @@ class _RecordListPageState extends State<RecordListPage> {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color:
-                    _showOnlyFavorites
-                        ? colorScheme.primary
-                        : colorScheme.surface,
+                color: _showOnlyFavorites ? colorScheme.primary : colorScheme.surface,
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color:
-                      _showOnlyFavorites
-                          ? colorScheme.primary
-                          : colorScheme.outline,
-                  width: 2,
-                ),
+                border: Border.all(color: _showOnlyFavorites ? colorScheme.primary : colorScheme.outline, width: 2),
               ),
-              child:
-                  _showOnlyFavorites
-                      ? Icon(
-                        Icons.check,
-                        color: colorScheme.onPrimary,
-                        size: 16,
-                      )
-                      : null,
+              child: _showOnlyFavorites ? Icon(Icons.check, color: colorScheme.onPrimary, size: 16) : null,
             ),
           ),
           const SizedBox(width: 8),
           Text(
             '하트만 보기',
-            style: textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSecondaryContainer,
-              fontWeight: FontWeight.w500,
-            ),
+            style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSecondaryContainer, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -165,24 +134,15 @@ class _RecordListPageState extends State<RecordListPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.sports_baseball_outlined,
-            size: 80,
-            color: colorScheme.outline,
-          ),
+          Icon(Icons.sports_baseball_outlined, size: 80, color: colorScheme.outline),
           const SizedBox(height: 24),
           Text(
             _showOnlyFavorites ? '즐겨찾기한 기록이 없습니다' : '아직 기록이 없습니다',
-            style: textTheme.headlineSmall?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.w600,
-            ),
+            style: textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Text(
-            _showOnlyFavorites
-                ? '기록에 하트를 눌러 즐겨찾기에 추가해보세요!'
-                : '상단의 + 버튼을 눌러 첫 기록을 추가해보세요!',
+            _showOnlyFavorites ? '기록에 하트를 눌러 즐겨찾기에 추가해보세요!' : '상단의 + 버튼을 눌러 첫 기록을 추가해보세요!',
             style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline),
             textAlign: TextAlign.center,
           ),
@@ -192,10 +152,7 @@ class _RecordListPageState extends State<RecordListPage> {
   }
 
   void _navigateToDetail(GameRecord record) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)));
   }
 
   void _toggleFavorite(GameRecord record) {

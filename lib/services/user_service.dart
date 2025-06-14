@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../models/user_profile.dart';
 import '../models/team.dart';
-import '../mocks/data/mock_teams.dart';
+import '../services/database_service.dart';
 
 class UserService {
   static const String _fileName = 'user_profile.json';
@@ -20,7 +20,7 @@ class UserService {
   // 기본 사용자 프로필
   UserProfile get _defaultProfile => UserProfile(
     nickname: '두산승리요정',
-    favoriteTeamId: 'doosan',
+    favoriteTeamId: 'bears', // String ID로 변경
     createdAt: DateTime.now(),
     updatedAt: DateTime.now(),
   );
@@ -80,8 +80,14 @@ class UserService {
 
   // 사용자의 응원 팀 정보 가져오기
   Future<Team?> getUserFavoriteTeam() async {
-    final profile = await getUserProfile();
-    return MockTeams.findById(profile.favoriteTeamId);
+    try {
+      final profile = await getUserProfile();
+      final teams = await DatabaseService().getTeamsAsAppModels();
+      return teams.where((team) => team.id == profile.favoriteTeamId).firstOrNull;
+    } catch (e) {
+      print('Error getting user favorite team: $e');
+      return null;
+    }
   }
 
   // 로컬 파일 경로 가져오기

@@ -1,83 +1,91 @@
 class GameRecordForm {
-  DateTime? gameDateTime;
-  String? stadium;
-  int? stadiumId;
-  String? seatInfo;
-  String? homeTeam;
-  int? homeTeamId;
-  String? awayTeam;
-  int? awayTeamId;
-  int? homeScore;
-  int? awayScore;
-  String? comment;
-  bool isMemorableGame;
-  bool isGameMinimum;
-  String? imagePath;
+  final DateTime? gameDateTime;
+  final String? stadiumId;
+  final String? homeTeamId;
+  final String? awayTeamId;
+  final int? homeScore;
+  final int? awayScore;
+  final String? seatInfo;
+  final String? comment;
+  final String? imagePath;
+  final bool isFavorite;
+  final bool canceled;
 
   GameRecordForm({
     this.gameDateTime,
-    this.stadium,
     this.stadiumId,
-    this.seatInfo,
-    this.homeTeam,
     this.homeTeamId,
-    this.awayTeam,
     this.awayTeamId,
     this.homeScore,
     this.awayScore,
+    this.seatInfo,
     this.comment,
-    this.isMemorableGame = false,
-    this.isGameMinimum = false,
     this.imagePath,
+    this.isFavorite = false,
+    this.canceled = false,
   });
 
   bool get isValid {
-    return gameDateTime != null &&
-           stadium != null &&
-           stadiumId != null &&
-           homeTeam != null &&
-           homeTeamId != null &&
-           awayTeam != null &&
-           awayTeamId != null;
+    return gameDateTime != null && stadiumId != null && homeTeamId != null && awayTeamId != null;
+  }
+
+  GameRecordForm copyWith({
+    DateTime? gameDateTime,
+    String? stadiumId,
+    String? homeTeamId,
+    String? awayTeamId,
+    int? homeScore,
+    int? awayScore,
+    String? seatInfo,
+    String? comment,
+    String? imagePath,
+    bool? isFavorite,
+    bool? canceled,
+  }) {
+    return GameRecordForm(
+      gameDateTime: gameDateTime ?? this.gameDateTime,
+      stadiumId: stadiumId ?? this.stadiumId,
+      homeTeamId: homeTeamId ?? this.homeTeamId,
+      awayTeamId: awayTeamId ?? this.awayTeamId,
+      homeScore: homeScore ?? this.homeScore,
+      awayScore: awayScore ?? this.awayScore,
+      seatInfo: seatInfo ?? this.seatInfo,
+      comment: comment ?? this.comment,
+      imagePath: imagePath ?? this.imagePath,
+      isFavorite: isFavorite ?? this.isFavorite,
+      canceled: canceled ?? this.canceled,
+    );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'gameDateTime': gameDateTime?.toIso8601String(),
-      'stadium': stadium,
       'stadiumId': stadiumId,
-      'seatInfo': seatInfo,
-      'homeTeam': homeTeam,
       'homeTeamId': homeTeamId,
-      'awayTeam': awayTeam,
       'awayTeamId': awayTeamId,
       'homeScore': homeScore,
       'awayScore': awayScore,
+      'seatInfo': seatInfo,
       'comment': comment,
-      'isMemorableGame': isMemorableGame,
-      'isGameMinimum': isGameMinimum,
       'imagePath': imagePath,
+      'isFavorite': isFavorite,
+      'canceled': canceled,
     };
   }
 
   factory GameRecordForm.fromJson(Map<String, dynamic> json) {
     return GameRecordForm(
-      gameDateTime: json['gameDateTime'] != null 
-          ? DateTime.parse(json['gameDateTime']) 
-          : null,
-      stadium: json['stadium'],
+      gameDateTime: json['gameDateTime'] != null ? DateTime.parse(json['gameDateTime']) : null,
       stadiumId: json['stadiumId'],
-      seatInfo: json['seatInfo'],
-      homeTeam: json['homeTeam'],
       homeTeamId: json['homeTeamId'],
-      awayTeam: json['awayTeam'],
       awayTeamId: json['awayTeamId'],
       homeScore: json['homeScore'],
       awayScore: json['awayScore'],
+      seatInfo: json['seatInfo'],
       comment: json['comment'],
-      isMemorableGame: json['isMemorableGame'] ?? false,
-      isGameMinimum: json['isGameMinimum'] ?? false,
       imagePath: json['imagePath'],
+      isFavorite: json['isFavorite'] ?? false,
+      canceled: json['canceled'] ?? false,
     );
   }
 }
