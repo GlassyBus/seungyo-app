@@ -47,9 +47,31 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> loadSavedData() async {
-    _team = await _authRepo.getTeam();
-    _nickname = await _authRepo.getNickname();
+    print('AuthViewModel: Loading saved data...');
+    final teamCode = await _authRepo.getTeam();
+    final nickname = await _authRepo.getNickname();
+
+    print('AuthViewModel: Loaded team code: $teamCode');
+    print('AuthViewModel: Loaded nickname: $nickname');
+
+    // 팀 코드를 팀 ID로 변환
+    if (teamCode != null) {
+      final teamData = TeamData.getByCode(teamCode);
+      if (teamData != null) {
+        _team = teamData.id;
+        print('AuthViewModel: Converted team code "$teamCode" to team ID "${teamData.id}"');
+      } else {
+        print('AuthViewModel: Warning - Team not found for code: $teamCode');
+        _team = teamCode; // fallback
+      }
+    } else {
+      _team = null;
+    }
+
+    _nickname = nickname;
     notifyListeners();
+
+    print('AuthViewModel: Final values - team: $_team, nickname: $_nickname');
   }
 
   Future<bool> handleDoubleBackPress(BuildContext context) async {

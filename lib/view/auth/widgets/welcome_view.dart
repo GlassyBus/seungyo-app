@@ -44,12 +44,29 @@ class _WelcomeViewState extends State<WelcomeView> {
 
       // 선택된 팀 찾기
       final vm = context.read<AuthViewModel>();
+      print('WelcomeView: AuthViewModel team value: "${vm.team}"');
+
       if (vm.team != null && _teams.isNotEmpty) {
         final selectedTeam = _teams.where((team) => team.id == vm.team).firstOrNull;
+
         setState(() {
           _selectedTeam = selectedTeam;
         });
-        print('WelcomeView: Selected team - ${selectedTeam?.name}');
+
+        if (selectedTeam != null) {
+          print('WelcomeView: ✅ Found team: ${selectedTeam.name} (Logo: ${selectedTeam.logo})');
+        } else {
+          print('WelcomeView: ❌ No team found for ID: ${vm.team}');
+          // 팀을 찾지 못한 경우 첫 번째 팀을 fallback으로 사용
+          if (_teams.isNotEmpty) {
+            setState(() {
+              _selectedTeam = _teams.first;
+            });
+            print('WelcomeView: Using fallback team: ${_teams.first.name}');
+          }
+        }
+      } else {
+        print('WelcomeView: vm.team is null or teams list is empty');
       }
     } catch (e) {
       print('WelcomeView: Error loading teams: $e');
@@ -188,39 +205,63 @@ class _WelcomeViewState extends State<WelcomeView> {
   }
 
   Widget _buildTeamLogo() {
+    print('WelcomeView: _buildTeamLogo called');
+    print('WelcomeView: _isLoadingTeams: $_isLoadingTeams');
+    print('WelcomeView: _selectedTeam: $_selectedTeam');
+
     if (_isLoadingTeams) {
+      print('WelcomeView: Still loading teams, showing spinner');
       return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.navy));
     }
 
     if (_selectedTeam != null) {
+      print('WelcomeView: Selected team found: ${_selectedTeam!.name}');
+      print('WelcomeView: Team logo: ${_selectedTeam!.logo}');
+      print('WelcomeView: Team shortName: ${_selectedTeam!.shortName}');
+
       if (_selectedTeam!.logo != null && _selectedTeam!.logo!.isNotEmpty) {
         if (_selectedTeam!.logo!.startsWith('assets/')) {
+          print('WelcomeView: Loading asset image: ${_selectedTeam!.logo}');
           return Image.asset(
             _selectedTeam!.logo!,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
+              print('WelcomeView: Error loading asset image: $error');
               return _buildFallbackLogo();
             },
           );
         } else {
           // 이모지나 다른 텍스트
+          print('WelcomeView: Using emoji/text logo: ${_selectedTeam!.logo}');
           return Center(child: Text(_selectedTeam!.logo!, style: const TextStyle(fontSize: 40)));
         }
       } else {
+        print('WelcomeView: Logo is empty, using fallback');
         return _buildFallbackLogo();
       }
     } else {
       // 팀을 찾을 수 없는 경우 기본 아이콘
+      print('WelcomeView: No selected team, showing default icon');
       return const Center(child: Icon(Icons.sports_baseball, size: 40, color: AppColors.navy));
     }
   }
 
   Widget _buildFallbackLogo() {
-    return Center(
-      child: Text(
-        _selectedTeam != null && _selectedTeam!.shortName.isNotEmpty ? _selectedTeam!.shortName.substring(0, 1) : '⚾',
-        style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.navy),
-      ),
-    );
+    print('WelcomeView: _buildFallbackLogo called');
+    if (_selectedTeam != null && _selectedTeam!.shortName.isNotEmpty) {
+      final firstChar = _selectedTeam!.shortName.substring(0, 1);
+      print('WelcomeView: Using first character of shortName: $firstChar');
+      return Center(
+        child: Text(
+          firstChar,
+          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.navy),
+        ),
+      );
+    } else {
+      print('WelcomeView: Using baseball emoji as fallback');
+      return const Center(
+        child: Text('⚾', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.navy)),
+      );
+    }
   }
 }
