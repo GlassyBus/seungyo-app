@@ -29,7 +29,7 @@ class DatabaseService {
   Future<void> _initializeDefaultData() async {
     try {
       print('Starting database initialization...');
-      
+
       // 팀 데이터가 비어있으면 기본 데이터 삽입
       final existingTeams = await _database.getAllTeams();
       print('Existing teams count: ${existingTeams.length}');
@@ -137,7 +137,6 @@ class DatabaseService {
               name: dbTeam.name,
               shortName: dbTeam.code,
               primaryColor: Colors.blue,
-              // 기본값 - 실제로는 데이터베이스에서 가져와야 함
               secondaryColor: Colors.white,
               logo: dbTeam.emblem,
             ),
@@ -260,7 +259,7 @@ class DatabaseService {
   Future<void> printDatabaseStatus() async {
     try {
       print('=== DATABASE STATUS ===');
-      
+
       // 팀 데이터 확인
       final teams = await _database.getAllTeams();
       print('Teams count: ${teams.length}');
@@ -271,7 +270,7 @@ class DatabaseService {
           print('  - ${team.id}: ${team.name} (${team.code})');
         }
       }
-      
+
       // 경기장 데이터 확인
       final stadiums = await _database.getAllStadiums();
       print('Stadiums count: ${stadiums.length}');
@@ -282,7 +281,7 @@ class DatabaseService {
           print('  - ${stadium.id}: ${stadium.name} (${stadium.city})');
         }
       }
-      
+
       // 기록 데이터 확인
       final records = await _database.getAllRecords();
       print('Records count: ${records.length}');
@@ -294,7 +293,7 @@ class DatabaseService {
           print('    ${record.homeTeamId} vs ${record.awayTeamId} (${record.homeScore}-${record.awayScore})');
         }
       }
-      
+
       print('======================');
     } catch (e) {
       print('Error checking database status: $e');
