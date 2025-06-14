@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:seungyo/theme/theme.dart';
 
 import '../../models/game_record.dart';
-import '../../widgets/custom_checkbox.dart';
 import 'create_record_screen.dart';
 import 'widgets/action_modal.dart';
 
@@ -19,7 +18,7 @@ class RecordDetailPage extends StatefulWidget {
 }
 
 class _RecordDetailPageState extends State<RecordDetailPage> {
-  late bool isGameMinimum;
+  late final bool isGameMinimum;
 
   @override
   void initState() {
@@ -77,19 +76,39 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         borderRadius: BorderRadius.circular(12),
         child:
             widget.game.photos.isNotEmpty
-                ? PageView.builder(
-                  itemCount: widget.game.photos.length,
-                  itemBuilder: (context, index) {
-                    return Image.file(
-                      File(widget.game.photos[index]),
-                      fit: BoxFit.cover,
-                      errorBuilder:
-                          (context, error, stackTrace) => Container(
-                            color: AppColors.gray20,
-                            child: const Center(child: Icon(Icons.image, size: 80, color: AppColors.gray50)),
+                ? Stack(
+                  children: [
+                    PageView.builder(
+                      itemCount: widget.game.photos.length,
+                      itemBuilder: (context, index) {
+                        return Image.file(
+                          File(widget.game.photos[index]),
+                          fit: BoxFit.cover,
+                          errorBuilder:
+                              (context, error, stackTrace) => Container(
+                                color: AppColors.gray20,
+                                child: const Center(child: Icon(Icons.image, size: 80, color: AppColors.gray50)),
+                              ),
+                        );
+                      },
+                    ),
+                    if (widget.game.photos.length > 1)
+                      Positioned(
+                        bottom: 16,
+                        right: 16,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                    );
-                  },
+                          child: Text(
+                            '${widget.game.photos.length}장',
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ),
+                      ),
+                  ],
                 )
                 : Container(
                   color: AppColors.gray20,
@@ -171,8 +190,8 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       children: [
         _buildTeamInfo(
           widget.game.homeTeam.name,
-          widget.game.homeTeam.primaryColor,
-          widget.game.homeTeam.logoUrl ?? '⚾',
+          widget.game.homeTeam.shortName, // shortName 직접 사용
+          widget.game.homeTeam.logo ?? '',
           textTheme,
         ),
         Text('${widget.game.homeScore}', style: textTheme.displayLarge),
@@ -180,26 +199,54 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         Text('${widget.game.awayScore}', style: textTheme.displayLarge),
         _buildTeamInfo(
           widget.game.awayTeam.name,
-          widget.game.awayTeam.primaryColor,
-          widget.game.awayTeam.logoUrl ?? '⚾',
+          widget.game.awayTeam.shortName, // shortName 직접 사용
+          widget.game.awayTeam.logo ?? '',
           textTheme,
         ),
       ],
     );
   }
 
-  Widget _buildTeamInfo(String teamName, Color color, String logoText, TextTheme textTheme) {
+  Widget _buildTeamInfo(String teamName, String shortName, String logoPath, TextTheme textTheme) {
     return Row(
       children: [
         Container(
           width: 40,
           height: 40,
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.gray30, width: 1),
+          ),
           child: Center(
-            child: Text(
-              logoText,
-              style: textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
+            child:
+                logoPath.isNotEmpty && logoPath.startsWith('assets/')
+                    ? ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        logoPath,
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.contain,
+                        errorBuilder:
+                            (context, error, stackTrace) => Text(
+                              shortName.isNotEmpty ? shortName : '⚾',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: AppColors.navy,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                      ),
+                    )
+                    : Text(
+                      shortName.isNotEmpty ? shortName : '⚾',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.navy,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
           ),
         ),
         const SizedBox(width: 8),
@@ -211,14 +258,27 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   Widget _buildGameMinimumCheckbox() {
     return Align(
       alignment: Alignment.centerLeft,
-      child: CustomCheckbox(
-        value: isGameMinimum,
-        onChanged: (value) {
-          setState(() {
-            isGameMinimum = value;
-          });
-        },
-        label: '경기최소',
+      child: Row(
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: isGameMinimum ? Theme.of(context).colorScheme.primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: isGameMinimum ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
+                width: 2,
+              ),
+            ),
+            child: isGameMinimum ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '경기최소',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
+          ),
+        ],
       ),
     );
   }

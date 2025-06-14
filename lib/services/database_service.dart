@@ -136,15 +136,93 @@ class DatabaseService {
               id: dbTeam.id.toString(),
               name: dbTeam.name,
               shortName: dbTeam.code,
-              primaryColor: Colors.blue,
+              primaryColor: _getTeamPrimaryColor(dbTeam.id),
+              // 팀별 고유 색상
               secondaryColor: Colors.white,
               logo: dbTeam.emblem,
+              logoUrl: dbTeam.emblem, // emblem을 logoUrl로도 사용
             ),
           )
           .toList();
     } catch (e) {
       print('Error converting teams to app models: $e');
       return [];
+    }
+  }
+
+  /// 팀별 고유 색상 반환 (실제 팀 색상으로 매핑)
+  Color _getTeamPrimaryColor(String teamId) {
+    switch (teamId) {
+      case 'twins':
+      case 'LG':
+        return const Color(0xFFC30452); // LG 트윈스 레드
+      case 'wiz':
+      case 'KT':
+        return const Color(0xFF000000); // KT 위즈 블랙
+      case 'landers':
+      case 'SSG':
+        return const Color(0xFFCE0E2D); // SSG 랜더스 레드
+      case 'dinos':
+      case 'NC':
+        return const Color(0xFF315288); // NC 다이노스 네이비
+      case 'bears':
+      case '두산':
+        return const Color(0xFF131A2B); // 두산 베어스 네이비
+      case 'tigers':
+      case 'KIA':
+        return const Color(0xFFEA0029); // KIA 타이거즈 레드
+      case 'giants':
+      case '롯데':
+        return const Color(0xFF041E42); // 롯데 자이언츠 네이비
+      case 'lions':
+      case '삼성':
+        return const Color(0xFF1E3A8A); // 삼성 라이온즈 블루
+      case 'eagles':
+      case '한화':
+        return const Color(0xFFFF6900); // 한화 이글스 오렌지
+      case 'heroes':
+      case '키움':
+        return const Color(0xFF570514); // 키움 히어로즈 버건디
+      default:
+        return Colors.blue; // 기본 색상
+    }
+  }
+
+  /// 팀별 보조 색상 반환
+  Color _getTeamSecondaryColor(String teamId) {
+    switch (teamId) {
+      case 'twins':
+      case 'LG':
+        return Colors.white;
+      case 'wiz':
+      case 'KT':
+        return const Color(0xFFED1C24); // KT 레드
+      case 'landers':
+      case 'SSG':
+        return const Color(0xFFFFD100); // SSG 골드
+      case 'dinos':
+      case 'NC':
+        return const Color(0xFFFFD100); // NC 골드
+      case 'bears':
+      case '두산':
+        return Colors.white;
+      case 'tigers':
+      case 'KIA':
+        return Colors.white;
+      case 'giants':
+      case '롯데':
+        return Colors.white;
+      case 'lions':
+      case '삼성':
+        return Colors.white;
+      case 'eagles':
+      case '한화':
+        return Colors.white;
+      case 'heroes':
+      case '키움':
+        return const Color(0xFFFFD100); // 키움 골드
+      default:
+        return Colors.white;
     }
   }
 
@@ -204,17 +282,19 @@ class DatabaseService {
           id: homeTeam.id,
           name: homeTeam.name,
           shortName: homeTeam.code,
-          primaryColor: Colors.blue,
-          secondaryColor: Colors.white,
+          primaryColor: _getTeamPrimaryColor(homeTeam.id),
+          secondaryColor: _getTeamSecondaryColor(homeTeam.id),
           logo: homeTeam.emblem,
+          logoUrl: homeTeam.emblem,
         ),
         awayTeam: app_models.Team(
           id: awayTeam.id,
           name: awayTeam.name,
           shortName: awayTeam.code,
-          primaryColor: Colors.red,
-          secondaryColor: Colors.white,
+          primaryColor: _getTeamPrimaryColor(awayTeam.id),
+          secondaryColor: _getTeamSecondaryColor(awayTeam.id),
           logo: awayTeam.emblem,
+          logoUrl: awayTeam.emblem,
         ),
         homeScore: dbRecord.homeScore,
         awayScore: dbRecord.awayScore,
