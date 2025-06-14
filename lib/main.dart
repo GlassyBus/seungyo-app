@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
 
 import 'package:seungyo/routes.dart';
 import 'package:seungyo/view/auth/auth_screen.dart';
@@ -19,8 +20,21 @@ void main() async {
   // 한국어 locale 데이터 초기화
   await initializeDateFormatting('ko_KR', null);
 
+  // SQLite3 플러터 라이브러리 초기화 (Android에서 필수)
+  await applyWorkaroundToOpenSqlite3OnOldAndroidVersions();
+
   // 데이터베이스 초기화
-  await DatabaseService().initialize();
+  final dbService = DatabaseService();
+  try {
+    await dbService.initialize();
+    print('DB 초기화 성공');
+    
+    // 디버그: DB 상태 확인
+    print('DB 초기화 완료. 상태 확인 중...');
+    await dbService.printDatabaseStatus();
+  } catch (e) {
+    print('DB 초기화 실패: $e');
+  }
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

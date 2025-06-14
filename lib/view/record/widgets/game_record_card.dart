@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:seungyo/theme/app_text_styles.dart'; // AppTextStyles 임포트
+import 'package:seungyo/theme/app_text_styles.dart';
 import 'package:seungyo/utils/date_formatter.dart';
 import '../../../models/game_record.dart';
 import 'dotted_line_painter.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+/// 게임 기록 카드 위젯 - DB 데이터를 사용하여 모든 데이터를 props로 받음
 class GameRecordCard extends StatelessWidget {
-  const GameRecordCard({
-    super.key,
-    required this.record,
-    this.onTap,
-    this.onFavoriteToggle,
-  });
+  const GameRecordCard({super.key, required this.record, this.onTap, this.onFavoriteToggle});
 
   final GameRecord record;
   final VoidCallback? onTap;
@@ -33,11 +29,7 @@ class GameRecordCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(cardBorderRadius),
         boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD3D9E9).withOpacity(0.5),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: const Color(0xFFD3D9E9).withOpacity(0.5), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
       padding: const EdgeInsets.all(cardPadding),
@@ -58,11 +50,7 @@ class GameRecordCard extends StatelessWidget {
     );
   }
 
-  Widget _buildGameImage(
-    BuildContext context,
-    double borderRadius,
-    double rowContentHeight,
-  ) {
+  Widget _buildGameImage(BuildContext context, double borderRadius, double rowContentHeight) {
     const double imageWidth = 90.0;
     const double imageHeight = 98.0;
 
@@ -76,13 +64,12 @@ class GameRecordCard extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              record.imageUrl != null && record.imageUrl!.isNotEmpty
+              // DB에서 photos 배열의 첫 번째 이미지 사용
+              record.photos.isNotEmpty
                   ? Image.network(
-                    record.imageUrl!,
+                    record.photos.first,
                     fit: BoxFit.cover,
-                    errorBuilder:
-                        (context, error, stackTrace) =>
-                            _buildDefaultImagePlaceholder(),
+                    errorBuilder: (context, error, stackTrace) => _buildDefaultImagePlaceholder(),
                   )
                   : _buildDefaultImagePlaceholder(),
               if (onFavoriteToggle != null)
@@ -94,22 +81,13 @@ class GameRecordCard extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 1),
-                          ),
+                          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 1)),
                         ],
                       ),
                       padding: const EdgeInsets.all(2.0),
                       child: Icon(
-                        record.isFavorite
-                            ? Icons.favorite
-                            : Icons.favorite_outline,
-                        color:
-                            record.isFavorite
-                                ? const Color(0xFFEB4144)
-                                : Colors.white,
+                        record.isFavorite ? Icons.favorite : Icons.favorite_outline,
+                        color: record.isFavorite ? const Color(0xFFEB4144) : Colors.white,
                         size: 22.0,
                       ),
                     ),
@@ -126,11 +104,7 @@ class GameRecordCard extends StatelessWidget {
     return Container(
       color: const Color(0xFFF0F2F5),
       alignment: Alignment.center,
-      child: SvgPicture.asset(
-        'assets/icons/wings-57px.svg',
-        width: 57,
-        height: 69,
-      ),
+      child: SvgPicture.asset('assets/icons/wings-57px.svg', width: 57, height: 69),
     );
   }
 
@@ -141,7 +115,7 @@ class GameRecordCard extends StatelessWidget {
         height: contentHeight,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center, // 세로 중앙 정렬로 변경
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // 날짜 및 경기장 정보
             Column(
@@ -150,55 +124,40 @@ class GameRecordCard extends StatelessWidget {
               children: [
                 Text(
                   DateFormatter.formatFullDateTime(record.dateTime),
-                  style: AppTextStyles.caption.copyWith(
-                    color: const Color(0xFF8A94A8),
-                  ),
+                  style: AppTextStyles.caption.copyWith(color: const Color(0xFF8A94A8)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   record.stadium.name,
-                  style: AppTextStyles.subtitle2.copyWith(
-                    color: const Color(0xFF09004C),
-                  ),
+                  style: AppTextStyles.subtitle2.copyWith(color: const Color(0xFF09004C)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-            const SizedBox(height: 8), // 정보 그룹과 팀 이름 그룹 사이 간격 (조정 가능)
-            // 팀 이름 정보
+            const SizedBox(height: 8),
+            // 팀 이름 정보 - DB에서 실제 팀명 사용
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Flexible(
                   child: Text(
                     record.homeTeam.shortName,
-                    style: AppTextStyles.body1.copyWith(
-                      color: const Color(0xFF09004C),
-                      fontSize: 22,
-                    ),
+                    style: AppTextStyles.body1.copyWith(color: const Color(0xFF09004C), fontSize: 22),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Text(
-                    'VS',
-                    style: AppTextStyles.body3.copyWith(
-                      color: const Color(0xFF8A94A8),
-                    ),
-                  ),
+                  child: Text('VS', style: AppTextStyles.body3.copyWith(color: const Color(0xFF8A94A8))),
                 ),
                 Flexible(
                   child: Text(
                     record.awayTeam.shortName,
-                    style: AppTextStyles.body1.copyWith(
-                      color: const Color(0xFF09004C),
-                      fontSize: 22,
-                    ),
+                    style: AppTextStyles.body1.copyWith(color: const Color(0xFF09004C), fontSize: 22),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -212,18 +171,12 @@ class GameRecordCard extends StatelessWidget {
   }
 
   Widget _buildVerticalDottedLine(double contentHeight) {
-    return Container(
-      width: 10,
-      height: contentHeight,
-      child: CustomPaint(painter: DottedLinePainter()),
-    );
+    return Container(width: 10, height: contentHeight, child: CustomPaint(painter: DottedLinePainter()));
   }
 
   Widget _buildResultSection(BuildContext context, double contentHeight) {
     const double resultSectionWidth = 86.0;
-    final (badgeColor, badgeTextColor, resultText) = _getResultStyle(
-      record.result,
-    );
+    final (badgeColor, badgeTextColor, resultText) = _getResultStyle(record.result);
 
     return SizedBox(
       width: resultSectionWidth,
@@ -231,35 +184,24 @@ class GameRecordCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // 세로 중앙 정렬로 변경
+          mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // 결과 배지
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 1,
-              ), // 배지 여백 변경
-              decoration: BoxDecoration(
-                color: badgeColor,
-                borderRadius: BorderRadius.circular(14),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
+              decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(14)),
               child: Text(
                 resultText,
-                style: AppTextStyles.body3.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: badgeTextColor,
-                ),
+                style: AppTextStyles.body3.copyWith(fontWeight: FontWeight.bold, color: badgeTextColor),
               ),
             ),
-            // 점수가 있을 경우에만 표시, 배지와의 간격 조정
+            const SizedBox(height: 4),
+            // DB에서 실제 점수 표시
             if (record.homeScore != null && record.awayScore != null)
               Text(
                 '${record.homeScore}:${record.awayScore}',
-                style: AppTextStyles.body1.copyWith(
-                  color: const Color(0xFF09004C),
-                  fontSize: 28,
-                ),
+                style: AppTextStyles.body1.copyWith(color: const Color(0xFF09004C), fontSize: 28),
               ),
           ],
         ),

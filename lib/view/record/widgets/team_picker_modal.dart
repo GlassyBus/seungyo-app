@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:seungyo/theme/theme.dart';
+import 'package:seungyo/models/team.dart' as app_models;
 
 class TeamPickerModal extends StatefulWidget {
   final String title;
   final String? selectedTeam;
   final Function(String) onTeamSelected;
+  final List<app_models.Team> teams;
 
   const TeamPickerModal({
     Key? key,
     required this.title,
     this.selectedTeam,
     required this.onTeamSelected,
+    required this.teams,
   }) : super(key: key);
 
   @override
@@ -19,19 +22,6 @@ class TeamPickerModal extends StatefulWidget {
 
 class _TeamPickerModalState extends State<TeamPickerModal> {
   String? _selectedTeam;
-
-  final List<Map<String, dynamic>> _teams = [
-    {'name': 'KIA 타이거즈', 'logo': '🐅', 'color': Color(0xFFEA0029)},
-    {'name': 'KT 위즈', 'logo': '🧙‍♂️', 'color': Color(0xFF000000)},
-    {'name': 'LG 트윈스', 'logo': '⚾', 'color': Color(0xFFC30452)},
-    {'name': 'NC 다이노스', 'logo': '🦕', 'color': Color(0xFF315288)},
-    {'name': 'SSG 랜더스', 'logo': '⚡', 'color': Color(0xFFCE0E2D)},
-    {'name': '두산 베어스', 'logo': '🐻', 'color': Color(0xFF131230)},
-    {'name': '롯데 자이언츠', 'logo': '⚾', 'color': Color(0xFF041E42)},
-    {'name': '삼성 라이온즈', 'logo': '🦁', 'color': Color(0xFF074CA1)},
-    {'name': '키움 히어로즈', 'logo': '🦸‍♂️', 'color': Color(0xFF570514)},
-    {'name': '한화 이글스', 'logo': '🦅', 'color': Color(0xFFFF6600)},
-  ];
 
   @override
   void initState() {
@@ -56,7 +46,9 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
       child: Column(
         children: [
           _buildHeader(colorScheme, textTheme),
-          Expanded(child: _buildTeamList(colorScheme, textTheme)),
+          Expanded(
+            child: _buildTeamList(colorScheme, textTheme)
+          ),
           _buildConfirmButton(colorScheme, textTheme),
         ],
       ),
@@ -83,12 +75,21 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
   }
 
   Widget _buildTeamList(ColorScheme colorScheme, TextTheme textTheme) {
+    if (widget.teams.isEmpty) {
+      return Center(
+        child: Text(
+          '팀이 없습니다.',
+          style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline),
+        ),
+      );
+    }
+    
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: _teams.length,
+      itemCount: widget.teams.length,
       itemBuilder: (context, index) {
-        final team = _teams[index];
-        final isSelected = _selectedTeam == team['name'];
+        final team = widget.teams[index];
+        final isSelected = _selectedTeam == team.id;
 
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(
@@ -99,25 +100,27 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: team['color'],
+              color: team.primaryColor,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Center(
-              child: Text(team['logo'], style: const TextStyle(fontSize: 20)),
+              child: Text(
+                team.logoUrl ?? '⚾',
+                style: const TextStyle(fontSize: 20),
+              ),
             ),
           ),
           title: Text(
-            team['name'],
+            team.name,
             style: textTheme.bodyLarge?.copyWith(
               color: isSelected ? AppColors.mint : colorScheme.onSurface,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
-          trailing:
-              isSelected ? Icon(Icons.check, color: AppColors.mint) : null,
+          trailing: isSelected ? Icon(Icons.check, color: AppColors.mint) : null,
           onTap: () {
             setState(() {
-              _selectedTeam = team['name'];
+              _selectedTeam = team.id;
             });
           },
         );
@@ -132,13 +135,12 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
         width: double.infinity,
         height: 56,
         child: ElevatedButton(
-          onPressed:
-              _selectedTeam != null
-                  ? () {
-                    widget.onTeamSelected(_selectedTeam!);
-                    Navigator.pop(context);
-                  }
-                  : null,
+          onPressed: _selectedTeam != null
+              ? () {
+                  widget.onTeamSelected(_selectedTeam!);
+                  Navigator.pop(context);
+                }
+              : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.navy,
             foregroundColor: Colors.white,

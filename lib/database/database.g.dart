@@ -10,16 +10,12 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
   $TeamsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -64,6 +60,8 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -98,7 +96,7 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
     return Team(
       id:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
+            DriftSqlType.string,
             data['${effectivePrefix}id'],
           )!,
       name:
@@ -125,7 +123,7 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
 }
 
 class Team extends DataClass implements Insertable<Team> {
-  final int id;
+  final String id;
   final String name;
   final String code;
   final String? emblem;
@@ -138,7 +136,7 @@ class Team extends DataClass implements Insertable<Team> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     map['code'] = Variable<String>(code);
     if (!nullToAbsent || emblem != null) {
@@ -163,7 +161,7 @@ class Team extends DataClass implements Insertable<Team> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Team(
-      id: serializer.fromJson<int>(json['id']),
+      id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       code: serializer.fromJson<String>(json['code']),
       emblem: serializer.fromJson<String?>(json['emblem']),
@@ -173,7 +171,7 @@ class Team extends DataClass implements Insertable<Team> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'code': serializer.toJson<String>(code),
       'emblem': serializer.toJson<String?>(emblem),
@@ -181,7 +179,7 @@ class Team extends DataClass implements Insertable<Team> {
   }
 
   Team copyWith({
-    int? id,
+    String? id,
     String? name,
     String? code,
     Value<String?> emblem = const Value.absent(),
@@ -224,48 +222,56 @@ class Team extends DataClass implements Insertable<Team> {
 }
 
 class TeamsCompanion extends UpdateCompanion<Team> {
-  final Value<int> id;
+  final Value<String> id;
   final Value<String> name;
   final Value<String> code;
   final Value<String?> emblem;
+  final Value<int> rowid;
   const TeamsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.code = const Value.absent(),
     this.emblem = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   TeamsCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
     required String name,
     required String code,
     this.emblem = const Value.absent(),
-  }) : name = Value(name),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
        code = Value(code);
   static Insertable<Team> custom({
-    Expression<int>? id,
+    Expression<String>? id,
     Expression<String>? name,
     Expression<String>? code,
     Expression<String>? emblem,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (code != null) 'code': code,
       if (emblem != null) 'emblem': emblem,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   TeamsCompanion copyWith({
-    Value<int>? id,
+    Value<String>? id,
     Value<String>? name,
     Value<String>? code,
     Value<String?>? emblem,
+    Value<int>? rowid,
   }) {
     return TeamsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       code: code ?? this.code,
       emblem: emblem ?? this.emblem,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -273,7 +279,7 @@ class TeamsCompanion extends UpdateCompanion<Team> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -284,6 +290,9 @@ class TeamsCompanion extends UpdateCompanion<Team> {
     if (emblem.present) {
       map['emblem'] = Variable<String>(emblem.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
@@ -293,7 +302,8 @@ class TeamsCompanion extends UpdateCompanion<Team> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('code: $code, ')
-          ..write('emblem: $emblem')
+          ..write('emblem: $emblem, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -306,16 +316,12 @@ class $StadiumsTable extends Stadiums with TableInfo<$StadiumsTable, Stadium> {
   $StadiumsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
     'id',
     aliasedName,
     false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
@@ -351,6 +357,8 @@ class $StadiumsTable extends Stadiums with TableInfo<$StadiumsTable, Stadium> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -377,7 +385,7 @@ class $StadiumsTable extends Stadiums with TableInfo<$StadiumsTable, Stadium> {
     return Stadium(
       id:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
+            DriftSqlType.string,
             data['${effectivePrefix}id'],
           )!,
       name:
@@ -399,14 +407,14 @@ class $StadiumsTable extends Stadiums with TableInfo<$StadiumsTable, Stadium> {
 }
 
 class Stadium extends DataClass implements Insertable<Stadium> {
-  final int id;
+  final String id;
   final String name;
   final String? city;
   const Stadium({required this.id, required this.name, this.city});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || city != null) {
       map['city'] = Variable<String>(city);
@@ -428,7 +436,7 @@ class Stadium extends DataClass implements Insertable<Stadium> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Stadium(
-      id: serializer.fromJson<int>(json['id']),
+      id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       city: serializer.fromJson<String?>(json['city']),
     );
@@ -437,14 +445,14 @@ class Stadium extends DataClass implements Insertable<Stadium> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'city': serializer.toJson<String?>(city),
     };
   }
 
   Stadium copyWith({
-    int? id,
+    String? id,
     String? name,
     Value<String?> city = const Value.absent(),
   }) => Stadium(
@@ -482,40 +490,48 @@ class Stadium extends DataClass implements Insertable<Stadium> {
 }
 
 class StadiumsCompanion extends UpdateCompanion<Stadium> {
-  final Value<int> id;
+  final Value<String> id;
   final Value<String> name;
   final Value<String?> city;
+  final Value<int> rowid;
   const StadiumsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.city = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   StadiumsCompanion.insert({
-    this.id = const Value.absent(),
+    required String id,
     required String name,
     this.city = const Value.absent(),
-  }) : name = Value(name);
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
   static Insertable<Stadium> custom({
-    Expression<int>? id,
+    Expression<String>? id,
     Expression<String>? name,
     Expression<String>? city,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (city != null) 'city': city,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   StadiumsCompanion copyWith({
-    Value<int>? id,
+    Value<String>? id,
     Value<String>? name,
     Value<String?>? city,
+    Value<int>? rowid,
   }) {
     return StadiumsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       city: city ?? this.city,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -523,13 +539,16 @@ class StadiumsCompanion extends UpdateCompanion<Stadium> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
     if (city.present) {
       map['city'] = Variable<String>(city.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -539,7 +558,8 @@ class StadiumsCompanion extends UpdateCompanion<Stadium> {
     return (StringBuffer('StadiumsCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('city: $city')
+          ..write('city: $city, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -576,11 +596,11 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     'stadiumId',
   );
   @override
-  late final GeneratedColumn<int> stadiumId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> stadiumId = GeneratedColumn<String>(
     'stadium_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES stadiums (id)',
@@ -590,11 +610,11 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     'homeTeamId',
   );
   @override
-  late final GeneratedColumn<int> homeTeamId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> homeTeamId = GeneratedColumn<String>(
     'home_team_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES teams (id)',
@@ -604,11 +624,11 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     'awayTeamId',
   );
   @override
-  late final GeneratedColumn<int> awayTeamId = GeneratedColumn<int>(
+  late final GeneratedColumn<String> awayTeamId = GeneratedColumn<String>(
     'away_team_id',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES teams (id)',
@@ -851,17 +871,17 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
           )!,
       stadiumId:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
+            DriftSqlType.string,
             data['${effectivePrefix}stadium_id'],
           )!,
       homeTeamId:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
+            DriftSqlType.string,
             data['${effectivePrefix}home_team_id'],
           )!,
       awayTeamId:
           attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
+            DriftSqlType.string,
             data['${effectivePrefix}away_team_id'],
           )!,
       homeScore:
@@ -913,9 +933,9 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
 class Record extends DataClass implements Insertable<Record> {
   final int id;
   final DateTime date;
-  final int stadiumId;
-  final int homeTeamId;
-  final int awayTeamId;
+  final String stadiumId;
+  final String homeTeamId;
+  final String awayTeamId;
   final int homeScore;
   final int awayScore;
   final bool canceled;
@@ -944,9 +964,9 @@ class Record extends DataClass implements Insertable<Record> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['date'] = Variable<DateTime>(date);
-    map['stadium_id'] = Variable<int>(stadiumId);
-    map['home_team_id'] = Variable<int>(homeTeamId);
-    map['away_team_id'] = Variable<int>(awayTeamId);
+    map['stadium_id'] = Variable<String>(stadiumId);
+    map['home_team_id'] = Variable<String>(homeTeamId);
+    map['away_team_id'] = Variable<String>(awayTeamId);
     map['home_score'] = Variable<int>(homeScore);
     map['away_score'] = Variable<int>(awayScore);
     map['canceled'] = Variable<bool>(canceled);
@@ -996,9 +1016,9 @@ class Record extends DataClass implements Insertable<Record> {
     return Record(
       id: serializer.fromJson<int>(json['id']),
       date: serializer.fromJson<DateTime>(json['date']),
-      stadiumId: serializer.fromJson<int>(json['stadiumId']),
-      homeTeamId: serializer.fromJson<int>(json['homeTeamId']),
-      awayTeamId: serializer.fromJson<int>(json['awayTeamId']),
+      stadiumId: serializer.fromJson<String>(json['stadiumId']),
+      homeTeamId: serializer.fromJson<String>(json['homeTeamId']),
+      awayTeamId: serializer.fromJson<String>(json['awayTeamId']),
       homeScore: serializer.fromJson<int>(json['homeScore']),
       awayScore: serializer.fromJson<int>(json['awayScore']),
       canceled: serializer.fromJson<bool>(json['canceled']),
@@ -1015,9 +1035,9 @@ class Record extends DataClass implements Insertable<Record> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'date': serializer.toJson<DateTime>(date),
-      'stadiumId': serializer.toJson<int>(stadiumId),
-      'homeTeamId': serializer.toJson<int>(homeTeamId),
-      'awayTeamId': serializer.toJson<int>(awayTeamId),
+      'stadiumId': serializer.toJson<String>(stadiumId),
+      'homeTeamId': serializer.toJson<String>(homeTeamId),
+      'awayTeamId': serializer.toJson<String>(awayTeamId),
       'homeScore': serializer.toJson<int>(homeScore),
       'awayScore': serializer.toJson<int>(awayScore),
       'canceled': serializer.toJson<bool>(canceled),
@@ -1032,9 +1052,9 @@ class Record extends DataClass implements Insertable<Record> {
   Record copyWith({
     int? id,
     DateTime? date,
-    int? stadiumId,
-    int? homeTeamId,
-    int? awayTeamId,
+    String? stadiumId,
+    String? homeTeamId,
+    String? awayTeamId,
     int? homeScore,
     int? awayScore,
     bool? canceled,
@@ -1138,9 +1158,9 @@ class Record extends DataClass implements Insertable<Record> {
 class RecordsCompanion extends UpdateCompanion<Record> {
   final Value<int> id;
   final Value<DateTime> date;
-  final Value<int> stadiumId;
-  final Value<int> homeTeamId;
-  final Value<int> awayTeamId;
+  final Value<String> stadiumId;
+  final Value<String> homeTeamId;
+  final Value<String> awayTeamId;
   final Value<int> homeScore;
   final Value<int> awayScore;
   final Value<bool> canceled;
@@ -1167,9 +1187,9 @@ class RecordsCompanion extends UpdateCompanion<Record> {
   RecordsCompanion.insert({
     this.id = const Value.absent(),
     required DateTime date,
-    required int stadiumId,
-    required int homeTeamId,
-    required int awayTeamId,
+    required String stadiumId,
+    required String homeTeamId,
+    required String awayTeamId,
     required int homeScore,
     required int awayScore,
     this.canceled = const Value.absent(),
@@ -1187,9 +1207,9 @@ class RecordsCompanion extends UpdateCompanion<Record> {
   static Insertable<Record> custom({
     Expression<int>? id,
     Expression<DateTime>? date,
-    Expression<int>? stadiumId,
-    Expression<int>? homeTeamId,
-    Expression<int>? awayTeamId,
+    Expression<String>? stadiumId,
+    Expression<String>? homeTeamId,
+    Expression<String>? awayTeamId,
     Expression<int>? homeScore,
     Expression<int>? awayScore,
     Expression<bool>? canceled,
@@ -1219,9 +1239,9 @@ class RecordsCompanion extends UpdateCompanion<Record> {
   RecordsCompanion copyWith({
     Value<int>? id,
     Value<DateTime>? date,
-    Value<int>? stadiumId,
-    Value<int>? homeTeamId,
-    Value<int>? awayTeamId,
+    Value<String>? stadiumId,
+    Value<String>? homeTeamId,
+    Value<String>? awayTeamId,
     Value<int>? homeScore,
     Value<int>? awayScore,
     Value<bool>? canceled,
@@ -1258,13 +1278,13 @@ class RecordsCompanion extends UpdateCompanion<Record> {
       map['date'] = Variable<DateTime>(date.value);
     }
     if (stadiumId.present) {
-      map['stadium_id'] = Variable<int>(stadiumId.value);
+      map['stadium_id'] = Variable<String>(stadiumId.value);
     }
     if (homeTeamId.present) {
-      map['home_team_id'] = Variable<int>(homeTeamId.value);
+      map['home_team_id'] = Variable<String>(homeTeamId.value);
     }
     if (awayTeamId.present) {
-      map['away_team_id'] = Variable<int>(awayTeamId.value);
+      map['away_team_id'] = Variable<String>(awayTeamId.value);
     }
     if (homeScore.present) {
       map['home_score'] = Variable<int>(homeScore.value);
@@ -1333,17 +1353,19 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
 typedef $$TeamsTableCreateCompanionBuilder =
     TeamsCompanion Function({
-      Value<int> id,
+      required String id,
       required String name,
       required String code,
       Value<String?> emblem,
+      Value<int> rowid,
     });
 typedef $$TeamsTableUpdateCompanionBuilder =
     TeamsCompanion Function({
-      Value<int> id,
+      Value<String> id,
       Value<String> name,
       Value<String> code,
       Value<String?> emblem,
+      Value<int> rowid,
     });
 
 class $$TeamsTableFilterComposer extends Composer<_$AppDatabase, $TeamsTable> {
@@ -1354,7 +1376,7 @@ class $$TeamsTableFilterComposer extends Composer<_$AppDatabase, $TeamsTable> {
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
@@ -1384,7 +1406,7 @@ class $$TeamsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
@@ -1414,7 +1436,7 @@ class $$TeamsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
@@ -1455,27 +1477,31 @@ class $$TeamsTableTableManager
               () => $$TeamsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> code = const Value.absent(),
                 Value<String?> emblem = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => TeamsCompanion(
                 id: id,
                 name: name,
                 code: code,
                 emblem: emblem,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                required String id,
                 required String name,
                 required String code,
                 Value<String?> emblem = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => TeamsCompanion.insert(
                 id: id,
                 name: name,
                 code: code,
                 emblem: emblem,
+                rowid: rowid,
               ),
           withReferenceMapper:
               (p0) =>
@@ -1508,15 +1534,17 @@ typedef $$TeamsTableProcessedTableManager =
     >;
 typedef $$StadiumsTableCreateCompanionBuilder =
     StadiumsCompanion Function({
-      Value<int> id,
+      required String id,
       required String name,
       Value<String?> city,
+      Value<int> rowid,
     });
 typedef $$StadiumsTableUpdateCompanionBuilder =
     StadiumsCompanion Function({
-      Value<int> id,
+      Value<String> id,
       Value<String> name,
       Value<String?> city,
+      Value<int> rowid,
     });
 
 final class $$StadiumsTableReferences
@@ -1534,7 +1562,7 @@ final class $$StadiumsTableReferences
     final manager = $$RecordsTableTableManager(
       $_db,
       $_db.records,
-    ).filter((f) => f.stadiumId.id.sqlEquals($_itemColumn<int>('id')!));
+    ).filter((f) => f.stadiumId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_recordsRefsTable($_db));
     return ProcessedTableManager(
@@ -1552,7 +1580,7 @@ class $$StadiumsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
+  ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
@@ -1602,7 +1630,7 @@ class $$StadiumsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
+  ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
@@ -1627,7 +1655,7 @@ class $$StadiumsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
+  GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
@@ -1690,16 +1718,28 @@ class $$StadiumsTableTableManager
               () => $$StadiumsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> city = const Value.absent(),
-              }) => StadiumsCompanion(id: id, name: name, city: city),
+                Value<int> rowid = const Value.absent(),
+              }) => StadiumsCompanion(
+                id: id,
+                name: name,
+                city: city,
+                rowid: rowid,
+              ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
+                required String id,
                 required String name,
                 Value<String?> city = const Value.absent(),
-              }) => StadiumsCompanion.insert(id: id, name: name, city: city),
+                Value<int> rowid = const Value.absent(),
+              }) => StadiumsCompanion.insert(
+                id: id,
+                name: name,
+                city: city,
+                rowid: rowid,
+              ),
           withReferenceMapper:
               (p0) =>
                   p0
@@ -1761,9 +1801,9 @@ typedef $$RecordsTableCreateCompanionBuilder =
     RecordsCompanion Function({
       Value<int> id,
       required DateTime date,
-      required int stadiumId,
-      required int homeTeamId,
-      required int awayTeamId,
+      required String stadiumId,
+      required String homeTeamId,
+      required String awayTeamId,
       required int homeScore,
       required int awayScore,
       Value<bool> canceled,
@@ -1777,9 +1817,9 @@ typedef $$RecordsTableUpdateCompanionBuilder =
     RecordsCompanion Function({
       Value<int> id,
       Value<DateTime> date,
-      Value<int> stadiumId,
-      Value<int> homeTeamId,
-      Value<int> awayTeamId,
+      Value<String> stadiumId,
+      Value<String> homeTeamId,
+      Value<String> awayTeamId,
       Value<int> homeScore,
       Value<int> awayScore,
       Value<bool> canceled,
@@ -1798,7 +1838,7 @@ final class $$RecordsTableReferences
       .createAlias($_aliasNameGenerator(db.records.stadiumId, db.stadiums.id));
 
   $$StadiumsTableProcessedTableManager get stadiumId {
-    final $_column = $_itemColumn<int>('stadium_id')!;
+    final $_column = $_itemColumn<String>('stadium_id')!;
 
     final manager = $$StadiumsTableTableManager(
       $_db,
@@ -1816,7 +1856,7 @@ final class $$RecordsTableReferences
   );
 
   $$TeamsTableProcessedTableManager get homeTeamId {
-    final $_column = $_itemColumn<int>('home_team_id')!;
+    final $_column = $_itemColumn<String>('home_team_id')!;
 
     final manager = $$TeamsTableTableManager(
       $_db,
@@ -1834,7 +1874,7 @@ final class $$RecordsTableReferences
   );
 
   $$TeamsTableProcessedTableManager get awayTeamId {
-    final $_column = $_itemColumn<int>('away_team_id')!;
+    final $_column = $_itemColumn<String>('away_team_id')!;
 
     final manager = $$TeamsTableTableManager(
       $_db,
@@ -2253,9 +2293,9 @@ class $$RecordsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
-                Value<int> stadiumId = const Value.absent(),
-                Value<int> homeTeamId = const Value.absent(),
-                Value<int> awayTeamId = const Value.absent(),
+                Value<String> stadiumId = const Value.absent(),
+                Value<String> homeTeamId = const Value.absent(),
+                Value<String> awayTeamId = const Value.absent(),
                 Value<int> homeScore = const Value.absent(),
                 Value<int> awayScore = const Value.absent(),
                 Value<bool> canceled = const Value.absent(),
@@ -2283,9 +2323,9 @@ class $$RecordsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required DateTime date,
-                required int stadiumId,
-                required int homeTeamId,
-                required int awayTeamId,
+                required String stadiumId,
+                required String homeTeamId,
+                required String awayTeamId,
                 required int homeScore,
                 required int awayScore,
                 Value<bool> canceled = const Value.absent(),

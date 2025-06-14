@@ -1,39 +1,47 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
+
 import 'package:drift/drift.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../database/database.dart';
-import '../models/game_record_form.dart';
 import '../models/game_record.dart';
+import '../models/game_record_form.dart';
 import '../services/database_service.dart';
 
 class RecordService {
   // 싱글톤 패턴 구현
   static final RecordService _instance = RecordService._internal();
+
   factory RecordService() => _instance;
+
   RecordService._internal();
 
-  /// 모든 경기 기록 가져오기
   AppDatabase get _database => DatabaseService().database;
 
   // GameRecord 형태로 모든 기록 가져오기
   Future<List<GameRecord>> getAllRecords() async {
     try {
+      print('RecordService: Getting all database records...');
       final dbRecords = await _database.getAllRecords();
+      print('RecordService: Found ${dbRecords.length} database records');
+
       final gameRecords = <GameRecord>[];
 
       for (final record in dbRecords) {
-        final gameRecord = await DatabaseService().convertRecordToGameRecord(
-          record,
-        );
+        final gameRecord = await DatabaseService().convertRecordToGameRecord(record);
         if (gameRecord != null) {
           gameRecords.add(gameRecord);
         }
       }
 
+      // 날짜 기준으로 내림차순 정렬 (최신 기록이 위로)
+      gameRecords.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      print('RecordService: Converted and sorted ${gameRecords.length} game records');
+
       return gameRecords;
     } catch (e) {
+      print('Error loading records: $e');
       return [];
     }
   }
@@ -69,7 +77,7 @@ class RecordService {
   }
 
   // 특정 팀의 기록 가져오기
-  Future<List<Record>> getRecordsByTeam(int teamId) async {
+  Future<List<Record>> getRecordsByTeam(String teamId) async {
     try {
       return await _database.getRecordsByTeam(teamId);
     } catch (e) {
@@ -81,35 +89,66 @@ class RecordService {
   // 새 기록 추가
   Future<int> addRecord(GameRecordForm form) async {
     try {
+      print('RecordService: Starting addRecord...');
+      print('RecordService: Form data - DateTime: ${form.gameDateTime}, Stadium: ${form.stadiumId}, HomeTeam: ${form.homeTeamId}, AwayTeam: ${form.awayTeamId}');
+      print('RecordService: Form scores - Home: ${form.homeScore}, Away: ${form.awayScore}');
+      print('RecordService: Form extras - Seat: ${form.seatInfo}, Comment: ${form.comment}, Favorite: ${form.isFavorite}, Canceled: ${form.canceled}');
+
+      // 필수 필드 검증
+      if (!form.isValid) {
+        print('RecordService: Form validation failed');
+        throw Exception('필수 정보가 누락되었습니다.');
+      }
+
+      print('RecordService: Form validation passed');
+
       // 이미지 파일 처리
       List<String> photosPaths = [];
       if (form.imagePath != null) {
+        print('RecordService: Processing image: ${form.imagePath}');
         final permanentPath = await _saveImagePermanently(form.imagePath!);
         photosPaths.add(permanentPath);
+        print('RecordService: Image saved to: $permanentPath');
+      } else {
+        print('RecordService: No image to process');
       }
 
       // 새 기록 생성
-      final recordId = await _database.insertRecord(
-        RecordsCompanion.insert(
-          date: form.gameDateTime!,
-          stadiumId: form.stadiumId ?? 1, // 기본값 처리 필요
-          homeTeamId: form.homeTeamId ?? 1, // 기본값 처리 필요
-          awayTeamId: form.awayTeamId ?? 1, // 기본값 처리 필요
-          homeScore: form.homeScore ?? 0,
-          awayScore: form.awayScore ?? 0,
-          canceled: Value(false),
-          seat: Value(form.seatInfo),
-          comment: Value(form.comment),
-          photosJson: Value(
-            photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null,
-          ),
-          isFavorite: Value(false),
-        ),
+      print('RecordService: Creating record companion...');
+      final companion = RecordsCompanion.insert(
+        date: form.gameDateTime!,
+        stadiumId: form.stadiumId!,
+        homeTeamId: form.homeTeamId!,
+        awayTeamId: form.awayTeamId!,
+        homeScore: form.homeScore ?? 0,
+        awayScore: form.awayScore ?? 0,
+        canceled: Value(form.canceled),
+        seat: Value(form.seatInfo),
+        comment: Value(form.comment),
+        photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
+        isFavorite: Value(form.isFavorite),
       );
+
+      print('RecordService: Inserting record into database...');
+      final recordId = await _database.insertRecord(companion);
+      print('RecordService: Record inserted successfully with ID: $recordId');
+
+      // 검증: 실제로 DB에 들어갔는지 확인
+      final allRecords = await _database.getAllRecords();
+      print('RecordService: Total records in DB after insert: ${allRecords.length}');
+
+      final insertedRecord = allRecords.where((r) => r.id == recordId).firstOrNull;
+      if (insertedRecord != null) {
+        print('RecordService: Verification successful - Record found in DB');
+        print('RecordService: Inserted record details - Date: ${insertedRecord.date}, Stadium: ${insertedRecord.stadiumId}, Teams: ${insertedRecord.homeTeamId} vs ${insertedRecord.awayTeamId}');
+      } else {
+        print('RecordService: WARNING - Record not found in DB after insert!');
+      }
 
       return recordId;
     } catch (e) {
       print('Error adding record: $e');
+      print('Error stack trace: ${StackTrace.current}');
       rethrow;
     }
   }
@@ -146,9 +185,7 @@ class RecordService {
         canceled: Value(existingRecord.canceled),
         seat: Value(form.seatInfo),
         comment: Value(form.comment),
-        photosJson: Value(
-          photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null,
-        ),
+        photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
         isFavorite: Value(existingRecord.isFavorite),
         createdAt: Value(existingRecord.createdAt),
       );
@@ -216,7 +253,7 @@ class RecordService {
   }
 
   // 통계 관련 메서드
-  Future<Map<String, int>> getStats(int myTeamId) async {
+  Future<Map<String, int>> getStats(String myTeamId) async {
     try {
       final winCount = await _database.getWinCount(myTeamId);
       final loseCount = await _database.getLoseCount(myTeamId);
