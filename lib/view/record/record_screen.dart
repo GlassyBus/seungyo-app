@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:seungyo/theme/app_colors.dart';
 import 'package:seungyo/theme/app_text_styles.dart';
 import 'package:seungyo/view/record/create_record_screen.dart';
+import 'package:seungyo/widgets/custom_app_bar.dart';
 import '../../mocks/mock_data.dart';
 import '../../models/game_record.dart';
 import 'record_detail_screen.dart';
@@ -48,36 +49,7 @@ class _RecordListPageState extends State<RecordListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      backgroundColor: colorScheme.surfaceContainer,
-      appBar: _buildAppBar(context),
-      body: _isLoading ? _buildLoadingState(context) : _buildContent(context),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return AppBar(
-      backgroundColor: colorScheme.surfaceContainer,
-      elevation: 0,
-      title: Text(
-        '직관 기록',
-        style: textTheme.titleLarge?.copyWith(
-          color: colorScheme.onSurface,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon: Icon(Icons.add, color: colorScheme.onSurface),
-          onPressed: _handleAdd,
-        ),
-      ],
-    );
+    return _isLoading ? _buildLoadingState(context) : _buildContent(context);
   }
 
   Widget _buildLoadingState(BuildContext context) {
