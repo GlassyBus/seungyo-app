@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:seungyo/routes.dart';
 import 'package:seungyo/view/auth/auth_screen.dart';
@@ -10,10 +9,18 @@ import 'package:seungyo/view/main/main_screen.dart';
 import 'package:seungyo/view/splash/splash_screen.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
 import 'package:seungyo/viewmodel/splash_vm.dart';
+import 'package:seungyo/providers/schedule_provider.dart';
 import 'package:seungyo/theme/theme.dart';
+import 'package:seungyo/services/database_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 한국어 locale 데이터 초기화
+  await initializeDateFormatting('ko_KR', null);
+
+  // 데이터베이스 초기화
+  await DatabaseService().initialize();
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -40,6 +47,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SplashViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => ScheduleProvider()),
       ],
       child: MaterialApp(
         title: '승요',
@@ -55,14 +63,6 @@ class MyApp extends StatelessWidget {
           );
         },
         themeMode: ThemeMode.light,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('ko')],
-        locale: const Locale('ko'),
         initialRoute: Routes.splash,
         routes: {
           Routes.splash: (context) => const SplashScreen(),
