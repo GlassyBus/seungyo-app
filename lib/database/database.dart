@@ -88,18 +88,18 @@ class AppDatabase extends _$AppDatabase {
   Future<int> insertStadium(StadiumsCompanion stadium) => into(stadiums).insert(stadium);
 
   // 직관 기록 DAO
-  Future<List<Record>> getAllRecords() => select(records).get();
+  Future<List<Record>> getAllRecords() => (select(records)..orderBy([(r) => OrderingTerm.desc(r.date)])).get();
 
-  Future<List<Record>> getFavoriteRecords() => (select(records)..where((r) => r.isFavorite.equals(true))).get();
+  Future<List<Record>> getFavoriteRecords() => (select(records)..where((r) => r.isFavorite.equals(true))..orderBy([(r) => OrderingTerm.desc(r.date)])).get();
 
   Future<List<Record>> getRecordsByDate(DateTime date) {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
-    return (select(records)..where((r) => r.date.isBetween(Variable(startOfDay), Variable(endOfDay)))).get();
+    return (select(records)..where((r) => r.date.isBetween(Variable(startOfDay), Variable(endOfDay)))..orderBy([(r) => OrderingTerm.desc(r.date)])).get();
   }
 
   Future<List<Record>> getRecordsByTeam(String teamId) {
-    return (select(records)..where((r) => r.homeTeamId.equals(teamId) | r.awayTeamId.equals(teamId))).get();
+    return (select(records)..where((r) => r.homeTeamId.equals(teamId) | r.awayTeamId.equals(teamId))..orderBy([(r) => OrderingTerm.desc(r.date)])).get();
   }
 
   Future<int> insertRecord(RecordsCompanion record) => into(records).insert(record);

@@ -207,6 +207,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     setState(() {
       _currentTabIndex = index;
     });
+    
+    // 기록 탭으로 이동할 때 홈 데이터 새로고침 (통계 업데이트를 위해)
+    if (index == 1) {
+      print('MainScreen: Switched to records tab, refreshing data...');
+      _loadHomeData();
+    }
   }
 
   Widget _buildLoadingState() {
@@ -285,7 +291,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildRecordsContent() {
-    return const RecordListPage();
+    return RecordListPage(key: ValueKey(_currentTabIndex == 1 ? DateTime.now().millisecondsSinceEpoch : 0));
   }
 
   Widget _buildScheduleContent() {
@@ -373,12 +379,28 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   // 네비게이션 메서드들
-  void _navigateToAddRecord() {
+  void _navigateToAddRecord() async {
     HapticFeedback.lightImpact();
-    Navigator.push(
+    print('MainScreen: Navigating to CreateRecordScreen...');
+    
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
     );
+    
+    // 기록 추가 후 홈 데이터 새로고침
+    if (result == true) {
+      print('MainScreen: Record added successfully, refreshing home data...');
+      await _loadHomeData();
+      
+      // 기록 탭이 현재 탭이면 해당 데이터도 새로고침
+      if (_currentTabIndex == 1) {
+        print('MainScreen: Currently on records tab, triggering refresh...');
+        setState(() {
+          // setState를 호출하여 RecordListPage가 새로고침되도록 함
+        });
+      }
+    }
   }
 
   void _navigateToUserProfile() {

@@ -670,9 +670,13 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   Future<void> _handleSave() async {
-    if (!_canSave()) return;
+    if (!_canSave()) {
+      print('CreateRecordScreen: Cannot save - validation failed');
+      return;
+    }
 
     try {
+      print('CreateRecordScreen: Starting save process...');
       setState(() {
         _isSaving = true;
       });
@@ -685,10 +689,27 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         canceled: _isGameMinimum, // 경기최소는 취소된 경기로 처리
       );
 
+      print('CreateRecordScreen: Form updated with final data');
+      print('CreateRecordScreen: Final form validation: ${_form.isValid}');
+      print('CreateRecordScreen: Form data summary:');
+      print('  - DateTime: ${_form.gameDateTime}');
+      print('  - Stadium: ${_form.stadiumId}');
+      print('  - Home Team: ${_form.homeTeamId}');
+      print('  - Away Team: ${_form.awayTeamId}');
+      print('  - Home Score: ${_form.homeScore}');
+      print('  - Away Score: ${_form.awayScore}');
+      print('  - Seat: ${_form.seatInfo}');
+      print('  - Comment: ${_form.comment}');
+      print('  - Is Favorite: ${_form.isFavorite}');
+      print('  - Is Canceled: ${_form.canceled}');
+
       await _submitForm();
+      print('CreateRecordScreen: Save completed successfully');
     } catch (e) {
+      print('CreateRecordScreen: Save failed with error: $e');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
     } finally {
+      print('CreateRecordScreen: Resetting saving state');
       setState(() {
         _isSaving = false;
       });
@@ -696,30 +717,41 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   Future<void> _submitForm() async {
+    print('CreateRecordScreen: _submitForm called');
+
     if (!_formKey.currentState!.validate()) {
+      print('CreateRecordScreen: Form validation failed');
       return;
     }
 
     _formKey.currentState!.save();
+    print('CreateRecordScreen: Form state saved');
 
     if (!_form.isValid) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'), backgroundColor: Colors.red));
+      print('CreateRecordScreen: Form isValid check failed');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'), backgroundColor: Colors.red),
+      );
       return;
     }
 
     try {
+      print('CreateRecordScreen: Calling RecordService.addRecord...');
       setState(() => _isSaving = true);
-      await _recordService.addRecord(_form);
+
+      final recordId = await _recordService.addRecord(_form);
+      print('CreateRecordScreen: Record added successfully with ID: $recordId');
+
       if (mounted) {
+        print('CreateRecordScreen: Navigating back with success result');
         Navigator.of(context).pop(true);
       }
     } catch (e) {
+      print('CreateRecordScreen: Error in _submitForm: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('기록 저장 중 오류가 발생했습니다: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('기록 저장 중 오류가 발생했습니다: $e'), backgroundColor: Colors.red),
+        );
       }
     } finally {
       if (mounted) {

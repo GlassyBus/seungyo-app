@@ -22,7 +22,10 @@ class RecordService {
   // GameRecord 형태로 모든 기록 가져오기
   Future<List<GameRecord>> getAllRecords() async {
     try {
+      print('RecordService: Getting all database records...');
       final dbRecords = await _database.getAllRecords();
+      print('RecordService: Found ${dbRecords.length} database records');
+      
       final gameRecords = <GameRecord>[];
 
       for (final record in dbRecords) {
@@ -31,6 +34,10 @@ class RecordService {
           gameRecords.add(gameRecord);
         }
       }
+
+      // 날짜 기준으로 내림차순 정렬 (최신 기록이 위로)
+      gameRecords.sort((a, b) => b.dateTime.compareTo(a.dateTime));
+      print('RecordService: Converted and sorted ${gameRecords.length} game records');
 
       return gameRecords;
     } catch (e) {
@@ -82,38 +89,66 @@ class RecordService {
   // 새 기록 추가
   Future<int> addRecord(GameRecordForm form) async {
     try {
+      print('RecordService: Starting addRecord...');
+      print('RecordService: Form data - DateTime: ${form.gameDateTime}, Stadium: ${form.stadiumId}, HomeTeam: ${form.homeTeamId}, AwayTeam: ${form.awayTeamId}');
+      print('RecordService: Form scores - Home: ${form.homeScore}, Away: ${form.awayScore}');
+      print('RecordService: Form extras - Seat: ${form.seatInfo}, Comment: ${form.comment}, Favorite: ${form.isFavorite}, Canceled: ${form.canceled}');
+      
       // 필수 필드 검증
       if (!form.isValid) {
+        print('RecordService: Form validation failed');
         throw Exception('필수 정보가 누락되었습니다.');
       }
+      
+      print('RecordService: Form validation passed');
 
       // 이미지 파일 처리
       List<String> photosPaths = [];
       if (form.imagePath != null) {
+        print('RecordService: Processing image: ${form.imagePath}');
         final permanentPath = await _saveImagePermanently(form.imagePath!);
         photosPaths.add(permanentPath);
+        print('RecordService: Image saved to: $permanentPath');
+      } else {
+        print('RecordService: No image to process');
       }
 
       // 새 기록 생성
-      final recordId = await _database.insertRecord(
-        RecordsCompanion.insert(
-          date: form.gameDateTime!,
-          stadiumId: form.stadiumId!,
-          homeTeamId: form.homeTeamId!,
-          awayTeamId: form.awayTeamId!,
-          homeScore: form.homeScore ?? 0,
-          awayScore: form.awayScore ?? 0,
-          canceled: Value(form.canceled),
-          seat: Value(form.seatInfo),
-          comment: Value(form.comment),
-          photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
-          isFavorite: Value(form.isFavorite),
-        ),
+      print('RecordService: Creating record companion...');
+      final companion = RecordsCompanion.insert(
+        date: form.gameDateTime!,
+        stadiumId: form.stadiumId!,
+        homeTeamId: form.homeTeamId!,
+        awayTeamId: form.awayTeamId!,
+        homeScore: form.homeScore ?? 0,
+        awayScore: form.awayScore ?? 0,
+        canceled: Value(form.canceled),
+        seat: Value(form.seatInfo),
+        comment: Value(form.comment),
+        photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
+        isFavorite: Value(form.isFavorite),
       );
+      
+      print('RecordService: Inserting record into database...');
+      final recordId = await _database.insertRecord(companion);
+      print('RecordService: Record inserted successfully with ID: $recordId');
+
+      // 검증: 실제로 DB에 들어갔는지 확인
+      final allRecords = await _database.getAllRecords();
+      print('RecordService: Total records in DB after insert: ${allRecords.length}');
+      
+      final insertedRecord = allRecords.where((r) => r.id == recordId).firstOrNull;
+      if (insertedRecord != null) {
+        print('RecordService: Verification successful - Record found in DB');
+        print('RecordService: Inserted record details - Date: ${insertedRecord.date}, Stadium: ${insertedRecord.stadiumId}, Teams: ${insertedRecord.homeTeamId} vs ${insertedRecord.awayTeamId}');
+      } else {
+        print('RecordService: WARNING - Record not found in DB after insert!');
+      }
 
       return recordId;
     } catch (e) {
       print('Error adding record: $e');
+      print('Error stack trace: ${StackTrace.current}');
       rethrow;
     }
   }
