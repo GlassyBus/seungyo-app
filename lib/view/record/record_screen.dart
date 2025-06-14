@@ -58,13 +58,18 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
       final records = await _recordService.getAllRecords();
       print('RecordScreen: Loaded ${records.length} records from database');
       
-      // 날짜 기준으로 내림차순 정렬 (최신 기록이 위로)
-      records.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-      print('RecordScreen: Records sorted by date (newest first)');
+      // created_at 기준으로 내림차순 정렬 (최신 기록이 위로)
+      records.sort((a, b) {
+        // null인 경우 가장 오래된 것으로 처리
+        final aTime = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return bTime.compareTo(aTime);
+      });
+      print('RecordScreen: Records sorted by created_at (newest first)');
       
       for (int i = 0; i < records.length && i < 3; i++) {
         final record = records[i];
-        print('RecordScreen: Record $i - ${record.homeTeam.name} vs ${record.awayTeam.name}, Date: ${record.dateTime}, Stadium: ${record.stadium.name}');
+        print('RecordScreen: Record $i - ${record.homeTeam.name} vs ${record.awayTeam.name}, Created: ${record.createdAt}, Stadium: ${record.stadium.name}');
       }
 
       setState(() {
