@@ -48,14 +48,28 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     _form = GameRecordForm();
     _loadStadiums();
     _loadTeams();
+    
+    // 디버그: DB 상태 확인
+    _debugDatabaseStatus();
+  }
+
+  Future<void> _debugDatabaseStatus() async {
+    print('=== CreateRecordScreen - DB 상태 확인 ===');
+    await DatabaseService().printDatabaseStatus();
   }
 
   Future<void> _loadStadiums() async {
     try {
+      print('경기장 데이터 로딩 시작...');
       final stadiums = await DatabaseService().getStadiumsAsAppModels();
+      print('로딩된 경기장 수: ${stadiums.length}');
+      if (stadiums.isNotEmpty) {
+        print('첫 번째 경기장: ${stadiums.first.name} (${stadiums.first.id})');
+      }
       setState(() {
         _stadiums = stadiums;
       });
+      print('경기장 데이터 로딩 완료');
     } catch (e) {
       print('Error loading stadiums: $e');
     }
@@ -63,10 +77,16 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   Future<void> _loadTeams() async {
     try {
+      print('팀 데이터 로딩 시작...');
       final teams = await DatabaseService().getTeamsAsAppModels();
+      print('로딩된 팀 수: ${teams.length}');
+      if (teams.isNotEmpty) {
+        print('첫 번째 팀: ${teams.first.name} (${teams.first.id})');
+      }
       setState(() {
         _teams = teams;
       });
+      print('팀 데이터 로딩 완료');
     } catch (e) {
       print('Error loading teams: $e');
     }
@@ -592,6 +612,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                 _form = _form.copyWith(stadiumId: stadiumId);
               });
             },
+            stadiums: _stadiums,
           ),
     );
   }
@@ -614,6 +635,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                 }
               });
             },
+            teams: _teams,
           ),
     );
   }

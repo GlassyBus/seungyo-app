@@ -28,53 +28,74 @@ class DatabaseService {
 
   Future<void> _initializeDefaultData() async {
     try {
+      print('Starting database initialization...');
+      
       // 팀 데이터가 비어있으면 기본 데이터 삽입
       final existingTeams = await _database.getAllTeams();
+      print('Existing teams count: ${existingTeams.length}');
       if (existingTeams.isEmpty) {
+        print('Inserting team data...');
         await _insertTeamData();
+        print('Team data inserted successfully');
       }
 
       // 경기장 데이터가 비어있으면 기본 데이터 삽입
       final existingStadiums = await _database.getAllStadiums();
+      print('Existing stadiums count: ${existingStadiums.length}');
       if (existingStadiums.isEmpty) {
+        print('Inserting stadium data...');
         await _insertStadiumData();
+        print('Stadium data inserted successfully');
       }
 
       // 기록 데이터가 비어있으면 기본 데이터 삽입
       final existingRecords = await _database.getAllRecords();
+      print('Existing records count: ${existingRecords.length}');
       if (existingRecords.isEmpty) {
+        print('Inserting record data...');
         await _insertRecordData();
+        print('Record data inserted successfully');
       }
+
+      print('Database initialization completed successfully');
     } catch (e) {
       print('Error initializing default data: $e');
+      print('Error stack trace: ${StackTrace.current}');
     }
   }
 
   Future<void> _insertTeamData() async {
     try {
       final teams = team_data.TeamData.teams;
+      print('Found ${teams.length} teams to insert');
       for (int i = 0; i < teams.length; i++) {
         final team = teams[i];
+        print('Inserting team: ${team.name} (${team.id})');
         await _database.insertTeam(
           TeamsCompanion.insert(id: team.id, name: team.name, code: team.code, emblem: Value(team.emblem)),
         );
       }
+      print('All teams inserted successfully');
     } catch (e) {
       print('Error inserting team data: $e');
+      print('Error stack trace: ${StackTrace.current}');
     }
   }
 
   Future<void> _insertStadiumData() async {
     try {
       final stadiums = stadium_data.StadiumData.stadiums;
-
+      print('Found ${stadiums.length} stadiums to insert');
       for (final stadium in stadiums) {
+        print('Inserting stadium: ${stadium.name} (${stadium.id})');
         await _database.insertStadium(
           StadiumsCompanion.insert(id: stadium.id, name: stadium.name, city: Value(stadium.city)),
         );
       }
+      print('All stadiums inserted successfully');
     } catch (e) {
       print('Error inserting stadium data: $e');
+      print('Error stack trace: ${StackTrace.current}');
     }
   }
 
@@ -232,6 +253,100 @@ class DatabaseService {
     } catch (e) {
       print('Error getting all game records: $e');
       return [];
+    }
+  }
+
+  // 디버그용 메서드들
+  Future<void> printDatabaseStatus() async {
+    try {
+      print('=== DATABASE STATUS ===');
+      
+      // 팀 데이터 확인
+      final teams = await _database.getAllTeams();
+      print('Teams count: ${teams.length}');
+      if (teams.isNotEmpty) {
+        print('First 3 teams:');
+        for (int i = 0; i < (teams.length > 3 ? 3 : teams.length); i++) {
+          final team = teams[i];
+          print('  - ${team.id}: ${team.name} (${team.code})');
+        }
+      }
+      
+      // 경기장 데이터 확인
+      final stadiums = await _database.getAllStadiums();
+      print('Stadiums count: ${stadiums.length}');
+      if (stadiums.isNotEmpty) {
+        print('First 3 stadiums:');
+        for (int i = 0; i < (stadiums.length > 3 ? 3 : stadiums.length); i++) {
+          final stadium = stadiums[i];
+          print('  - ${stadium.id}: ${stadium.name} (${stadium.city})');
+        }
+      }
+      
+      // 기록 데이터 확인
+      final records = await _database.getAllRecords();
+      print('Records count: ${records.length}');
+      if (records.isNotEmpty) {
+        print('First 3 records:');
+        for (int i = 0; i < (records.length > 3 ? 3 : records.length); i++) {
+          final record = records[i];
+          print('  - Record ${record.id}: ${record.date} at ${record.stadiumId}');
+          print('    ${record.homeTeamId} vs ${record.awayTeamId} (${record.homeScore}-${record.awayScore})');
+        }
+      }
+      
+      print('======================');
+    } catch (e) {
+      print('Error checking database status: $e');
+    }
+  }
+
+  Future<void> printAllTeams() async {
+    try {
+      final teams = await _database.getAllTeams();
+      print('=== ALL TEAMS (${teams.length}) ===');
+      for (final team in teams) {
+        print('ID: ${team.id}, Name: ${team.name}, Code: ${team.code}, Emblem: ${team.emblem}');
+      }
+      print('========================');
+    } catch (e) {
+      print('Error printing teams: $e');
+    }
+  }
+
+  Future<void> printAllStadiums() async {
+    try {
+      final stadiums = await _database.getAllStadiums();
+      print('=== ALL STADIUMS (${stadiums.length}) ===');
+      for (final stadium in stadiums) {
+        print('ID: ${stadium.id}, Name: ${stadium.name}, City: ${stadium.city}');
+      }
+      print('============================');
+    } catch (e) {
+      print('Error printing stadiums: $e');
+    }
+  }
+
+  Future<void> printAllRecords() async {
+    try {
+      final records = await _database.getAllRecords();
+      print('=== ALL RECORDS (${records.length}) ===');
+      for (final record in records) {
+        print('ID: ${record.id}');
+        print('Date: ${record.date}');
+        print('Stadium: ${record.stadiumId}');
+        print('Teams: ${record.homeTeamId} vs ${record.awayTeamId}');
+        print('Score: ${record.homeScore}-${record.awayScore}');
+        print('Seat: ${record.seat}');
+        print('Comment: ${record.comment}');
+        print('Favorite: ${record.isFavorite}');
+        print('Canceled: ${record.canceled}');
+        print('Created: ${record.createdAt}');
+        print('---');
+      }
+      print('=========================');
+    } catch (e) {
+      print('Error printing records: $e');
     }
   }
 

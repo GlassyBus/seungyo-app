@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:seungyo/theme/theme.dart';
-import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 
 class TeamPickerModal extends StatefulWidget {
   final String title;
   final String? selectedTeam;
   final Function(String) onTeamSelected;
+  final List<app_models.Team> teams;
 
   const TeamPickerModal({
     Key? key,
     required this.title,
     this.selectedTeam,
     required this.onTeamSelected,
+    required this.teams,
   }) : super(key: key);
 
   @override
@@ -21,29 +22,11 @@ class TeamPickerModal extends StatefulWidget {
 
 class _TeamPickerModalState extends State<TeamPickerModal> {
   String? _selectedTeam;
-  List<app_models.Team> _teams = [];
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _selectedTeam = widget.selectedTeam;
-    _loadTeams();
-  }
-
-  Future<void> _loadTeams() async {
-    try {
-      final teams = await DatabaseService().getTeamsAsAppModels();
-      setState(() {
-        _teams = teams;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('Error loading teams: $e');
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -64,11 +47,9 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
         children: [
           _buildHeader(colorScheme, textTheme),
           Expanded(
-            child: _isLoading 
-              ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
-              : _buildTeamList(colorScheme, textTheme)
+            child: _buildTeamList(colorScheme, textTheme)
           ),
-          if (!_isLoading) _buildConfirmButton(colorScheme, textTheme),
+          _buildConfirmButton(colorScheme, textTheme),
         ],
       ),
     );
@@ -94,7 +75,7 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
   }
 
   Widget _buildTeamList(ColorScheme colorScheme, TextTheme textTheme) {
-    if (_teams.isEmpty) {
+    if (widget.teams.isEmpty) {
       return Center(
         child: Text(
           '팀이 없습니다.',
@@ -105,9 +86,9 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
     
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: _teams.length,
+      itemCount: widget.teams.length,
       itemBuilder: (context, index) {
-        final team = _teams[index];
+        final team = widget.teams[index];
         final isSelected = _selectedTeam == team.id;
 
         return ListTile(

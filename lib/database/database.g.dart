@@ -7,9 +7,7 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-
   $TeamsTable(this.attachedDatabase, [this._alias]);
-
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -46,19 +44,18 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-
   @override
   List<GeneratedColumn> get $columns => [id, name, code, emblem];
-
   @override
   String get aliasedName => _alias ?? actualTableName;
-
   @override
   String get actualTableName => $name;
   static const String $name = 'teams';
-
   @override
-  VerificationContext validateIntegrity(Insertable<Team> instance, {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<Team> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -67,32 +64,55 @@ class $TeamsTable extends Teams with TableInfo<$TeamsTable, Team> {
       context.missing(_idMeta);
     }
     if (data.containsKey('name')) {
-      context.handle(_nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('code')) {
-      context.handle(_codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
     } else if (isInserting) {
       context.missing(_codeMeta);
     }
     if (data.containsKey('emblem')) {
-      context.handle(_emblemMeta, emblem.isAcceptableOrUnknown(data['emblem']!, _emblemMeta));
+      context.handle(
+        _emblemMeta,
+        emblem.isAcceptableOrUnknown(data['emblem']!, _emblemMeta),
+      );
     }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
-
   @override
   Team map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Team(
-      id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      code: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}code'])!,
-      emblem: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}emblem']),
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      name:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}name'],
+          )!,
+      code:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}code'],
+          )!,
+      emblem: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}emblem'],
+      ),
     );
   }
 
@@ -107,9 +127,12 @@ class Team extends DataClass implements Insertable<Team> {
   final String name;
   final String code;
   final String? emblem;
-
-  const Team({required this.id, required this.name, required this.code, this.emblem});
-
+  const Team({
+    required this.id,
+    required this.name,
+    required this.code,
+    this.emblem,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -127,11 +150,15 @@ class Team extends DataClass implements Insertable<Team> {
       id: Value(id),
       name: Value(name),
       code: Value(code),
-      emblem: emblem == null && nullToAbsent ? const Value.absent() : Value(emblem),
+      emblem:
+          emblem == null && nullToAbsent ? const Value.absent() : Value(emblem),
     );
   }
 
-  factory Team.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+  factory Team.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Team(
       id: serializer.fromJson<String>(json['id']),
@@ -140,7 +167,6 @@ class Team extends DataClass implements Insertable<Team> {
       emblem: serializer.fromJson<String?>(json['emblem']),
     );
   }
-
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
@@ -152,13 +178,17 @@ class Team extends DataClass implements Insertable<Team> {
     };
   }
 
-  Team copyWith({String? id, String? name, String? code, Value<String?> emblem = const Value.absent()}) => Team(
+  Team copyWith({
+    String? id,
+    String? name,
+    String? code,
+    Value<String?> emblem = const Value.absent(),
+  }) => Team(
     id: id ?? this.id,
     name: name ?? this.name,
     code: code ?? this.code,
     emblem: emblem.present ? emblem.value : this.emblem,
   );
-
   Team copyWithCompanion(TeamsCompanion data) {
     return Team(
       id: data.id.present ? data.id.value : this.id,
@@ -181,7 +211,6 @@ class Team extends DataClass implements Insertable<Team> {
 
   @override
   int get hashCode => Object.hash(id, name, code, emblem);
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -198,7 +227,6 @@ class TeamsCompanion extends UpdateCompanion<Team> {
   final Value<String> code;
   final Value<String?> emblem;
   final Value<int> rowid;
-
   const TeamsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
@@ -206,7 +234,6 @@ class TeamsCompanion extends UpdateCompanion<Team> {
     this.emblem = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-
   TeamsCompanion.insert({
     required String id,
     required String name,
@@ -216,7 +243,6 @@ class TeamsCompanion extends UpdateCompanion<Team> {
   }) : id = Value(id),
        name = Value(name),
        code = Value(code);
-
   static Insertable<Team> custom({
     Expression<String>? id,
     Expression<String>? name,
@@ -287,9 +313,7 @@ class $StadiumsTable extends Stadiums with TableInfo<$StadiumsTable, Stadium> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-
   $StadiumsTable(this.attachedDatabase, [this._alias]);
-
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -317,19 +341,18 @@ class $StadiumsTable extends Stadiums with TableInfo<$StadiumsTable, Stadium> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-
   @override
   List<GeneratedColumn> get $columns => [id, name, city];
-
   @override
   String get aliasedName => _alias ?? actualTableName;
-
   @override
   String get actualTableName => $name;
   static const String $name = 'stadiums';
-
   @override
-  VerificationContext validateIntegrity(Insertable<Stadium> instance, {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<Stadium> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -338,26 +361,42 @@ class $StadiumsTable extends Stadiums with TableInfo<$StadiumsTable, Stadium> {
       context.missing(_idMeta);
     }
     if (data.containsKey('name')) {
-      context.handle(_nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
     if (data.containsKey('city')) {
-      context.handle(_cityMeta, city.isAcceptableOrUnknown(data['city']!, _cityMeta));
+      context.handle(
+        _cityMeta,
+        city.isAcceptableOrUnknown(data['city']!, _cityMeta),
+      );
     }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
-
   @override
   Stadium map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Stadium(
-      id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      city: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}city']),
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}id'],
+          )!,
+      name:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}name'],
+          )!,
+      city: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}city'],
+      ),
     );
   }
 
@@ -371,9 +410,7 @@ class Stadium extends DataClass implements Insertable<Stadium> {
   final String id;
   final String name;
   final String? city;
-
   const Stadium({required this.id, required this.name, this.city});
-
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -393,7 +430,10 @@ class Stadium extends DataClass implements Insertable<Stadium> {
     );
   }
 
-  factory Stadium.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+  factory Stadium.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Stadium(
       id: serializer.fromJson<String>(json['id']),
@@ -401,7 +441,6 @@ class Stadium extends DataClass implements Insertable<Stadium> {
       city: serializer.fromJson<String?>(json['city']),
     );
   }
-
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
@@ -412,9 +451,15 @@ class Stadium extends DataClass implements Insertable<Stadium> {
     };
   }
 
-  Stadium copyWith({String? id, String? name, Value<String?> city = const Value.absent()}) =>
-      Stadium(id: id ?? this.id, name: name ?? this.name, city: city.present ? city.value : this.city);
-
+  Stadium copyWith({
+    String? id,
+    String? name,
+    Value<String?> city = const Value.absent(),
+  }) => Stadium(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    city: city.present ? city.value : this.city,
+  );
   Stadium copyWithCompanion(StadiumsCompanion data) {
     return Stadium(
       id: data.id.present ? data.id.value : this.id,
@@ -435,11 +480,13 @@ class Stadium extends DataClass implements Insertable<Stadium> {
 
   @override
   int get hashCode => Object.hash(id, name, city);
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is Stadium && other.id == this.id && other.name == this.name && other.city == this.city);
+      (other is Stadium &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.city == this.city);
 }
 
 class StadiumsCompanion extends UpdateCompanion<Stadium> {
@@ -447,14 +494,12 @@ class StadiumsCompanion extends UpdateCompanion<Stadium> {
   final Value<String> name;
   final Value<String?> city;
   final Value<int> rowid;
-
   const StadiumsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.city = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-
   StadiumsCompanion.insert({
     required String id,
     required String name,
@@ -462,7 +507,6 @@ class StadiumsCompanion extends UpdateCompanion<Stadium> {
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name);
-
   static Insertable<Stadium> custom({
     Expression<String>? id,
     Expression<String>? name,
@@ -477,7 +521,12 @@ class StadiumsCompanion extends UpdateCompanion<Stadium> {
     });
   }
 
-  StadiumsCompanion copyWith({Value<String>? id, Value<String>? name, Value<String?>? city, Value<int>? rowid}) {
+  StadiumsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String?>? city,
+    Value<int>? rowid,
+  }) {
     return StadiumsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -520,9 +569,7 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-
   $RecordsTable(this.attachedDatabase, [this._alias]);
-
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -532,7 +579,9 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     hasAutoIncrement: true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
   );
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
@@ -543,7 +592,9 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _stadiumIdMeta = const VerificationMeta('stadiumId');
+  static const VerificationMeta _stadiumIdMeta = const VerificationMeta(
+    'stadiumId',
+  );
   @override
   late final GeneratedColumn<String> stadiumId = GeneratedColumn<String>(
     'stadium_id',
@@ -551,9 +602,13 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES stadiums (id)'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES stadiums (id)',
+    ),
   );
-  static const VerificationMeta _homeTeamIdMeta = const VerificationMeta('homeTeamId');
+  static const VerificationMeta _homeTeamIdMeta = const VerificationMeta(
+    'homeTeamId',
+  );
   @override
   late final GeneratedColumn<String> homeTeamId = GeneratedColumn<String>(
     'home_team_id',
@@ -561,9 +616,13 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES teams (id)'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES teams (id)',
+    ),
   );
-  static const VerificationMeta _awayTeamIdMeta = const VerificationMeta('awayTeamId');
+  static const VerificationMeta _awayTeamIdMeta = const VerificationMeta(
+    'awayTeamId',
+  );
   @override
   late final GeneratedColumn<String> awayTeamId = GeneratedColumn<String>(
     'away_team_id',
@@ -571,9 +630,13 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('REFERENCES teams (id)'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES teams (id)',
+    ),
   );
-  static const VerificationMeta _homeScoreMeta = const VerificationMeta('homeScore');
+  static const VerificationMeta _homeScoreMeta = const VerificationMeta(
+    'homeScore',
+  );
   @override
   late final GeneratedColumn<int> homeScore = GeneratedColumn<int>(
     'home_score',
@@ -582,7 +645,9 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _awayScoreMeta = const VerificationMeta('awayScore');
+  static const VerificationMeta _awayScoreMeta = const VerificationMeta(
+    'awayScore',
+  );
   @override
   late final GeneratedColumn<int> awayScore = GeneratedColumn<int>(
     'away_score',
@@ -591,7 +656,9 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _canceledMeta = const VerificationMeta('canceled');
+  static const VerificationMeta _canceledMeta = const VerificationMeta(
+    'canceled',
+  );
   @override
   late final GeneratedColumn<bool> canceled = GeneratedColumn<bool>(
     'canceled',
@@ -599,7 +666,9 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("canceled" IN (0, 1))'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("canceled" IN (0, 1))',
+    ),
     defaultValue: const Constant(false),
   );
   static const VerificationMeta _seatMeta = const VerificationMeta('seat');
@@ -611,7 +680,9 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _commentMeta = const VerificationMeta('comment');
+  static const VerificationMeta _commentMeta = const VerificationMeta(
+    'comment',
+  );
   @override
   late final GeneratedColumn<String> comment = GeneratedColumn<String>(
     'comment',
@@ -620,7 +691,9 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _photosJsonMeta = const VerificationMeta('photosJson');
+  static const VerificationMeta _photosJsonMeta = const VerificationMeta(
+    'photosJson',
+  );
   @override
   late final GeneratedColumn<String> photosJson = GeneratedColumn<String>(
     'photos_json',
@@ -629,7 +702,9 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _isFavoriteMeta = const VerificationMeta('isFavorite');
+  static const VerificationMeta _isFavoriteMeta = const VerificationMeta(
+    'isFavorite',
+  );
   @override
   late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
     'is_favorite',
@@ -637,10 +712,14 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("is_favorite" IN (0, 1))'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_favorite" IN (0, 1))',
+    ),
     defaultValue: const Constant(false),
   );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
     'created_at',
@@ -650,7 +729,6 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
-
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -667,92 +745,182 @@ class $RecordsTable extends Records with TableInfo<$RecordsTable, Record> {
     isFavorite,
     createdAt,
   ];
-
   @override
   String get aliasedName => _alias ?? actualTableName;
-
   @override
   String get actualTableName => $name;
   static const String $name = 'records';
-
   @override
-  VerificationContext validateIntegrity(Insertable<Record> instance, {bool isInserting = false}) {
+  VerificationContext validateIntegrity(
+    Insertable<Record> instance, {
+    bool isInserting = false,
+  }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('date')) {
-      context.handle(_dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
     } else if (isInserting) {
       context.missing(_dateMeta);
     }
     if (data.containsKey('stadium_id')) {
-      context.handle(_stadiumIdMeta, stadiumId.isAcceptableOrUnknown(data['stadium_id']!, _stadiumIdMeta));
+      context.handle(
+        _stadiumIdMeta,
+        stadiumId.isAcceptableOrUnknown(data['stadium_id']!, _stadiumIdMeta),
+      );
     } else if (isInserting) {
       context.missing(_stadiumIdMeta);
     }
     if (data.containsKey('home_team_id')) {
-      context.handle(_homeTeamIdMeta, homeTeamId.isAcceptableOrUnknown(data['home_team_id']!, _homeTeamIdMeta));
+      context.handle(
+        _homeTeamIdMeta,
+        homeTeamId.isAcceptableOrUnknown(
+          data['home_team_id']!,
+          _homeTeamIdMeta,
+        ),
+      );
     } else if (isInserting) {
       context.missing(_homeTeamIdMeta);
     }
     if (data.containsKey('away_team_id')) {
-      context.handle(_awayTeamIdMeta, awayTeamId.isAcceptableOrUnknown(data['away_team_id']!, _awayTeamIdMeta));
+      context.handle(
+        _awayTeamIdMeta,
+        awayTeamId.isAcceptableOrUnknown(
+          data['away_team_id']!,
+          _awayTeamIdMeta,
+        ),
+      );
     } else if (isInserting) {
       context.missing(_awayTeamIdMeta);
     }
     if (data.containsKey('home_score')) {
-      context.handle(_homeScoreMeta, homeScore.isAcceptableOrUnknown(data['home_score']!, _homeScoreMeta));
+      context.handle(
+        _homeScoreMeta,
+        homeScore.isAcceptableOrUnknown(data['home_score']!, _homeScoreMeta),
+      );
     } else if (isInserting) {
       context.missing(_homeScoreMeta);
     }
     if (data.containsKey('away_score')) {
-      context.handle(_awayScoreMeta, awayScore.isAcceptableOrUnknown(data['away_score']!, _awayScoreMeta));
+      context.handle(
+        _awayScoreMeta,
+        awayScore.isAcceptableOrUnknown(data['away_score']!, _awayScoreMeta),
+      );
     } else if (isInserting) {
       context.missing(_awayScoreMeta);
     }
     if (data.containsKey('canceled')) {
-      context.handle(_canceledMeta, canceled.isAcceptableOrUnknown(data['canceled']!, _canceledMeta));
+      context.handle(
+        _canceledMeta,
+        canceled.isAcceptableOrUnknown(data['canceled']!, _canceledMeta),
+      );
     }
     if (data.containsKey('seat')) {
-      context.handle(_seatMeta, seat.isAcceptableOrUnknown(data['seat']!, _seatMeta));
+      context.handle(
+        _seatMeta,
+        seat.isAcceptableOrUnknown(data['seat']!, _seatMeta),
+      );
     }
     if (data.containsKey('comment')) {
-      context.handle(_commentMeta, comment.isAcceptableOrUnknown(data['comment']!, _commentMeta));
+      context.handle(
+        _commentMeta,
+        comment.isAcceptableOrUnknown(data['comment']!, _commentMeta),
+      );
     }
     if (data.containsKey('photos_json')) {
-      context.handle(_photosJsonMeta, photosJson.isAcceptableOrUnknown(data['photos_json']!, _photosJsonMeta));
+      context.handle(
+        _photosJsonMeta,
+        photosJson.isAcceptableOrUnknown(data['photos_json']!, _photosJsonMeta),
+      );
     }
     if (data.containsKey('is_favorite')) {
-      context.handle(_isFavoriteMeta, isFavorite.isAcceptableOrUnknown(data['is_favorite']!, _isFavoriteMeta));
+      context.handle(
+        _isFavoriteMeta,
+        isFavorite.isAcceptableOrUnknown(data['is_favorite']!, _isFavoriteMeta),
+      );
     }
     if (data.containsKey('created_at')) {
-      context.handle(_createdAtMeta, createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
     }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
-
   @override
   Record map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Record(
-      id: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      date: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}date'])!,
-      stadiumId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}stadium_id'])!,
-      homeTeamId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}home_team_id'])!,
-      awayTeamId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}away_team_id'])!,
-      homeScore: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}home_score'])!,
-      awayScore: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}away_score'])!,
-      canceled: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}canceled'])!,
-      seat: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}seat']),
-      comment: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}comment']),
-      photosJson: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}photos_json']),
-      isFavorite: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}is_favorite'])!,
-      createdAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}id'],
+          )!,
+      date:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}date'],
+          )!,
+      stadiumId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}stadium_id'],
+          )!,
+      homeTeamId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}home_team_id'],
+          )!,
+      awayTeamId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}away_team_id'],
+          )!,
+      homeScore:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}home_score'],
+          )!,
+      awayScore:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}away_score'],
+          )!,
+      canceled:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}canceled'],
+          )!,
+      seat: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}seat'],
+      ),
+      comment: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}comment'],
+      ),
+      photosJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photos_json'],
+      ),
+      isFavorite:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}is_favorite'],
+          )!,
+      createdAt:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created_at'],
+          )!,
     );
   }
 
@@ -776,7 +944,6 @@ class Record extends DataClass implements Insertable<Record> {
   final String? photosJson;
   final bool isFavorite;
   final DateTime createdAt;
-
   const Record({
     required this.id,
     required this.date,
@@ -792,7 +959,6 @@ class Record extends DataClass implements Insertable<Record> {
     required this.isFavorite,
     required this.createdAt,
   });
-
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -829,14 +995,23 @@ class Record extends DataClass implements Insertable<Record> {
       awayScore: Value(awayScore),
       canceled: Value(canceled),
       seat: seat == null && nullToAbsent ? const Value.absent() : Value(seat),
-      comment: comment == null && nullToAbsent ? const Value.absent() : Value(comment),
-      photosJson: photosJson == null && nullToAbsent ? const Value.absent() : Value(photosJson),
+      comment:
+          comment == null && nullToAbsent
+              ? const Value.absent()
+              : Value(comment),
+      photosJson:
+          photosJson == null && nullToAbsent
+              ? const Value.absent()
+              : Value(photosJson),
       isFavorite: Value(isFavorite),
       createdAt: Value(createdAt),
     );
   }
 
-  factory Record.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+  factory Record.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Record(
       id: serializer.fromJson<int>(json['id']),
@@ -854,7 +1029,6 @@ class Record extends DataClass implements Insertable<Record> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
-
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
@@ -904,21 +1078,24 @@ class Record extends DataClass implements Insertable<Record> {
     isFavorite: isFavorite ?? this.isFavorite,
     createdAt: createdAt ?? this.createdAt,
   );
-
   Record copyWithCompanion(RecordsCompanion data) {
     return Record(
       id: data.id.present ? data.id.value : this.id,
       date: data.date.present ? data.date.value : this.date,
       stadiumId: data.stadiumId.present ? data.stadiumId.value : this.stadiumId,
-      homeTeamId: data.homeTeamId.present ? data.homeTeamId.value : this.homeTeamId,
-      awayTeamId: data.awayTeamId.present ? data.awayTeamId.value : this.awayTeamId,
+      homeTeamId:
+          data.homeTeamId.present ? data.homeTeamId.value : this.homeTeamId,
+      awayTeamId:
+          data.awayTeamId.present ? data.awayTeamId.value : this.awayTeamId,
       homeScore: data.homeScore.present ? data.homeScore.value : this.homeScore,
       awayScore: data.awayScore.present ? data.awayScore.value : this.awayScore,
       canceled: data.canceled.present ? data.canceled.value : this.canceled,
       seat: data.seat.present ? data.seat.value : this.seat,
       comment: data.comment.present ? data.comment.value : this.comment,
-      photosJson: data.photosJson.present ? data.photosJson.value : this.photosJson,
-      isFavorite: data.isFavorite.present ? data.isFavorite.value : this.isFavorite,
+      photosJson:
+          data.photosJson.present ? data.photosJson.value : this.photosJson,
+      isFavorite:
+          data.isFavorite.present ? data.isFavorite.value : this.isFavorite,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -959,7 +1136,6 @@ class Record extends DataClass implements Insertable<Record> {
     isFavorite,
     createdAt,
   );
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -993,7 +1169,6 @@ class RecordsCompanion extends UpdateCompanion<Record> {
   final Value<String?> photosJson;
   final Value<bool> isFavorite;
   final Value<DateTime> createdAt;
-
   const RecordsCompanion({
     this.id = const Value.absent(),
     this.date = const Value.absent(),
@@ -1009,7 +1184,6 @@ class RecordsCompanion extends UpdateCompanion<Record> {
     this.isFavorite = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
-
   RecordsCompanion.insert({
     this.id = const Value.absent(),
     required DateTime date,
@@ -1030,7 +1204,6 @@ class RecordsCompanion extends UpdateCompanion<Record> {
        awayTeamId = Value(awayTeamId),
        homeScore = Value(homeScore),
        awayScore = Value(awayScore);
-
   static Insertable<Record> custom({
     Expression<int>? id,
     Expression<DateTime>? date,
@@ -1163,17 +1336,19 @@ class RecordsCompanion extends UpdateCompanion<Record> {
 
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
-
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $TeamsTable teams = $TeamsTable(this);
   late final $StadiumsTable stadiums = $StadiumsTable(this);
   late final $RecordsTable records = $RecordsTable(this);
-
   @override
-  Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
-
+  Iterable<TableInfo<Table, Object?>> get allTables =>
+      allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [teams, stadiums, records];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    teams,
+    stadiums,
+    records,
+  ];
 }
 
 typedef $$TeamsTableCreateCompanionBuilder =
@@ -1201,18 +1376,29 @@ class $$TeamsTableFilterComposer extends Composer<_$AppDatabase, $TeamsTable> {
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get name => $composableBuilder(column: $table.name, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get code => $composableBuilder(column: $table.code, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get emblem =>
-      $composableBuilder(column: $table.emblem, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get emblem => $composableBuilder(
+    column: $table.emblem,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
-class $$TeamsTableOrderingComposer extends Composer<_$AppDatabase, $TeamsTable> {
+class $$TeamsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TeamsTable> {
   $$TeamsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -1220,20 +1406,29 @@ class $$TeamsTableOrderingComposer extends Composer<_$AppDatabase, $TeamsTable> 
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get code =>
-      $composableBuilder(column: $table.code, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get emblem =>
-      $composableBuilder(column: $table.emblem, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get emblem => $composableBuilder(
+    column: $table.emblem,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
-class $$TeamsTableAnnotationComposer extends Composer<_$AppDatabase, $TeamsTable> {
+class $$TeamsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TeamsTable> {
   $$TeamsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -1241,14 +1436,17 @@ class $$TeamsTableAnnotationComposer extends Composer<_$AppDatabase, $TeamsTable
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get id => $composableBuilder(column: $table.id, builder: (column) => column);
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<String> get name => $composableBuilder(column: $table.name, builder: (column) => column);
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
 
-  GeneratedColumn<String> get code => $composableBuilder(column: $table.code, builder: (column) => column);
-
-  GeneratedColumn<String> get emblem => $composableBuilder(column: $table.emblem, builder: (column) => column);
+  GeneratedColumn<String> get emblem =>
+      $composableBuilder(column: $table.emblem, builder: (column) => column);
 }
 
 class $$TeamsTableTableManager
@@ -1271,9 +1469,12 @@ class $$TeamsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () => $$TeamsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$TeamsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () => $$TeamsTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer:
+              () => $$TeamsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$TeamsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$TeamsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
@@ -1281,7 +1482,13 @@ class $$TeamsTableTableManager
                 Value<String> code = const Value.absent(),
                 Value<String?> emblem = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => TeamsCompanion(id: id, name: name, code: code, emblem: emblem, rowid: rowid),
+              }) => TeamsCompanion(
+                id: id,
+                name: name,
+                code: code,
+                emblem: emblem,
+                rowid: rowid,
+              ),
           createCompanionCallback:
               ({
                 required String id,
@@ -1289,8 +1496,23 @@ class $$TeamsTableTableManager
                 required String code,
                 Value<String?> emblem = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => TeamsCompanion.insert(id: id, name: name, code: code, emblem: emblem, rowid: rowid),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+              }) => TeamsCompanion.insert(
+                id: id,
+                name: name,
+                code: code,
+                emblem: emblem,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -1311,15 +1533,30 @@ typedef $$TeamsTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 typedef $$StadiumsTableCreateCompanionBuilder =
-    StadiumsCompanion Function({required String id, required String name, Value<String?> city, Value<int> rowid});
+    StadiumsCompanion Function({
+      required String id,
+      required String name,
+      Value<String?> city,
+      Value<int> rowid,
+    });
 typedef $$StadiumsTableUpdateCompanionBuilder =
-    StadiumsCompanion Function({Value<String> id, Value<String> name, Value<String?> city, Value<int> rowid});
+    StadiumsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String?> city,
+      Value<int> rowid,
+    });
 
-final class $$StadiumsTableReferences extends BaseReferences<_$AppDatabase, $StadiumsTable, Stadium> {
+final class $$StadiumsTableReferences
+    extends BaseReferences<_$AppDatabase, $StadiumsTable, Stadium> {
   $$StadiumsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static MultiTypedResultKey<$RecordsTable, List<Record>> _recordsRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(db.records, aliasName: $_aliasNameGenerator(db.stadiums.id, db.records.stadiumId));
+  static MultiTypedResultKey<$RecordsTable, List<Record>> _recordsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.records,
+    aliasName: $_aliasNameGenerator(db.stadiums.id, db.records.stadiumId),
+  );
 
   $$RecordsTableProcessedTableManager get recordsRefs {
     final manager = $$RecordsTableTableManager(
@@ -1328,11 +1565,14 @@ final class $$StadiumsTableReferences extends BaseReferences<_$AppDatabase, $Sta
     ).filter((f) => f.stadiumId.id.sqlEquals($_itemColumn<String>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_recordsRefsTable($_db));
-    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: cache));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
   }
 }
 
-class $$StadiumsTableFilterComposer extends Composer<_$AppDatabase, $StadiumsTable> {
+class $$StadiumsTableFilterComposer
+    extends Composer<_$AppDatabase, $StadiumsTable> {
   $$StadiumsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -1340,34 +1580,49 @@ class $$StadiumsTableFilterComposer extends Composer<_$AppDatabase, $StadiumsTab
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get name => $composableBuilder(column: $table.name, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get city => $composableBuilder(
+    column: $table.city,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get city => $composableBuilder(column: $table.city, builder: (column) => ColumnFilters(column));
-
-  Expression<bool> recordsRefs(Expression<bool> Function($$RecordsTableFilterComposer f) f) {
+  Expression<bool> recordsRefs(
+    Expression<bool> Function($$RecordsTableFilterComposer f) f,
+  ) {
     final $$RecordsTableFilterComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.id,
       referencedTable: $db.records,
       getReferencedColumn: (t) => t.stadiumId,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$RecordsTableFilterComposer(
-                $db: $db,
-                $table: $db.records,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecordsTableFilterComposer(
+            $db: $db,
+            $table: $db.records,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return f(composer);
   }
 }
 
-class $$StadiumsTableOrderingComposer extends Composer<_$AppDatabase, $StadiumsTable> {
+class $$StadiumsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StadiumsTable> {
   $$StadiumsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -1375,17 +1630,24 @@ class $$StadiumsTableOrderingComposer extends Composer<_$AppDatabase, $StadiumsT
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get city =>
-      $composableBuilder(column: $table.city, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get city => $composableBuilder(
+    column: $table.city,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
-class $$StadiumsTableAnnotationComposer extends Composer<_$AppDatabase, $StadiumsTable> {
+class $$StadiumsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StadiumsTable> {
   $$StadiumsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -1393,28 +1655,36 @@ class $$StadiumsTableAnnotationComposer extends Composer<_$AppDatabase, $Stadium
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get id => $composableBuilder(column: $table.id, builder: (column) => column);
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<String> get name => $composableBuilder(column: $table.name, builder: (column) => column);
+  GeneratedColumn<String> get city =>
+      $composableBuilder(column: $table.city, builder: (column) => column);
 
-  GeneratedColumn<String> get city => $composableBuilder(column: $table.city, builder: (column) => column);
-
-  Expression<T> recordsRefs<T extends Object>(Expression<T> Function($$RecordsTableAnnotationComposer a) f) {
+  Expression<T> recordsRefs<T extends Object>(
+    Expression<T> Function($$RecordsTableAnnotationComposer a) f,
+  ) {
     final $$RecordsTableAnnotationComposer composer = $composerBuilder(
       composer: this,
       getCurrentColumn: (t) => t.id,
       referencedTable: $db.records,
       getReferencedColumn: (t) => t.stadiumId,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$RecordsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.records,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecordsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.records,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return f(composer);
   }
@@ -1440,25 +1710,46 @@ class $$StadiumsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () => $$StadiumsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$StadiumsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () => $$StadiumsTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer:
+              () => $$StadiumsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$StadiumsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$StadiumsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> city = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => StadiumsCompanion(id: id, name: name, city: city, rowid: rowid),
+              }) => StadiumsCompanion(
+                id: id,
+                name: name,
+                city: city,
+                rowid: rowid,
+              ),
           createCompanionCallback:
               ({
                 required String id,
                 required String name,
                 Value<String?> city = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => StadiumsCompanion.insert(id: id, name: name, city: city, rowid: rowid),
+              }) => StadiumsCompanion.insert(
+                id: id,
+                name: name,
+                city: city,
+                rowid: rowid,
+              ),
           withReferenceMapper:
-              (p0) => p0.map((e) => (e.readTable(table), $$StadiumsTableReferences(db, table, e))).toList(),
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          $$StadiumsTableReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
           prefetchHooksCallback: ({recordsRefs = false}) {
             return PrefetchHooks(
               db: db,
@@ -1469,10 +1760,19 @@ class $$StadiumsTableTableManager
                   if (recordsRefs)
                     await $_getPrefetchedData<Stadium, $StadiumsTable, Record>(
                       currentTable: table,
-                      referencedTable: $$StadiumsTableReferences._recordsRefsTable(db),
-                      managerFromTypedResult: (p0) => $$StadiumsTableReferences(db, table, p0).recordsRefs,
+                      referencedTable: $$StadiumsTableReferences
+                          ._recordsRefsTable(db),
+                      managerFromTypedResult:
+                          (p0) =>
+                              $$StadiumsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recordsRefs,
                       referencedItemsForCurrentItem:
-                          (item, referencedItems) => referencedItems.where((e) => e.stadiumId == item.id),
+                          (item, referencedItems) => referencedItems.where(
+                            (e) => e.stadiumId == item.id,
+                          ),
                       typedResults: items,
                     ),
                 ];
@@ -1530,47 +1830,66 @@ typedef $$RecordsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
     });
 
-final class $$RecordsTableReferences extends BaseReferences<_$AppDatabase, $RecordsTable, Record> {
+final class $$RecordsTableReferences
+    extends BaseReferences<_$AppDatabase, $RecordsTable, Record> {
   $$RecordsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $StadiumsTable _stadiumIdTable(_$AppDatabase db) =>
-      db.stadiums.createAlias($_aliasNameGenerator(db.records.stadiumId, db.stadiums.id));
+  static $StadiumsTable _stadiumIdTable(_$AppDatabase db) => db.stadiums
+      .createAlias($_aliasNameGenerator(db.records.stadiumId, db.stadiums.id));
 
   $$StadiumsTableProcessedTableManager get stadiumId {
     final $_column = $_itemColumn<String>('stadium_id')!;
 
-    final manager = $$StadiumsTableTableManager($_db, $_db.stadiums).filter((f) => f.id.sqlEquals($_column));
+    final manager = $$StadiumsTableTableManager(
+      $_db,
+      $_db.stadiums,
+    ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_stadiumIdTable($_db));
     if (item == null) return manager;
-    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
   }
 
-  static $TeamsTable _homeTeamIdTable(_$AppDatabase db) =>
-      db.teams.createAlias($_aliasNameGenerator(db.records.homeTeamId, db.teams.id));
+  static $TeamsTable _homeTeamIdTable(_$AppDatabase db) => db.teams.createAlias(
+    $_aliasNameGenerator(db.records.homeTeamId, db.teams.id),
+  );
 
   $$TeamsTableProcessedTableManager get homeTeamId {
     final $_column = $_itemColumn<String>('home_team_id')!;
 
-    final manager = $$TeamsTableTableManager($_db, $_db.teams).filter((f) => f.id.sqlEquals($_column));
+    final manager = $$TeamsTableTableManager(
+      $_db,
+      $_db.teams,
+    ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_homeTeamIdTable($_db));
     if (item == null) return manager;
-    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
   }
 
-  static $TeamsTable _awayTeamIdTable(_$AppDatabase db) =>
-      db.teams.createAlias($_aliasNameGenerator(db.records.awayTeamId, db.teams.id));
+  static $TeamsTable _awayTeamIdTable(_$AppDatabase db) => db.teams.createAlias(
+    $_aliasNameGenerator(db.records.awayTeamId, db.teams.id),
+  );
 
   $$TeamsTableProcessedTableManager get awayTeamId {
     final $_column = $_itemColumn<String>('away_team_id')!;
 
-    final manager = $$TeamsTableTableManager($_db, $_db.teams).filter((f) => f.id.sqlEquals($_column));
+    final manager = $$TeamsTableTableManager(
+      $_db,
+      $_db.teams,
+    ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_awayTeamIdTable($_db));
     if (item == null) return manager;
-    return ProcessedTableManager(manager.$state.copyWith(prefetchedData: [item]));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
   }
 }
 
-class $$RecordsTableFilterComposer extends Composer<_$AppDatabase, $RecordsTable> {
+class $$RecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $RecordsTable> {
   $$RecordsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -1578,34 +1897,55 @@ class $$RecordsTableFilterComposer extends Composer<_$AppDatabase, $RecordsTable
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<DateTime> get date =>
-      $composableBuilder(column: $table.date, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get homeScore => $composableBuilder(
+    column: $table.homeScore,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<int> get homeScore =>
-      $composableBuilder(column: $table.homeScore, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get awayScore => $composableBuilder(
+    column: $table.awayScore,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<int> get awayScore =>
-      $composableBuilder(column: $table.awayScore, builder: (column) => ColumnFilters(column));
+  ColumnFilters<bool> get canceled => $composableBuilder(
+    column: $table.canceled,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<bool> get canceled =>
-      $composableBuilder(column: $table.canceled, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get seat => $composableBuilder(
+    column: $table.seat,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get seat => $composableBuilder(column: $table.seat, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get comment => $composableBuilder(
+    column: $table.comment,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get comment =>
-      $composableBuilder(column: $table.comment, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get photosJson => $composableBuilder(
+    column: $table.photosJson,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get photosJson =>
-      $composableBuilder(column: $table.photosJson, builder: (column) => ColumnFilters(column));
+  ColumnFilters<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<bool> get isFavorite =>
-      $composableBuilder(column: $table.isFavorite, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => ColumnFilters(column));
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
 
   $$StadiumsTableFilterComposer get stadiumId {
     final $$StadiumsTableFilterComposer composer = $composerBuilder(
@@ -1614,14 +1954,18 @@ class $$RecordsTableFilterComposer extends Composer<_$AppDatabase, $RecordsTable
       referencedTable: $db.stadiums,
       getReferencedColumn: (t) => t.id,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$StadiumsTableFilterComposer(
-                $db: $db,
-                $table: $db.stadiums,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StadiumsTableFilterComposer(
+            $db: $db,
+            $table: $db.stadiums,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return composer;
   }
@@ -1633,14 +1977,18 @@ class $$RecordsTableFilterComposer extends Composer<_$AppDatabase, $RecordsTable
       referencedTable: $db.teams,
       getReferencedColumn: (t) => t.id,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$TeamsTableFilterComposer(
-                $db: $db,
-                $table: $db.teams,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TeamsTableFilterComposer(
+            $db: $db,
+            $table: $db.teams,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return composer;
   }
@@ -1652,20 +2000,25 @@ class $$RecordsTableFilterComposer extends Composer<_$AppDatabase, $RecordsTable
       referencedTable: $db.teams,
       getReferencedColumn: (t) => t.id,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$TeamsTableFilterComposer(
-                $db: $db,
-                $table: $db.teams,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TeamsTableFilterComposer(
+            $db: $db,
+            $table: $db.teams,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return composer;
   }
 }
 
-class $$RecordsTableOrderingComposer extends Composer<_$AppDatabase, $RecordsTable> {
+class $$RecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecordsTable> {
   $$RecordsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -1673,35 +2026,55 @@ class $$RecordsTableOrderingComposer extends Composer<_$AppDatabase, $RecordsTab
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<int> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<DateTime> get date =>
-      $composableBuilder(column: $table.date, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get homeScore => $composableBuilder(
+    column: $table.homeScore,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<int> get homeScore =>
-      $composableBuilder(column: $table.homeScore, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get awayScore => $composableBuilder(
+    column: $table.awayScore,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<int> get awayScore =>
-      $composableBuilder(column: $table.awayScore, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<bool> get canceled => $composableBuilder(
+    column: $table.canceled,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<bool> get canceled =>
-      $composableBuilder(column: $table.canceled, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get seat => $composableBuilder(
+    column: $table.seat,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get seat =>
-      $composableBuilder(column: $table.seat, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get comment => $composableBuilder(
+    column: $table.comment,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get comment =>
-      $composableBuilder(column: $table.comment, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get photosJson => $composableBuilder(
+    column: $table.photosJson,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<String> get photosJson =>
-      $composableBuilder(column: $table.photosJson, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
+    builder: (column) => ColumnOrderings(column),
+  );
 
-  ColumnOrderings<bool> get isFavorite =>
-      $composableBuilder(column: $table.isFavorite, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   $$StadiumsTableOrderingComposer get stadiumId {
     final $$StadiumsTableOrderingComposer composer = $composerBuilder(
@@ -1710,14 +2083,18 @@ class $$RecordsTableOrderingComposer extends Composer<_$AppDatabase, $RecordsTab
       referencedTable: $db.stadiums,
       getReferencedColumn: (t) => t.id,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$StadiumsTableOrderingComposer(
-                $db: $db,
-                $table: $db.stadiums,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StadiumsTableOrderingComposer(
+            $db: $db,
+            $table: $db.stadiums,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return composer;
   }
@@ -1729,14 +2106,18 @@ class $$RecordsTableOrderingComposer extends Composer<_$AppDatabase, $RecordsTab
       referencedTable: $db.teams,
       getReferencedColumn: (t) => t.id,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$TeamsTableOrderingComposer(
-                $db: $db,
-                $table: $db.teams,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TeamsTableOrderingComposer(
+            $db: $db,
+            $table: $db.teams,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return composer;
   }
@@ -1748,20 +2129,25 @@ class $$RecordsTableOrderingComposer extends Composer<_$AppDatabase, $RecordsTab
       referencedTable: $db.teams,
       getReferencedColumn: (t) => t.id,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$TeamsTableOrderingComposer(
-                $db: $db,
-                $table: $db.teams,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TeamsTableOrderingComposer(
+            $db: $db,
+            $table: $db.teams,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return composer;
   }
 }
 
-class $$RecordsTableAnnotationComposer extends Composer<_$AppDatabase, $RecordsTable> {
+class $$RecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecordsTable> {
   $$RecordsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -1769,26 +2155,39 @@ class $$RecordsTableAnnotationComposer extends Composer<_$AppDatabase, $RecordsT
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get id => $composableBuilder(column: $table.id, builder: (column) => column);
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get date => $composableBuilder(column: $table.date, builder: (column) => column);
+  GeneratedColumn<int> get homeScore =>
+      $composableBuilder(column: $table.homeScore, builder: (column) => column);
 
-  GeneratedColumn<int> get homeScore => $composableBuilder(column: $table.homeScore, builder: (column) => column);
+  GeneratedColumn<int> get awayScore =>
+      $composableBuilder(column: $table.awayScore, builder: (column) => column);
 
-  GeneratedColumn<int> get awayScore => $composableBuilder(column: $table.awayScore, builder: (column) => column);
+  GeneratedColumn<bool> get canceled =>
+      $composableBuilder(column: $table.canceled, builder: (column) => column);
 
-  GeneratedColumn<bool> get canceled => $composableBuilder(column: $table.canceled, builder: (column) => column);
+  GeneratedColumn<String> get seat =>
+      $composableBuilder(column: $table.seat, builder: (column) => column);
 
-  GeneratedColumn<String> get seat => $composableBuilder(column: $table.seat, builder: (column) => column);
+  GeneratedColumn<String> get comment =>
+      $composableBuilder(column: $table.comment, builder: (column) => column);
 
-  GeneratedColumn<String> get comment => $composableBuilder(column: $table.comment, builder: (column) => column);
+  GeneratedColumn<String> get photosJson => $composableBuilder(
+    column: $table.photosJson,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<String> get photosJson => $composableBuilder(column: $table.photosJson, builder: (column) => column);
+  GeneratedColumn<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<bool> get isFavorite => $composableBuilder(column: $table.isFavorite, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt => $composableBuilder(column: $table.createdAt, builder: (column) => column);
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   $$StadiumsTableAnnotationComposer get stadiumId {
     final $$StadiumsTableAnnotationComposer composer = $composerBuilder(
@@ -1797,14 +2196,18 @@ class $$RecordsTableAnnotationComposer extends Composer<_$AppDatabase, $RecordsT
       referencedTable: $db.stadiums,
       getReferencedColumn: (t) => t.id,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$StadiumsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.stadiums,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StadiumsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.stadiums,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return composer;
   }
@@ -1816,14 +2219,18 @@ class $$RecordsTableAnnotationComposer extends Composer<_$AppDatabase, $RecordsT
       referencedTable: $db.teams,
       getReferencedColumn: (t) => t.id,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$TeamsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.teams,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TeamsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.teams,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return composer;
   }
@@ -1835,14 +2242,18 @@ class $$RecordsTableAnnotationComposer extends Composer<_$AppDatabase, $RecordsT
       referencedTable: $db.teams,
       getReferencedColumn: (t) => t.id,
       builder:
-          (joinBuilder, {$addJoinBuilderToRootComposer, $removeJoinBuilderFromRootComposer}) =>
-              $$TeamsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.teams,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer: $removeJoinBuilderFromRootComposer,
-              ),
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TeamsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.teams,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
     );
     return composer;
   }
@@ -1861,16 +2272,23 @@ class $$RecordsTableTableManager
           $$RecordsTableUpdateCompanionBuilder,
           (Record, $$RecordsTableReferences),
           Record,
-          PrefetchHooks Function({bool stadiumId, bool homeTeamId, bool awayTeamId})
+          PrefetchHooks Function({
+            bool stadiumId,
+            bool homeTeamId,
+            bool awayTeamId,
+          })
         > {
   $$RecordsTableTableManager(_$AppDatabase db, $RecordsTable table)
     : super(
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () => $$RecordsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () => $$RecordsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () => $$RecordsTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer:
+              () => $$RecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$RecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$RecordsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
@@ -1932,8 +2350,20 @@ class $$RecordsTableTableManager
                 createdAt: createdAt,
               ),
           withReferenceMapper:
-              (p0) => p0.map((e) => (e.readTable(table), $$RecordsTableReferences(db, table, e))).toList(),
-          prefetchHooksCallback: ({stadiumId = false, homeTeamId = false, awayTeamId = false}) {
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          $$RecordsTableReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: ({
+            stadiumId = false,
+            homeTeamId = false,
+            awayTeamId = false,
+          }) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -1957,8 +2387,10 @@ class $$RecordsTableTableManager
                       state.withJoin(
                             currentTable: table,
                             currentColumn: table.stadiumId,
-                            referencedTable: $$RecordsTableReferences._stadiumIdTable(db),
-                            referencedColumn: $$RecordsTableReferences._stadiumIdTable(db).id,
+                            referencedTable: $$RecordsTableReferences
+                                ._stadiumIdTable(db),
+                            referencedColumn:
+                                $$RecordsTableReferences._stadiumIdTable(db).id,
                           )
                           as T;
                 }
@@ -1967,8 +2399,12 @@ class $$RecordsTableTableManager
                       state.withJoin(
                             currentTable: table,
                             currentColumn: table.homeTeamId,
-                            referencedTable: $$RecordsTableReferences._homeTeamIdTable(db),
-                            referencedColumn: $$RecordsTableReferences._homeTeamIdTable(db).id,
+                            referencedTable: $$RecordsTableReferences
+                                ._homeTeamIdTable(db),
+                            referencedColumn:
+                                $$RecordsTableReferences
+                                    ._homeTeamIdTable(db)
+                                    .id,
                           )
                           as T;
                 }
@@ -1977,8 +2413,12 @@ class $$RecordsTableTableManager
                       state.withJoin(
                             currentTable: table,
                             currentColumn: table.awayTeamId,
-                            referencedTable: $$RecordsTableReferences._awayTeamIdTable(db),
-                            referencedColumn: $$RecordsTableReferences._awayTeamIdTable(db).id,
+                            referencedTable: $$RecordsTableReferences
+                                ._awayTeamIdTable(db),
+                            referencedColumn:
+                                $$RecordsTableReferences
+                                    ._awayTeamIdTable(db)
+                                    .id,
                           )
                           as T;
                 }
@@ -2011,12 +2451,11 @@ typedef $$RecordsTableProcessedTableManager =
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
-
   $AppDatabaseManager(this._db);
-
-  $$TeamsTableTableManager get teams => $$TeamsTableTableManager(_db, _db.teams);
-
-  $$StadiumsTableTableManager get stadiums => $$StadiumsTableTableManager(_db, _db.stadiums);
-
-  $$RecordsTableTableManager get records => $$RecordsTableTableManager(_db, _db.records);
+  $$TeamsTableTableManager get teams =>
+      $$TeamsTableTableManager(_db, _db.teams);
+  $$StadiumsTableTableManager get stadiums =>
+      $$StadiumsTableTableManager(_db, _db.stadiums);
+  $$RecordsTableTableManager get records =>
+      $$RecordsTableTableManager(_db, _db.records);
 }

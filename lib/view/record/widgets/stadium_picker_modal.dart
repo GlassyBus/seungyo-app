@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:seungyo/models/stadium.dart' as app_models;
-import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/theme/theme.dart';
 
 class StadiumPickerModal extends StatefulWidget {
   final String? selectedStadium;
   final Function(String) onStadiumSelected;
+  final List<app_models.Stadium> stadiums;
 
-  const StadiumPickerModal({Key? key, this.selectedStadium, required this.onStadiumSelected}) : super(key: key);
+  const StadiumPickerModal({
+    Key? key,
+    this.selectedStadium,
+    required this.onStadiumSelected,
+    required this.stadiums,
+  }) : super(key: key);
 
   @override
   State<StadiumPickerModal> createState() => _StadiumPickerModalState();
@@ -17,47 +22,30 @@ class _StadiumPickerModalState extends State<StadiumPickerModal> {
   final TextEditingController _searchController = TextEditingController();
   String? _selectedStadium;
   List<app_models.Stadium> _filteredStadiums = [];
-  List<app_models.Stadium> _allStadiums = [];
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _selectedStadium = widget.selectedStadium;
-    _loadStadiums();
+    _filteredStadiums = widget.stadiums;
   }
 
-  Future<void> _loadStadiums() async {
-    try {
-      final stadiums = await DatabaseService().getStadiumsAsAppModels();
-      setState(() {
-        _allStadiums = stadiums;
-        _filteredStadiums = stadiums;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('Error loading stadiums: $e');
-      setState(() {
-        _isLoading = false;
-      });
-    }
+  void _filterStadiums(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredStadiums = widget.stadiums;
+      } else {
+        _filteredStadiums = widget.stadiums
+            .where((stadium) => stadium.name.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _filterStadiums(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _filteredStadiums = _allStadiums;
-      } else {
-        _filteredStadiums =
-            _allStadiums.where((stadium) => stadium.name.toLowerCase().contains(query.toLowerCase())).toList();
-      }
-    });
   }
 
   @override
@@ -74,14 +62,11 @@ class _StadiumPickerModalState extends State<StadiumPickerModal> {
       child: Column(
         children: [
           _buildHeader(colorScheme, textTheme),
-          if (!_isLoading) _buildSearchField(colorScheme, textTheme),
+          _buildSearchField(colorScheme, textTheme),
           Expanded(
-            child:
-                _isLoading
-                    ? Center(child: CircularProgressIndicator(color: colorScheme.primary))
-                    : _buildStadiumList(colorScheme, textTheme),
+            child: _buildStadiumList(colorScheme, textTheme),
           ),
-          if (!_isLoading) _buildConfirmButton(colorScheme, textTheme),
+          _buildConfirmButton(colorScheme, textTheme),
         ],
       ),
     );
