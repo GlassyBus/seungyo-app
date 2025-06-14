@@ -18,7 +18,7 @@ class UserRepository {
     return UserMocks.currentUser;
   }
 
-  /// 사용자 닉네임을 반환합니다.
+  /// 사용자 닉네임�� 반환합니다.
   String getUserNickname() {
     return getCurrentUser()['nickname'] ?? '익명';
   }

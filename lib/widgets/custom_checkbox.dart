@@ -1,53 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:seungyo/theme/theme.dart';
 
 class CustomCheckbox extends StatelessWidget {
   final bool value;
-  final ValueChanged<bool>? onChanged;
   final String label;
-  final double size;
+  final ValueChanged<bool> onChanged;
+  final Color activeColor;
+  final Color checkColor;
+  final Color inactiveColor;
+  final Color labelColor;
 
   const CustomCheckbox({
-    Key? key,
+    super.key,
     required this.value,
-    this.onChanged,
     required this.label,
-    this.size = 24,
-  }) : super(key: key);
+    required this.onChanged,
+    this.activeColor = const Color(0xFF09004C), // Figma: Navy Blue
+    this.checkColor = Colors.white,
+    this.inactiveColor = const Color(0xFFD6D9DD), // Figma: Light Gray border
+    this.labelColor = const Color(0xFF100F21), // Figma: Dark text
+  });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return GestureDetector(
-      onTap: () => onChanged?.call(!value),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: value ? colorScheme.primary : Colors.white,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: value ? colorScheme.primary : AppColors.gray30,
-                width: 2,
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: () {
+        onChanged(!value);
+      },
+      splashColor: activeColor.withOpacity(0.1),
+      highlightColor: activeColor.withOpacity(0.05),
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        // Added padding for better touch area and visual spacing
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: value ? activeColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: value ? activeColor : inactiveColor,
+                  width: 2,
+                ),
+              ),
+              child:
+                  value ? Icon(Icons.check, size: 16, color: checkColor) : null,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: labelColor,
+                fontWeight: FontWeight.w500, // As per Figma's visual weight
               ),
             ),
-            child:
-                value
-                    ? Icon(
-                      Icons.check,
-                      color: colorScheme.onPrimary,
-                      size: size * 0.7,
-                    )
-                    : null,
-          ),
-          const SizedBox(width: 8),
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        ],
+          ],
+        ),
       ),
     );
   }

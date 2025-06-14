@@ -5,21 +5,24 @@ class DateFormatter {
   DateFormatter._();
 
   // 날짜 포맷터들
-  static final DateFormat _fullDateTimeFormat = DateFormat('yyyy.MM.dd(E) HH:mm', 'ko_KR');
+  static final DateFormat _fullDateTimeFormat = DateFormat(
+    'yyyy.MM.dd(E) HH:mm',
+    'ko_KR',
+  );
   static final DateFormat _dateOnlyFormat = DateFormat('yyyy.MM.dd', 'ko_KR');
   static final DateFormat _timeOnlyFormat = DateFormat('HH:mm', 'ko_KR');
   static final DateFormat _monthYearFormat = DateFormat('yyyy년 MM월', 'ko_KR');
   static final DateFormat _dayOfWeekFormat = DateFormat('E', 'ko_KR');
   static final DateFormat _shortDateFormat = DateFormat('MM.dd', 'ko_KR');
 
-  /// 전체 날짜 시간 포맷 (예: 2024년 3월 15일 14:00)
+  /// 전체 날짜 시간 포맷 (예: 2025.04.06(일) 14:00)
   static String formatFullDateTime(DateTime dateTime) {
     try {
-      final formatter = DateFormat('yyyy년 M월 d일 HH:mm', 'ko_KR');
+      final formatter = DateFormat('yyyy.MM.dd(E) HH:mm', 'ko_KR');
       return formatter.format(dateTime);
     } catch (e) {
       // Fallback to simple format
-      return '${dateTime.year}년 ${dateTime.month}월 ${dateTime.day}일 ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+      return '${dateTime.year}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.day.toString().padLeft(2, '0')}(${_getFallbackDayOfWeek(dateTime)}) ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
     }
   }
 
@@ -74,8 +77,7 @@ class DateFormatter {
     try {
       return _dayOfWeekFormat.format(dateTime);
     } catch (e) {
-      const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-      return weekdays[dateTime.weekday % 7];
+      return _getFallbackDayOfWeek(dateTime);
     }
   }
 
@@ -93,9 +95,9 @@ class DateFormatter {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final targetDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
-    
+
     final difference = targetDate.difference(today).inDays;
-    
+
     switch (difference) {
       case -1:
         return '어제';
@@ -106,5 +108,18 @@ class DateFormatter {
       default:
         return formatDateOnly(dateTime);
     }
+  }
+
+  static String _getFallbackDayOfWeek(DateTime dateTime) {
+    const weekdays = [
+      '월',
+      '화',
+      '수',
+      '목',
+      '금',
+      '토',
+      '일',
+    ]; // Adjusted to match intl's weekday
+    return weekdays[dateTime.weekday - 1];
   }
 }
