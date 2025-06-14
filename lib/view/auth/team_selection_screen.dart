@@ -36,14 +36,18 @@ class _TeamSelectionPageState extends State<TeamSelectionPage> {
 
       final teams = await _teamService.getAllTeams();
 
+      if (teams.isEmpty) {
+        throw Exception('팀 목록이 비어있습니다');
+      }
+
       setState(() {
         _teams = teams;
         _isLoading = false;
       });
-    } catch (e) {
+    } catch (e, stackTrace) {
       setState(() {
         _isLoading = false;
-        _errorMessage = '팀 목록을 불러오는데 실패했습니다.';
+        _errorMessage = '팀 목록을 불러오는데 실패했습니다: ${e.toString()}';
       });
     }
   }
@@ -177,13 +181,16 @@ class _TeamSelectionPageState extends State<TeamSelectionPage> {
   }
 
   Widget _buildBottomButton(ColorScheme colorScheme, TextTheme textTheme) {
-    final selectedTeam =
-        _selectedTeamId != null
-            ? _teams.firstWhere(
-              (team) => team.id == _selectedTeamId,
-              orElse: () => _teams.first,
-            )
-            : null;
+    Team? selectedTeam;
+
+    if (_selectedTeamId != null && _teams.isNotEmpty) {
+      try {
+        final results = _teams.where((team) => team.id == _selectedTeamId);
+        selectedTeam = results.isNotEmpty ? results.first : null;
+      } catch (e) {
+        selectedTeam = null;
+      }
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),

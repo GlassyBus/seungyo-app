@@ -14,6 +14,7 @@ class RecordService {
   factory RecordService() => _instance;
   RecordService._internal();
 
+  /// 모든 경기 기록 가져오기
   AppDatabase get _database => DatabaseService().database;
 
   // GameRecord 형태로 모든 기록 가져오기
@@ -21,17 +22,18 @@ class RecordService {
     try {
       final dbRecords = await _database.getAllRecords();
       final gameRecords = <GameRecord>[];
-      
+
       for (final record in dbRecords) {
-        final gameRecord = await DatabaseService().convertRecordToGameRecord(record);
+        final gameRecord = await DatabaseService().convertRecordToGameRecord(
+          record,
+        );
         if (gameRecord != null) {
           gameRecords.add(gameRecord);
         }
       }
-      
+
       return gameRecords;
     } catch (e) {
-      print('Error loading records: $e');
       return [];
     }
   }
@@ -98,7 +100,9 @@ class RecordService {
           canceled: Value(false),
           seat: Value(form.seatInfo),
           comment: Value(form.comment),
-          photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
+          photosJson: Value(
+            photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null,
+          ),
           isFavorite: Value(false),
         ),
       );
@@ -142,7 +146,9 @@ class RecordService {
         canceled: Value(existingRecord.canceled),
         seat: Value(form.seatInfo),
         comment: Value(form.comment),
-        photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
+        photosJson: Value(
+          photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null,
+        ),
         isFavorite: Value(existingRecord.isFavorite),
         createdAt: Value(existingRecord.createdAt),
       );
@@ -216,11 +222,7 @@ class RecordService {
       final loseCount = await _database.getLoseCount(myTeamId);
       final totalCount = await _database.getTotalGameCount(myTeamId);
 
-      return {
-        'win': winCount,
-        'lose': loseCount,
-        'total': totalCount,
-      };
+      return {'win': winCount, 'lose': loseCount, 'total': totalCount};
     } catch (e) {
       print('Error getting stats: $e');
       return {'win': 0, 'lose': 0, 'total': 0};

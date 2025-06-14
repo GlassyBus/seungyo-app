@@ -52,7 +52,9 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: _horizontalPadding),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: _horizontalPadding,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -60,7 +62,9 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                         // 타이틀
                         Text(
                           '어느 구단을 응원하시나요?',
-                          style: AppTextStyles.h3.copyWith(color: AppColors.navy),
+                          style: AppTextStyles.h3.copyWith(
+                            color: AppColors.navy,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 25),
@@ -84,10 +88,16 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                       child: TextButton(
                         onPressed: vm.team != null ? widget.onNext : null,
                         style: TextButton.styleFrom(
-                          backgroundColor: vm.team != null ? AppColors.navy : AppColors.navy5,
-                          foregroundColor: vm.team != null ? Colors.white : AppColors.navy30,
+                          backgroundColor:
+                              vm.team != null
+                                  ? AppColors.navy
+                                  : AppColors.navy5,
+                          foregroundColor:
+                              vm.team != null ? Colors.white : AppColors.navy30,
                           disabledForegroundColor: AppColors.navy30,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           padding: EdgeInsets.zero,
                         ),
                         child: Text('다음', style: AppTextStyles.subtitle2),
@@ -99,7 +109,10 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                     Container(
                       width: 134,
                       height: 5,
-                      decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(100)),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
                     ),
                   ],
                 ),
@@ -180,16 +193,29 @@ class _SelectTeamViewState extends State<SelectTeamView> {
 
   Widget _buildEmptySpace() {
     return SizedBox(
-      width: (MediaQuery.of(context).size.width - (_horizontalPadding * 2) - (_gridSpacing * 2)) / 3,
+      width:
+          (MediaQuery.of(context).size.width -
+              (_horizontalPadding * 2) -
+              (_gridSpacing * 2)) /
+          3,
       height: TeamButton.maxSize + 30, // 버튼 높이 + 텍스트 영역
     );
   }
 
-  Widget _buildTeamButtonWithWidth(AuthViewModel vm, String code, int index, {bool isHighlighted = false}) {
+  Widget _buildTeamButtonWithWidth(
+    AuthViewModel vm,
+    String code,
+    int index, {
+    bool isHighlighted = false,
+  }) {
     final team = TeamData.getByCode(code);
     if (team == null) return SizedBox.shrink();
 
-    final width = (MediaQuery.of(context).size.width - (_horizontalPadding * 2) - (_gridSpacing * 2)) / 3;
+    final width =
+        (MediaQuery.of(context).size.width -
+            (_horizontalPadding * 2) -
+            (_gridSpacing * 2)) /
+        3;
 
     return SizedBox(
       width: width,

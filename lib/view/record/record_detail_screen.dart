@@ -238,7 +238,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           });
         },
         label: '경기최소',
-        size: 20,
       ),
     );
   }

@@ -161,6 +161,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _newsItems = newsItems;
       });
     } catch (e) {
+      // 오류 발생 시 기본값 유지
       print('Error loading home data: $e');
     } finally {
       setState(() {
@@ -274,7 +275,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 // Divider
                 Container(height: 8, color: const Color(0xFFF7F8FB)),
                 // 최근 소식 섹션
-                NewsSection(newsItems: _newsItems, onNewsUrlTap: _openNewsLink),
+                NewsSection(newsItems: _newsItems, onNewsUrlTap: _openNewsUrl),
                 const SizedBox(height: 100),
               ],
             ),
@@ -359,7 +360,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   // 뉴스 링크 열기
-  Future<void> _openNewsLink(String? url) async {
+  Future<void> _openNewsUrl(String? url) async {
     if (url == null || url.isEmpty) {
       return;
     }
@@ -368,7 +369,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      print('Could not launch $url');
+      // URL을 열 수 없는 경우 무시
     }
   }
 
@@ -385,7 +386,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const UserProfilePage()),
-    );
+    ).then((hasChanges) {
+      // 변경사항이 있으면 홈 데이터 새로고침
+      if (hasChanges == true) {
+        _loadHomeData();
+      }
+    });
   }
 
   void _showNotificationSettings() {
