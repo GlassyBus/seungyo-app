@@ -50,22 +50,27 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     try {
       final profile = await _userService.getUserProfile();
+
       final team = await _userService.getUserFavoriteTeam();
 
       setState(() {
         _userProfile = profile;
-        _favoriteTeam = team;
+        _favoriteTeam = team; // team이 null일 수도 있음
         _originalNickname = profile.nickname;
         _nicknameController.text = profile.nickname;
       });
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('사용자 정보를 불러오는 중 오류가 발생했습니다: $e')));
+    } catch (e, stackTrace) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('사용자 정보를 불러오는 중 오류가 발생했습니다: $e')),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -104,7 +109,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         Navigator.of(context).pop(_hasChanges);
       }
     } catch (e) {
-      print('Save error: $e'); // 디버깅용 로그
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('저장 중 오류가 발생했습니다: ${e.toString()}')),
       );

@@ -20,7 +20,7 @@ class RecordService {
 
   RecordService._internal();
 
-  // 모든 기록 가져오기
+  /// 모든 경기 기록 가져오기
   Future<List<GameRecord>> getAllRecords() async {
     try {
       final file = await _getLocalFile();
@@ -32,7 +32,6 @@ class RecordService {
       final List<dynamic> jsonList = json.decode(contents);
       return jsonList.map((json) => GameRecord.fromJson(json)).toList();
     } catch (e) {
-      print('Error loading records: $e');
       return [];
     }
   }

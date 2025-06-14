@@ -39,7 +39,6 @@ class UserService {
       final json = jsonDecode(profileJson);
       return UserProfile.fromJson(json);
     } catch (e) {
-      print('Error loading user profile: $e');
       return _defaultProfile;
     }
   }
@@ -51,18 +50,12 @@ class UserService {
       final json = profile.toJson();
       final jsonString = jsonEncode(json);
 
-      print('Saving profile data: $jsonString'); // 디버깅용 로그
-
       final success = await prefs.setString(_profileKey, jsonString);
 
-      if (success) {
-        print('Profile saved successfully'); // 디버깅용 로그
-      } else {
+      if (!success) {
         throw Exception('SharedPreferences 저장 실패');
       }
     } catch (e, stackTrace) {
-      print('Error saving user profile: $e');
-      print('Stack trace: $stackTrace');
       throw Exception('프로필 저장 중 오류가 발생했습니다: ${e.toString()}');
     }
   }
@@ -70,23 +63,16 @@ class UserService {
   // 닉네임 업데이트
   Future<UserProfile> updateNickname(String nickname) async {
     try {
-      print('Updating nickname to: $nickname'); // 디버깅용 로그
-
       final currentProfile = await getUserProfile();
-      print('Current profile: ${currentProfile.toJson()}'); // 디버깅용 로그
 
       final updatedProfile = currentProfile.copyWith(
         nickname: nickname,
         updatedAt: DateTime.now(),
       );
 
-      print('Updated profile: ${updatedProfile.toJson()}'); // 디버깅용 로그
-
       await saveUserProfile(updatedProfile);
       return updatedProfile;
     } catch (e, stackTrace) {
-      print('Error updating nickname: $e');
-      print('Stack trace: $stackTrace');
       throw Exception('닉네임 업데이트 중 오류가 발생했습니다: ${e.toString()}');
     }
   }
@@ -102,15 +88,20 @@ class UserService {
       await saveUserProfile(updatedProfile);
       return updatedProfile;
     } catch (e, stackTrace) {
-      print('Error updating favorite team: $e');
-      print('Stack trace: $stackTrace');
       throw Exception('응원 팀 업데이트 중 오류가 발생했습니다: ${e.toString()}');
     }
   }
 
   // 사용자의 응원 팀 정보 가져오기
   Future<Team?> getUserFavoriteTeam() async {
-    final profile = await getUserProfile();
-    return MockTeams.findById(profile.favoriteTeamId);
+    try {
+      final profile = await getUserProfile();
+
+      final team = MockTeams.findById(profile.favoriteTeamId);
+
+      return team;
+    } catch (e, stackTrace) {
+      return null; // 오류 발생 시 null 반환
+    }
   }
 }
