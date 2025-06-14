@@ -223,6 +223,7 @@ class DatabaseService {
         memo: dbRecord.comment ?? '',
         photos: photos,
         isFavorite: dbRecord.isFavorite,
+        canceled: dbRecord.canceled,
         createdAt: dbRecord.createdAt,
 
         // DB에 없는 필드들은 기본값으로 설정

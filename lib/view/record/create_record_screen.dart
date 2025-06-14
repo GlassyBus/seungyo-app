@@ -32,7 +32,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   final TextEditingController _seatController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
-  File? _selectedImage;
+  List<File> _selectedImages = [];
   bool _isMemorableGame = false;
   bool _isGameMinimum = false;
   bool _isLoading = false;
@@ -214,10 +214,30 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                     ],
                   ),
                 )
-                : _selectedImage != null
+                : _selectedImages.isNotEmpty
                 ? ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.file(_selectedImage!, fit: BoxFit.cover),
+                  child: Stack(
+                    children: [
+                      Image.file(_selectedImages.first, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                      if (_selectedImages.length > 1)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '+${_selectedImages.length - 1}',
+                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 )
                 : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -547,6 +567,14 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                       _pickImage(ImageSource.gallery);
                     },
                   ),
+                  ListTile(
+                    leading: const Icon(Icons.photo_library_outlined),
+                    title: const Text('여러 사진 선택'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _pickMultipleImages();
+                    },
+                  ),
                   const SizedBox(height: 24),
                 ],
               ),
@@ -569,8 +597,35 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         await Future.delayed(const Duration(seconds: 1));
 
         setState(() {
-          _selectedImage = File(pickedFile.path);
-          _form = _form.copyWith(imagePath: pickedFile.path);
+          _selectedImages = [File(pickedFile.path)];
+          _form = _form.copyWith(imagePaths: [pickedFile.path]);
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
+    } finally {
+      setState(() {
+        _isImageLoading = false;
+      });
+    }
+  }
+
+  Future<void> _pickMultipleImages() async {
+    try {
+      setState(() {
+        _isImageLoading = true;
+      });
+
+      final picker = ImagePicker();
+      final pickedFiles = await picker.pickMultiImage();
+
+      if (pickedFiles.isNotEmpty) {
+        // 이미지 처리 시간을 시뮬레이션
+        await Future.delayed(const Duration(seconds: 1));
+
+        setState(() {
+          _selectedImages = pickedFiles.map((file) => File(file.path)).toList();
+          _form = _form.copyWith(imagePaths: pickedFiles.map((file) => file.path).toList());
         });
       }
     } catch (e) {

@@ -15,26 +15,18 @@ import '../../services/news_service.dart';
 import '../../services/record_service.dart';
 import '../../services/schedule_service.dart';
 import '../../services/user_service.dart';
-import '../../theme/theme.dart';
-import '../../widgets/animated_counter.dart';
 import '../../widgets/bottom_navigation_bar.dart';
-import '../../widgets/quick_action_buttons.dart';
 import '../auth/user_profile_screen.dart';
-import 'widgets/news_item.dart';
-import 'widgets/user_section.dart';
+import 'components/profile_component.dart';
+import 'widgets/news_section.dart';
 import 'widgets/stats_section.dart';
 import 'widgets/today_games_section.dart';
-import 'widgets/news_section.dart';
 
 class MainScreen extends StatefulWidget {
   final Function(ThemeMode)? onThemeModeChanged;
   final ThemeMode currentThemeMode;
 
-  const MainScreen({
-    Key? key,
-    this.onThemeModeChanged,
-    this.currentThemeMode = ThemeMode.system,
-  }) : super(key: key);
+  const MainScreen({Key? key, this.onThemeModeChanged, this.currentThemeMode = ThemeMode.system}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -72,26 +64,19 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   void _initializeAnimations() {
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
+    _fadeController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
 
-    _slideController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
+    _slideController = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut));
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
-    );
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
 
     _fadeController.forward();
     _slideController.forward();
@@ -119,7 +104,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       print('MainScreen: Loading user profile...');
       final userProfile = await _userService.getUserProfile();
       final favoriteTeam = await _userService.getUserFavoriteTeam();
-      print('MainScreen: User profile loaded - Nickname: ${userProfile.nickname}, Favorite team: ${favoriteTeam?.name}');
+      print(
+        'MainScreen: User profile loaded - Nickname: ${userProfile.nickname}, Favorite team: ${favoriteTeam?.name}',
+      );
 
       // 오늘의 경기 데이터 로드
       print('MainScreen: Loading today\'s games...');
@@ -129,17 +116,18 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
       // 통계 계산 (경기 취소나 동점 제외)
       print('MainScreen: Calculating statistics...');
-      final validRecords = allRecords.where((record) {
-        return record.result == GameResult.win ||
-            record.result == GameResult.lose ||
-            record.result == GameResult.draw;
-      }).toList();
+      final validRecords =
+          allRecords.where((record) {
+            return record.result == GameResult.win ||
+                record.result == GameResult.lose ||
+                record.result == GameResult.draw;
+          }).toList();
 
       final totalGames = validRecords.length;
       final winCount = validRecords.where((record) => record.result == GameResult.win).length;
       final drawCount = validRecords.where((record) => record.result == GameResult.draw).length;
       final loseCount = validRecords.where((record) => record.result == GameResult.lose).length;
-      
+
       print('MainScreen: Statistics - Total: $totalGames, Win: $winCount, Draw: $drawCount, Lose: $loseCount');
 
       // 뉴스 데이터 로드 (응원 구단 키워드 포함)
@@ -159,12 +147,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _favoriteTeam = favoriteTeam;
         _newsItems = newsItems;
       });
-      
+
       print('MainScreen: Home data loaded successfully');
     } catch (e) {
       print('MainScreen: Error loading home data: $e');
       print('MainScreen: Error stack trace: ${StackTrace.current}');
-      
+
       // 오류 발생 시에도 기본값으로라도 UI 표시
       setState(() {
         _allRecords = [];
@@ -188,10 +176,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       backgroundColor: Colors.white,
       appBar: _buildCurrentAppBar(),
       body: _isLoading ? _buildLoadingState() : _buildContent(),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _currentTabIndex,
-        onTabChanged: _onTabChanged,
-      ),
+      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: _currentTabIndex, onTabChanged: _onTabChanged),
     );
   }
 
@@ -220,7 +205,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     setState(() {
       _currentTabIndex = index;
     });
-    
+
     // 기록 탭으로 이동할 때 홈 데이터 새로고침 (통계 업데이트를 위해)
     if (index == 1) {
       print('MainScreen: Switched to records tab, refreshing data...');
@@ -235,10 +220,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         children: [
           CircularProgressIndicator(color: Color(0xFF09004C)),
           SizedBox(height: 16),
-          Text(
-            '데이터를 불러오는 중...',
-            style: TextStyle(color: Color(0xFF7E8695), fontSize: 16),
-          ),
+          Text('데이터를 불러오는 중...', style: TextStyle(color: Color(0xFF7E8695), fontSize: 16)),
         ],
       ),
     );
@@ -269,10 +251,13 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 사용자 프로필 섹션
-                UserSection(
-                  userProfile: _userProfile,
-                  favoriteTeam: _favoriteTeam,
-                  onMoreTap: _navigateToUserProfile,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  child: ProfileComponent(
+                    userProfile: _userProfile,
+                    favoriteTeam: _favoriteTeam,
+                    onMoreTap: _navigateToUserProfile,
+                  ),
                 ),
                 // Divider
                 Container(height: 8, color: const Color(0xFFF7F8FB)),
@@ -286,10 +271,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 // Divider
                 Container(height: 8, color: const Color(0xFFF7F8FB)),
                 // 오늘의 경기 섹션
-                TodayGamesSection(
-                  todayGames: _todayGames,
-                  onGameEditTap: _handleRecordButtonTap,
-                ),
+                TodayGamesSection(todayGames: _todayGames, onGameEditTap: _handleRecordButtonTap),
                 // Divider
                 Container(height: 8, color: const Color(0xFFF7F8FB)),
                 // 최근 소식 섹션
@@ -363,17 +345,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         }).firstOrNull;
 
     if (existingRecord != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RecordDetailPage(game: existingRecord),
-        ),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => RecordDetailPage(game: existingRecord)));
     } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
-      );
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateRecordScreen()));
     }
   }
 
@@ -395,17 +369,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   void _navigateToAddRecord() async {
     HapticFeedback.lightImpact();
     print('MainScreen: Navigating to CreateRecordScreen...');
-    
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
-    );
-    
+
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateRecordScreen()));
+
     // 기록 추가 후 홈 데이터 새로고침
     if (result == true) {
       print('MainScreen: Record added successfully, refreshing home data...');
       await _loadHomeData();
-      
+
       // 기록 탭이 현재 탭이면 해당 데이터도 새로고침
       if (_currentTabIndex == 1) {
         print('MainScreen: Currently on records tab, triggering refresh...');
@@ -417,10 +388,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   void _navigateToUserProfile() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const UserProfilePage()),
-    ).then((hasChanges) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const UserProfilePage())).then((hasChanges) {
       // 변경사항이 있으면 홈 데이터 새로고침
       if (hasChanges == true) {
         _loadHomeData();

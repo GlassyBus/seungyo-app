@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'team.dart';
+
 import 'stadium.dart';
+import 'team.dart';
 
 /// 게임 결과 열거형
 enum GameResult {
@@ -9,6 +10,7 @@ enum GameResult {
   draw('무승부');
 
   const GameResult(this.displayName);
+
   final String displayName;
 }
 
@@ -43,6 +45,7 @@ class GameRecord extends Equatable {
     this.memo = '',
     this.imageUrl,
     this.isFavorite = false,
+    this.canceled = false,
   });
 
   final int id;
@@ -73,10 +76,10 @@ class GameRecord extends Equatable {
   final String memo;
   final String? imageUrl;
   final bool isFavorite;
+  final bool canceled;
 
   /// 경기 날짜 (시간 제외)
-  DateTime get gameDate =>
-      DateTime(dateTime.year, dateTime.month, dateTime.day);
+  DateTime get gameDate => DateTime(dateTime.year, dateTime.month, dateTime.day);
 
   /// JSON으로부터 GameRecord 객체 생성
   factory GameRecord.fromJson(Map<String, dynamic> json) {
@@ -99,10 +102,8 @@ class GameRecord extends Equatable {
       ticketPrice: json['ticketPrice'],
       totalCost: json['totalCost'],
       highlights: json['highlights']?.cast<String>(),
-      createdAt:
-          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt:
-          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       result: GameResult.values.firstWhere((e) => e.name == json['result']),
       seatInfo: json['seatInfo'],
       weather: json['weather'] ?? '',
@@ -111,6 +112,7 @@ class GameRecord extends Equatable {
       memo: json['memo'] ?? '',
       imageUrl: json['imageUrl'],
       isFavorite: json['isFavorite'] ?? false,
+      canceled: json['canceled'] ?? false,
     );
   }
 
@@ -145,6 +147,7 @@ class GameRecord extends Equatable {
       'memo': memo,
       'imageUrl': imageUrl,
       'isFavorite': isFavorite,
+      'canceled': canceled,
     };
   }
 
@@ -178,6 +181,7 @@ class GameRecord extends Equatable {
     String? memo,
     String? imageUrl,
     bool? isFavorite,
+    bool? canceled,
   }) {
     return GameRecord(
       id: id ?? this.id,
@@ -208,6 +212,7 @@ class GameRecord extends Equatable {
       memo: memo ?? this.memo,
       imageUrl: imageUrl ?? this.imageUrl,
       isFavorite: isFavorite ?? this.isFavorite,
+      canceled: canceled ?? this.canceled,
     );
   }
 
@@ -241,5 +246,6 @@ class GameRecord extends Equatable {
     memo,
     imageUrl,
     isFavorite,
+    canceled,
   ];
 }

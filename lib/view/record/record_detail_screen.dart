@@ -1,10 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:seungyo/theme/theme.dart';
-import 'create_record_screen.dart';
 
 import '../../models/game_record.dart';
 import '../../widgets/custom_checkbox.dart';
+import 'create_record_screen.dart';
 import 'widgets/action_modal.dart';
 
 class RecordDetailPage extends StatefulWidget {
@@ -17,7 +19,13 @@ class RecordDetailPage extends StatefulWidget {
 }
 
 class _RecordDetailPageState extends State<RecordDetailPage> {
-  bool isGameMinimum = true;
+  late bool isGameMinimum;
+
+  @override
+  void initState() {
+    super.initState();
+    isGameMinimum = widget.game.canceled;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +45,8 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       title: const Text('직관 기록 상세'),
       actions: [
         IconButton(icon: const Icon(Icons.edit), onPressed: _handleEdit),
-        IconButton(
-          icon: const Icon(Icons.download),
-          onPressed: _handleDownload,
-        ),
-        IconButton(
-          icon: const Icon(Icons.more_horiz),
-          onPressed: _showActionModal,
-        ),
+        IconButton(icon: const Icon(Icons.download), onPressed: _handleDownload),
+        IconButton(icon: const Icon(Icons.more_horiz), onPressed: _showActionModal),
       ],
     );
   }
@@ -74,13 +76,24 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child:
-            widget.game.imageUrl != null
-                ? Image.network(widget.game.imageUrl!, fit: BoxFit.cover)
+            widget.game.photos.isNotEmpty
+                ? PageView.builder(
+                  itemCount: widget.game.photos.length,
+                  itemBuilder: (context, index) {
+                    return Image.file(
+                      File(widget.game.photos[index]),
+                      fit: BoxFit.cover,
+                      errorBuilder:
+                          (context, error, stackTrace) => Container(
+                            color: AppColors.gray20,
+                            child: const Center(child: Icon(Icons.image, size: 80, color: AppColors.gray50)),
+                          ),
+                    );
+                  },
+                )
                 : Container(
                   color: AppColors.gray20,
-                  child: const Center(
-                    child: Icon(Icons.image, size: 80, color: AppColors.gray50),
-                  ),
+                  child: const Center(child: Icon(Icons.image, size: 80, color: AppColors.gray50)),
                 ),
       ),
     );
@@ -108,13 +121,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 60,
-          child: Text(
-            label,
-            style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70),
-          ),
-        ),
+        SizedBox(width: 60, child: Text(label, style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70))),
         const SizedBox(width: 20),
         Expanded(child: Text(value, style: textTheme.bodyLarge)),
       ],
@@ -127,18 +134,12 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '경기 정보',
-            style: textTheme.titleLarge?.copyWith(color: AppColors.gray70),
-          ),
+          Text('경기 정보', style: textTheme.titleLarge?.copyWith(color: AppColors.gray70)),
           const SizedBox(height: 16),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.navy5,
-              borderRadius: BorderRadius.circular(12),
-            ),
+            decoration: BoxDecoration(color: AppColors.navy5, borderRadius: BorderRadius.circular(12)),
             child: Column(
               children: [
                 _buildTeamLabels(textTheme),
@@ -158,14 +159,8 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          '홈팀',
-          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
-        ),
-        Text(
-          '상대팀',
-          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
-        ),
+        Text('홈팀', style: textTheme.bodySmall?.copyWith(color: AppColors.gray70)),
+        Text('상대팀', style: textTheme.bodySmall?.copyWith(color: AppColors.gray70)),
       ],
     );
   }
@@ -181,10 +176,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           textTheme,
         ),
         Text('${widget.game.homeScore}', style: textTheme.displayLarge),
-        Text(
-          ':',
-          style: textTheme.displayLarge?.copyWith(color: AppColors.gray50),
-        ),
+        Text(':', style: textTheme.displayLarge?.copyWith(color: AppColors.gray50)),
         Text('${widget.game.awayScore}', style: textTheme.displayLarge),
         _buildTeamInfo(
           widget.game.awayTeam.name,
@@ -196,28 +188,17 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     );
   }
 
-  Widget _buildTeamInfo(
-    String teamName,
-    Color color,
-    String logoText,
-    TextTheme textTheme,
-  ) {
+  Widget _buildTeamInfo(String teamName, Color color, String logoText, TextTheme textTheme) {
     return Row(
       children: [
         Container(
           width: 40,
           height: 40,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(20),
-          ),
+          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
           child: Center(
             child: Text(
               logoText,
-              style: textTheme.bodySmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
+              style: textTheme.bodySmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -248,19 +229,11 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '코멘트',
-            style: textTheme.titleLarge?.copyWith(color: AppColors.gray70),
-          ),
+          Text('코멘트', style: textTheme.titleLarge?.copyWith(color: AppColors.gray70)),
           const SizedBox(height: 16),
           Text(widget.game.memo, style: textTheme.bodyLarge),
           const SizedBox(height: 24),
-          Center(
-            child: Text(
-              '기억에 남는 경기였나요?',
-              style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70),
-            ),
-          ),
+          Center(child: Text('기억에 남는 경기였나요?', style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70))),
           const SizedBox(height: 16),
           Center(
             child: AnimatedScale(
@@ -268,10 +241,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
               duration: const Duration(milliseconds: 200),
               child: Icon(
                 Icons.favorite,
-                color:
-                    widget.game.isFavorite
-                        ? AppColors.negative
-                        : AppColors.gray30,
+                color: widget.game.isFavorite ? AppColors.negative : AppColors.gray30,
                 size: 80,
               ),
             ),
@@ -283,9 +253,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
 
   Widget _buildBottomNavigationBar(ColorScheme colorScheme) {
     return Container(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.gray10, width: 1)),
-      ),
+      decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.gray10, width: 1))),
       child: BottomNavigationBar(
         backgroundColor: colorScheme.surface,
         selectedItemColor: colorScheme.onSurface,
@@ -294,40 +262,25 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         elevation: 0,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.sports_baseball_outlined),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            label: '',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.sports_baseball_outlined), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: ''),
         ],
       ),
     );
   }
 
   void _handleDownload() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('다운로드 기능을 구현해주세요')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('다운로드 기능을 구현해주세요')));
   }
 
   void _showActionModal() {
-    RecordActionModal.show(
-      context,
-      onEdit: _handleEdit,
-      onDelete: _handleDelete,
-    );
+    RecordActionModal.show(context, onEdit: _handleEdit, onDelete: _handleDelete);
   }
 
   void _handleEdit() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CreateRecordScreen(gameRecord: widget.game),
-      ),
-    ).then((result) {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => CreateRecordScreen(gameRecord: widget.game))).then((
+      result,
+    ) {
       if (result == true) {
         Navigator.pop(context, true);
       }
@@ -346,26 +299,16 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       builder:
           (context) => AlertDialog(
             title: Text('기록 삭제', style: textTheme.titleLarge),
-            content: Text(
-              '이 기록을 삭제하시겠습니까?\n삭제된 기록은 복구할 수 없습니다.',
-              style: textTheme.bodyMedium,
-            ),
+            content: Text('이 기록을 삭제하시겠습니까?\n삭제된 기록은 복구할 수 없습니다.', style: textTheme.bodyMedium),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('취소', style: textTheme.bodyMedium),
-              ),
+              TextButton(onPressed: () => Navigator.pop(context), child: Text('취소', style: textTheme.bodyMedium)),
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.negative,
-                ),
+                style: TextButton.styleFrom(foregroundColor: AppColors.negative),
                 child: Text('삭제', style: textTheme.bodyMedium),
               ),
             ],

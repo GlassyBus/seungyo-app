@@ -1,36 +1,120 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:seungyo/constants/team_data.dart';
-import 'package:seungyo/theme/app_colors.dart';
-import 'package:seungyo/theme/app_text_styles.dart';
-import 'package:seungyo/view/auth/widgets/components/team_button.dart';
+import 'package:seungyo/models/team.dart' as app_models;
+import 'package:seungyo/services/database_service.dart';
+import 'package:seungyo/theme/theme.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
 
-/// 팀 선택 화면 위젯
-///
-/// 사용자가 응원하는 팀을 선택하는 화면을 표시합니다.
-/// [onNext]는 다음 단계로 진행하는 콜백입니다.
 class SelectTeamView extends StatefulWidget {
   /// 다음 단계로 진행하는 콜백
-  final VoidCallback onNext;
+  final VoidCallback? onNext;
 
-  const SelectTeamView({super.key, required this.onNext});
+  /// 독립적인 팀 선택 화면인지 여부 (프로필 수정용)
+  final bool isStandalone;
+
+  /// 현재 선택된 팀 ID (프로필 수정 시)
+  final String? currentTeamId;
+
+  /// 앱바 제목
+  final String? title;
+
+  const SelectTeamView({super.key, this.onNext, this.isStandalone = false, this.currentTeamId, this.title});
 
   @override
   State<SelectTeamView> createState() => _SelectTeamViewState();
 }
 
 class _SelectTeamViewState extends State<SelectTeamView> {
-  /// 레이아웃 상수
-  static const double _horizontalPadding = 16.0; // 패딩 줄임
-  static const double _gridSpacing = 12.0; // 간격 줄임
-  static const double _gridRowSpacing = 14.0; // 행 간격 늘림
+  List<app_models.Team> _teams = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+  String? _selectedTeamId;
 
-  /// 고정된 그리드 컬럼 수
-  static const int _columnCount = 3;
+  @override
+  void initState() {
+    super.initState();
+    _selectedTeamId = widget.currentTeamId;
+    _loadTeams();
+  }
+
+  Future<void> _loadTeams() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      print('SelectTeamView: Loading teams from database...');
+      final teams = await DatabaseService().getTeamsAsAppModels();
+      print('SelectTeamView: Loaded ${teams.length} teams');
+
+      if (teams.isEmpty) {
+        throw Exception('팀 목록이 비어있습니다');
+      }
+
+      setState(() {
+        _teams = teams;
+        _isLoading = false;
+      });
+    } catch (e, stackTrace) {
+      print('SelectTeamView: Error loading teams: $e');
+      setState(() {
+        _isLoading = false;
+        _errorMessage = '팀 목록을 불러오는데 실패했습니다: ${e.toString()}';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isStandalone) {
+      return _buildStandaloneScreen();
+    } else {
+      return _buildAuthFlowScreen();
+    }
+  }
+
+  Widget _buildStandaloneScreen() {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(widget.title ?? '응원 구단 변경', style: AppTextStyles.subtitle1),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.black,
+        elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 25),
+                    Text(
+                      '어느 구단을 응원하시나요?',
+                      style: AppTextStyles.h3.copyWith(color: AppColors.navy),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 40),
+                    _buildContent(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          _buildStandaloneBottomButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAuthFlowScreen() {
     final vm = context.watch<AuthViewModel>();
 
     return PopScope(
@@ -47,76 +131,28 @@ class _SelectTeamViewState extends State<SelectTeamView> {
         body: SafeArea(
           child: Column(
             children: [
-              // 스크롤 가능한 콘텐츠 영역
               Expanded(
                 child: SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: _horizontalPadding,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 25),
-                        // 타이틀
                         Text(
                           '어느 구단을 응원하시나요?',
-                          style: AppTextStyles.h3.copyWith(
-                            color: AppColors.navy,
-                          ),
+                          style: AppTextStyles.h3.copyWith(color: AppColors.navy),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 25),
-                        // 팀 선택 그리드
-                        _buildTeamGrid(vm),
+                        const SizedBox(height: 40),
+                        _buildContent(),
                       ],
                     ),
                   ),
                 ),
               ),
-
-              // 하단 버튼 영역
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Column(
-                  children: [
-                    // 다음 버튼
-                    Container(
-                      width: double.infinity,
-                      height: 56,
-                      child: TextButton(
-                        onPressed: vm.team != null ? widget.onNext : null,
-                        style: TextButton.styleFrom(
-                          backgroundColor:
-                              vm.team != null
-                                  ? AppColors.navy
-                                  : AppColors.navy5,
-                          foregroundColor:
-                              vm.team != null ? Colors.white : AppColors.navy30,
-                          disabledForegroundColor: AppColors.navy30,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: EdgeInsets.zero,
-                        ),
-                        child: Text('다음', style: AppTextStyles.subtitle2),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // iOS 홈 인디케이터
-                    Container(
-                      width: 134,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildAuthFlowBottomButton(vm),
             ],
           ),
         ),
@@ -124,106 +160,196 @@ class _SelectTeamViewState extends State<SelectTeamView> {
     );
   }
 
-  /// 팀 선택 그리드 위젯
-  Widget _buildTeamGrid(AuthViewModel vm) {
+  Widget _buildContent() {
+    if (_isLoading) {
+      return const Center(
+        child: Padding(padding: EdgeInsets.all(50.0), child: CircularProgressIndicator(color: AppColors.navy)),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          children: [
+            Text(_errorMessage!, style: AppTextStyles.body2.copyWith(color: Colors.red), textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadTeams,
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.navy, foregroundColor: Colors.white),
+              child: const Text('다시 시도'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return _buildTeamGrid();
+  }
+
+  Widget _buildTeamGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 24,
+        childAspectRatio: 0.8,
+      ),
+      itemCount: _teams.length,
+      itemBuilder: (context, index) {
+        final team = _teams[index];
+        final isSelected =
+            widget.isStandalone ? (_selectedTeamId == team.id) : (context.watch<AuthViewModel>().team == team.id);
+
+        return GestureDetector(
+          onTap: () {
+            print('SelectTeamView: Team selected - ${team.name} (${team.id})');
+            if (widget.isStandalone) {
+              setState(() {
+                _selectedTeamId = team.id;
+              });
+            } else {
+              final vm = context.read<AuthViewModel>();
+              vm.selectTeam(isSelected ? null : team.id);
+            }
+          },
+          child: Column(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.mint : AppColors.gray10,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: isSelected ? AppColors.mint : AppColors.gray20, width: isSelected ? 3 : 2),
+                ),
+                child: Center(
+                  child:
+                      team.logo != null && team.logo!.isNotEmpty
+                          ? team.logo!.startsWith('assets/')
+                              ? Image.asset(
+                                team.logo!,
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Text(
+                                    team.shortName.substring(0, 1),
+                                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                                  );
+                                },
+                              )
+                              : Text(team.logo!, style: const TextStyle(fontSize: 32))
+                          : Text(
+                            team.shortName.substring(0, 1),
+                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                          ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                team.name,
+                style: AppTextStyles.body2.copyWith(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? AppColors.navy : AppColors.black,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAuthFlowBottomButton(AuthViewModel vm) {
+    final selectedTeam = vm.team != null ? _teams.where((team) => team.id == vm.team).firstOrNull : null;
+
     return Padding(
-      key: const Key('team_selection_grid'),
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         children: [
-          // 첫 번째 행 (KIA, KT, LG)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildTeamButtonWithWidth(vm, 'tigers', 0),
-              SizedBox(width: _gridSpacing),
-              _buildTeamButtonWithWidth(vm, 'wiz', 1),
-              SizedBox(width: _gridSpacing),
-              _buildTeamButtonWithWidth(vm, 'twins', 2),
-            ],
+          Container(
+            width: double.infinity,
+            height: 56,
+            child: TextButton(
+              onPressed: selectedTeam != null && !_isLoading && widget.onNext != null ? widget.onNext : null,
+              style: TextButton.styleFrom(
+                backgroundColor: selectedTeam != null ? AppColors.navy : AppColors.navy5,
+                foregroundColor: selectedTeam != null ? Colors.white : AppColors.navy30,
+                disabledForegroundColor: AppColors.navy30,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: EdgeInsets.zero,
+              ),
+              child:
+                  _isLoading
+                      ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                      : Text('다음', style: AppTextStyles.subtitle2),
+            ),
           ),
-          // 첫 번째 행과 두 번째 행 사이 간격 조정
-          SizedBox(height: _gridRowSpacing + 4),
-
-          // 두 번째 행 (NC, SSG, 두산)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildTeamButtonWithWidth(vm, 'dinos', 3),
-              SizedBox(width: _gridSpacing),
-              _buildTeamButtonWithWidth(vm, 'landers', 4),
-              SizedBox(width: _gridSpacing),
-              _buildTeamButtonWithWidth(vm, 'bears', 5),
-            ],
-          ),
-          // 첫 번째 행과 두 번째 행 사이 간격 조정
-          SizedBox(height: _gridRowSpacing + 4),
-
-          // 세 번째 행 (롯데, 삼성, 키움)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildTeamButtonWithWidth(vm, 'giants', 6),
-              SizedBox(width: _gridSpacing),
-              _buildTeamButtonWithWidth(vm, 'lions', 7),
-              SizedBox(width: _gridSpacing),
-              _buildTeamButtonWithWidth(vm, 'heroes', 8),
-            ],
-          ),
-          // 첫 번째 행과 두 번째 행 사이 간격 조정
-          SizedBox(height: _gridRowSpacing + 4),
-
-          // 네 번째 행 (한화)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildTeamButtonWithWidth(vm, 'eagles', 9),
-              SizedBox(width: _gridSpacing),
-              // 빈 공간 유지
-              Opacity(opacity: 0, child: _buildEmptySpace()),
-              SizedBox(width: _gridSpacing),
-              // 빈 공간 유지
-              Opacity(opacity: 0, child: _buildEmptySpace()),
-            ],
+          const SizedBox(height: 8),
+          Container(
+            width: 134,
+            height: 5,
+            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(100)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEmptySpace() {
-    return SizedBox(
-      width:
-          (MediaQuery.of(context).size.width -
-              (_horizontalPadding * 2) -
-              (_gridSpacing * 2)) /
-          3,
-      height: TeamButton.maxSize + 30, // 버튼 높이 + 텍스트 영역
-    );
-  }
+  Widget _buildStandaloneBottomButton() {
+    final selectedTeam =
+        _selectedTeamId != null ? _teams.where((team) => team.id == _selectedTeamId).firstOrNull : null;
 
-  Widget _buildTeamButtonWithWidth(
-    AuthViewModel vm,
-    String code,
-    int index, {
-    bool isHighlighted = false,
-  }) {
-    final team = TeamData.getByCode(code);
-    if (team == null) return SizedBox.shrink();
-
-    final width =
-        (MediaQuery.of(context).size.width -
-            (_horizontalPadding * 2) -
-            (_gridSpacing * 2)) /
-        3;
-
-    return SizedBox(
-      width: width,
-      child: TeamButton(
-        key: Key('team_button_$code'),
-        team: team,
-        isSelected: vm.team == code,
-        onTap: () => vm.selectTeam(vm.team == code ? null : code),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: ElevatedButton(
+          onPressed:
+              selectedTeam != null && !_isLoading
+                  ? () {
+                    print('SelectTeamView: Returning selected team - ${selectedTeam!.name}');
+                    Navigator.pop(context, selectedTeam);
+                  }
+                  : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.navy,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: AppColors.gray30,
+            disabledForegroundColor: AppColors.gray50,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          child:
+              _isLoading
+                  ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                  : Text(
+                    '선택 완료',
+                    style: AppTextStyles.subtitle2.copyWith(
+                      color: selectedTeam != null ? Colors.white : AppColors.gray50,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+        ),
       ),
     );
   }

@@ -90,9 +90,13 @@ class RecordService {
   Future<int> addRecord(GameRecordForm form) async {
     try {
       print('RecordService: Starting addRecord...');
-      print('RecordService: Form data - DateTime: ${form.gameDateTime}, Stadium: ${form.stadiumId}, HomeTeam: ${form.homeTeamId}, AwayTeam: ${form.awayTeamId}');
+      print(
+        'RecordService: Form data - DateTime: ${form.gameDateTime}, Stadium: ${form.stadiumId}, HomeTeam: ${form.homeTeamId}, AwayTeam: ${form.awayTeamId}',
+      );
       print('RecordService: Form scores - Home: ${form.homeScore}, Away: ${form.awayScore}');
-      print('RecordService: Form extras - Seat: ${form.seatInfo}, Comment: ${form.comment}, Favorite: ${form.isFavorite}, Canceled: ${form.canceled}');
+      print(
+        'RecordService: Form extras - Seat: ${form.seatInfo}, Comment: ${form.comment}, Favorite: ${form.isFavorite}, Canceled: ${form.canceled}',
+      );
 
       // 필수 필드 검증
       if (!form.isValid) {
@@ -104,13 +108,22 @@ class RecordService {
 
       // 이미지 파일 처리
       List<String> photosPaths = [];
-      if (form.imagePath != null) {
-        print('RecordService: Processing image: ${form.imagePath}');
+      if (form.imagePaths != null && form.imagePaths!.isNotEmpty) {
+        print('RecordService: Processing ${form.imagePaths!.length} images');
+        for (final imagePath in form.imagePaths!) {
+          print('RecordService: Processing image: $imagePath');
+          final permanentPath = await _saveImagePermanently(imagePath);
+          photosPaths.add(permanentPath);
+          print('RecordService: Image saved to: $permanentPath');
+        }
+      } else if (form.imagePath != null) {
+        // 하위 호환성을 위해 단일 이미지 경로도 처리
+        print('RecordService: Processing single image: ${form.imagePath}');
         final permanentPath = await _saveImagePermanently(form.imagePath!);
         photosPaths.add(permanentPath);
         print('RecordService: Image saved to: $permanentPath');
       } else {
-        print('RecordService: No image to process');
+        print('RecordService: No images to process');
       }
 
       // 새 기록 생성
@@ -140,7 +153,9 @@ class RecordService {
       final insertedRecord = allRecords.where((r) => r.id == recordId).firstOrNull;
       if (insertedRecord != null) {
         print('RecordService: Verification successful - Record found in DB');
-        print('RecordService: Inserted record details - Date: ${insertedRecord.date}, Stadium: ${insertedRecord.stadiumId}, Teams: ${insertedRecord.homeTeamId} vs ${insertedRecord.awayTeamId}');
+        print(
+          'RecordService: Inserted record details - Date: ${insertedRecord.date}, Stadium: ${insertedRecord.stadiumId}, Teams: ${insertedRecord.homeTeamId} vs ${insertedRecord.awayTeamId}',
+        );
       } else {
         print('RecordService: WARNING - Record not found in DB after insert!');
       }
@@ -167,8 +182,16 @@ class RecordService {
         photosPaths = List<String>.from(jsonDecode(existingRecord.photosJson!));
       }
 
-      if (form.imagePath != null && !form.imagePath!.startsWith('/data/')) {
-        // 새 이미지가 선택된 경우
+      if (form.imagePaths != null && form.imagePaths!.isNotEmpty) {
+        // 새 이미지들이 선택된 경우
+        for (final imagePath in form.imagePaths!) {
+          if (!imagePath.startsWith('/data/')) {
+            final permanentPath = await _saveImagePermanently(imagePath);
+            photosPaths.add(permanentPath);
+          }
+        }
+      } else if (form.imagePath != null && !form.imagePath!.startsWith('/data/')) {
+        // 하위 호환성: 단일 이미지 처리
         final permanentPath = await _saveImagePermanently(form.imagePath!);
         photosPaths.add(permanentPath);
       }
