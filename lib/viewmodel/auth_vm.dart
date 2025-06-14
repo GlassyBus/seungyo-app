@@ -32,7 +32,16 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> saveUserInfo() async {
-    if (_team != null) await _authRepo.setTeam(_team!);
+    if (_team != null) {
+      // 팀 ID를 팀 코드로 변환
+      final teamData = TeamData.getById(_team!);
+      if (teamData != null) {
+        await _authRepo.setTeam(teamData.code);
+        print('AuthViewModel: Saved team code: ${teamData.code} for team ID: $_team');
+      } else {
+        print('AuthViewModel: Warning - Team not found for ID: $_team');
+      }
+    }
     if (_nickname != null) await _authRepo.setNickname(_nickname!);
     await _authRepo.setLoggedIn(true);
   }

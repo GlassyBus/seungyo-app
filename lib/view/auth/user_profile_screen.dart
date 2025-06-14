@@ -51,12 +51,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     try {
       final profile = await _userService.getUserProfile();
-
       final team = await _userService.getUserFavoriteTeam();
 
       setState(() {
         _userProfile = profile;
-        _favoriteTeam = team; // team이 null일 수도 있음
+        _favoriteTeam = team;
         _originalNickname = profile.nickname;
         _nicknameController.text = profile.nickname;
       });

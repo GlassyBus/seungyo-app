@@ -20,8 +20,8 @@ import '../../widgets/animated_counter.dart';
 import '../../widgets/bottom_navigation_bar.dart';
 import '../../widgets/quick_action_buttons.dart';
 import '../auth/user_profile_screen.dart';
+import 'components/profile_component.dart';
 import 'widgets/news_item.dart';
-import 'widgets/user_section.dart';
 import 'widgets/stats_section.dart';
 import 'widgets/today_games_section.dart';
 import 'widgets/news_section.dart';
@@ -269,10 +269,13 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 사용자 프로필 섹션
-                UserSection(
-                  userProfile: _userProfile,
-                  favoriteTeam: _favoriteTeam,
-                  onMoreTap: _navigateToUserProfile,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  child: ProfileComponent(
+                    userProfile: _userProfile,
+                    favoriteTeam: _favoriteTeam,
+                    onMoreTap: _navigateToUserProfile,
+                  ),
                 ),
                 // Divider
                 Container(height: 8, color: const Color(0xFFF7F8FB)),
