@@ -5,6 +5,8 @@ import 'package:seungyo/services/record_service.dart';
 import '../../models/game_record.dart';
 import 'record_detail_screen.dart';
 import 'widgets/game_record_card.dart';
+// AppTextStyles 임포트 (CustomCheckbox에서 사용할 수 있도록)
+import 'package:seungyo/theme/app_text_styles.dart';
 
 class RecordListPage extends StatefulWidget {
   const RecordListPage({super.key});
@@ -57,7 +59,7 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
       print('RecordScreen: Calling RecordService.getAllRecords()...');
       final records = await _recordService.getAllRecords();
       print('RecordScreen: Loaded ${records.length} records from database');
-      
+
       // created_at 기준으로 내림차순 정렬 (최신 기록이 위로)
       records.sort((a, b) {
         // null인 경우 가장 오래된 것으로 처리
@@ -66,7 +68,7 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
         return bTime.compareTo(aTime);
       });
       print('RecordScreen: Records sorted by created_at (newest first)');
-      
+
       for (int i = 0; i < records.length && i < 3; i++) {
         final record = records[i];
         print('RecordScreen: Record $i - ${record.homeTeam.name} vs ${record.awayTeam.name}, Created: ${record.createdAt}, Stadium: ${record.stadium.name}');
@@ -76,17 +78,17 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
         _records = records;
         _isLoading = false;
       });
-      
+
       print('RecordScreen: Records loaded and UI updated successfully');
     } catch (e) {
       print('RecordScreen: Error loading records: $e');
       print('RecordScreen: Error stack trace: ${StackTrace.current}');
-      
+
       setState(() {
         _records = [];
         _isLoading = false;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -106,13 +108,15 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
-    return _isLoading ? _buildLoadingState(context) : _buildContent(context);
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FB),
+      body: _isLoading ? _buildLoadingState(context) : _buildContent(context),
+    );
   }
 
   Widget _buildLoadingState(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
+    // final textTheme = Theme.of(context).textTheme; // AppTextStyles 사용으로 변경
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -120,6 +124,12 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
           CircularProgressIndicator(color: colorScheme.primary),
           const SizedBox(height: 16),
           Text('기록을 불러오는 중...', style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline)),
+          Text(
+            '기록을 불러오는 중...',
+            style: AppTextStyles.body2.copyWith(
+              color: colorScheme.outline,
+            ), // AppTextStyles 사용
+          ),
         ],
       ),
     );
@@ -130,18 +140,18 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
   }
 
   Widget _buildFilterSection(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Container(
-      color: colorScheme.secondaryContainer,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
+        // Row로 감싸서 좌측 정렬
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () {
+          CustomCheckbox(
+            value: _showOnlyFavorites,
+            label: '하트만 보기',
+            onChanged: (value) {
               setState(() {
-                _showOnlyFavorites = !_showOnlyFavorites;
+                _showOnlyFavorites = value;
               });
             },
             child: Container(
@@ -159,6 +169,8 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
           Text(
             '하트만 보기',
             style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSecondaryContainer, fontWeight: FontWeight.w500),
+            // CustomCheckbox 내부에서 AppTextStyles.body2 또는 적절한 스타일을 사용하도록 수정 필요
+            // labelStyle: AppTextStyles.body2.copyWith(color: const Color(0xFF100F21)),
           ),
         ],
       ),
@@ -169,37 +181,47 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
     if (_filteredRecords.isEmpty) {
       return _buildEmptyState();
     }
-
     return RefreshIndicator(
       onRefresh: _loadRecords,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
         itemCount: _filteredRecords.length,
         itemBuilder: (context, index) {
           final record = _filteredRecords[index];
-          return GameRecordCard(
-            record: record,
-            onTap: () => _navigateToDetail(record),
-            onFavoriteToggle: () => _toggleFavorite(record),
+          return Padding(
+            padding: const EdgeInsets.only(top: 12.0),
+            child: GameRecordCard(
+              record: record,
+              onTap: () => _navigateToDetail(record),
+              onFavoriteToggle: () => _toggleFavorite(record),
+            ),
           );
         },
+        separatorBuilder: (context, index) => const SizedBox.shrink(),
       ),
     );
   }
 
   Widget _buildEmptyState() {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
+    // final textTheme = Theme.of(context).textTheme; // AppTextStyles 사용으로 변경
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.sports_baseball_outlined, size: 80, color: colorScheme.outline),
-          const SizedBox(height: 24),
+          Icon(
+            Icons.sentiment_dissatisfied_outlined,
+            size: 60,
+            color: colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
           Text(
-            _showOnlyFavorites ? '즐겨찾기한 기록이 없습니다' : '아직 기록이 없습니다',
-            style: textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w600),
+            _showOnlyFavorites ? '즐겨찾기한 기록이 없어요' : '아직 작성된 기록이 없어요',
+            // AppTextStyles.subtitle1 또는 적절한 스타일 사용
+            style: AppTextStyles.subtitle1.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -219,10 +241,10 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
   Future<void> _toggleFavorite(GameRecord record) async {
     try {
       print('RecordScreen: Toggling favorite for record ID: ${record.id}');
-      
+
       // RecordService를 통해 즐겨찾기 토글
       final success = await _recordService.toggleFavorite(record.id);
-      
+
       if (success) {
         print('RecordScreen: Favorite toggled successfully');
         // UI 업데이트

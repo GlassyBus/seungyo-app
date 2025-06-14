@@ -25,7 +25,7 @@ class RecordService {
       print('RecordService: Getting all database records...');
       final dbRecords = await _database.getAllRecords();
       print('RecordService: Found ${dbRecords.length} database records');
-      
+
       final gameRecords = <GameRecord>[];
 
       for (final record in dbRecords) {
@@ -93,13 +93,13 @@ class RecordService {
       print('RecordService: Form data - DateTime: ${form.gameDateTime}, Stadium: ${form.stadiumId}, HomeTeam: ${form.homeTeamId}, AwayTeam: ${form.awayTeamId}');
       print('RecordService: Form scores - Home: ${form.homeScore}, Away: ${form.awayScore}');
       print('RecordService: Form extras - Seat: ${form.seatInfo}, Comment: ${form.comment}, Favorite: ${form.isFavorite}, Canceled: ${form.canceled}');
-      
+
       // 필수 필드 검증
       if (!form.isValid) {
         print('RecordService: Form validation failed');
         throw Exception('필수 정보가 누락되었습니다.');
       }
-      
+
       print('RecordService: Form validation passed');
 
       // 이미지 파일 처리
@@ -128,7 +128,7 @@ class RecordService {
         photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
         isFavorite: Value(form.isFavorite),
       );
-      
+
       print('RecordService: Inserting record into database...');
       final recordId = await _database.insertRecord(companion);
       print('RecordService: Record inserted successfully with ID: $recordId');
@@ -136,7 +136,7 @@ class RecordService {
       // 검증: 실제로 DB에 들어갔는지 확인
       final allRecords = await _database.getAllRecords();
       print('RecordService: Total records in DB after insert: ${allRecords.length}');
-      
+
       final insertedRecord = allRecords.where((r) => r.id == recordId).firstOrNull;
       if (insertedRecord != null) {
         print('RecordService: Verification successful - Record found in DB');

@@ -3,14 +3,13 @@ import '../../models/stadium.dart';
 import '../../models/team.dart';
 import 'package:flutter/material.dart';
 
-/// Mock 게임 기록 데이터
+/// Mock 게임 기록 데이터 (Figma 디자인 기반)
 abstract class MockGameRecords {
   static final List<GameRecord> records = [
     GameRecord(
       id: 1,
-      scheduleId: 1,
-      dateTime: DateTime(2025, 1, 5, 14, 0),
-      stadium: const Stadium(id: 'ssg', name: '고척스카이돔', city: '서울'),
+      dateTime: DateTime(2025, 4, 6, 14, 0),
+      stadium: const Stadium(id: 'gocheok', name: '고척스카이돔', city: '서울'),
       homeTeam: const Team(
         id: 'ssg',
         name: 'SSG 랜더스',
@@ -25,8 +24,8 @@ abstract class MockGameRecords {
         primaryColor: Color(0xFF820024),
         secondaryColor: Color(0xFFFFFFFF),
       ),
-      homeScore: 3,
-      awayScore: 2,
+      homeScore: 1,
+      awayScore: 0,
       myTeam: const Team(
         id: 'ssg',
         name: 'SSG 랜더스',
@@ -34,31 +33,47 @@ abstract class MockGameRecords {
         primaryColor: Color(0xFFCE0E2D),
         secondaryColor: Color(0xFFFFFFFF),
       ),
-      seatSection: '1루측 내야',
-      seatNumber: 'A구역 15열 23번',
-      weather: '맑음',
-      temperature: 15.5,
-      photos: [
-        '/assets/images/game1_photo1.jpg',
-        '/assets/images/game1_photo2.jpg',
-      ],
-      memo: '시즌 첫 경기! 짜릿한 승리였다. 9회말 역전승이 정말 감동적이었음.',
-      rating: 4.5,
-      foodRating: 4.0,
-      atmosphereRating: 5.0,
-      ticketPrice: 25000,
-      totalCost: 45000,
-      companions: ['친구1', '친구2'],
-      highlights: ['9회말 역전 홈런', '완벽한 날씨', '맛있는 치킨'],
-      createdAt: DateTime(2025, 1, 5, 18, 30),
-      updatedAt: DateTime(2025, 1, 5, 18, 30),
       result: GameResult.win,
+      imageUrl:
+          'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/_EC_8A_B9_EC_9A_94__EC_8A_B9_EB_A6_AC_EC_9A_94_EC_A0_95_-By8lFfD1ARdfwMbzmHuZMZIX45CcpZ.png',
+      isFavorite: true,
     ),
     GameRecord(
       id: 2,
-      scheduleId: 3,
-      dateTime: DateTime(2025, 1, 7, 14, 0),
-      stadium: const Stadium(id: 'ssg', name: '고척스카이돔', city: '서울'),
+      dateTime: DateTime(2025, 4, 6, 14, 0),
+      stadium: const Stadium(id: 'jamsil', name: '잠실실내체육관', city: '서울'),
+      homeTeam: const Team(
+        id: 'lg',
+        name: 'LG 트윈스',
+        shortName: 'LG',
+        primaryColor: Color(0xFFC30452),
+        secondaryColor: Color(0xFFFFFFFF),
+      ),
+      awayTeam: const Team(
+        id: 'kia',
+        name: 'KIA 타이거즈',
+        shortName: 'KIA',
+        primaryColor: Color(0xFFEA0029),
+        secondaryColor: Color(0xFFFFFFFF),
+      ),
+      homeScore: 1,
+      awayScore: 0,
+      myTeam: const Team(
+        id: 'lg',
+        name: 'LG 트윈스',
+        shortName: 'LG',
+        primaryColor: Color(0xFFC30452),
+        secondaryColor: Color(0xFFFFFFFF),
+      ),
+      result: GameResult.win,
+      imageUrl:
+          'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/_EC_8A_B9_EC_9A_94__EC_8A_B9_EB_A6_AC_EC_9A_94_EC_A0_95_-SWi6klnULqXDwaFGW0DRfgElFSd4sB.png',
+      isFavorite: false,
+    ),
+    GameRecord(
+      id: 3,
+      dateTime: DateTime(2025, 4, 6, 14, 0),
+      stadium: const Stadium(id: 'gocheok', name: '고척스카이돔', city: '서울'),
       homeTeam: const Team(
         id: 'ssg',
         name: 'SSG 랜더스',
@@ -73,8 +88,8 @@ abstract class MockGameRecords {
         primaryColor: Color(0xFF820024),
         secondaryColor: Color(0xFFFFFFFF),
       ),
-      homeScore: 5,
-      awayScore: 2,
+      homeScore: 0,
+      awayScore: 1,
       myTeam: const Team(
         id: 'ssg',
         name: 'SSG 랜더스',
@@ -82,82 +97,73 @@ abstract class MockGameRecords {
         primaryColor: Color(0xFFCE0E2D),
         secondaryColor: Color(0xFFFFFFFF),
       ),
-      seatSection: '외야석',
-      seatNumber: '외야 응원석 5열 10번',
-      weather: '흐림',
-      temperature: 12.0,
-      photos: ['/assets/images/game2_photo1.jpg'],
-      memo: '응원석에서 본 경기. 분위기가 정말 좋았다!',
-      rating: 4.0,
-      foodRating: 3.5,
-      atmosphereRating: 4.5,
-      ticketPrice: 15000,
-      totalCost: 30000,
-      companions: ['가족'],
-      highlights: ['대량득점', '응원가 합창', '선수 사인'],
-      createdAt: DateTime(2025, 1, 7, 17, 45),
-      updatedAt: DateTime(2025, 1, 7, 17, 45),
+      result: GameResult.lose,
+      imageUrl:
+          'https://images.unsplash.com/photo-1544398640-94b86f875d28?q=80&w=312&h=312&fit=crop',
+      isFavorite: true,
+    ),
+    GameRecord(
+      id: 4,
+      dateTime: DateTime(2025, 4, 6, 14, 0),
+      stadium: const Stadium(id: 'gocheok', name: '고척스카이돔', city: '서울'),
+      homeTeam: const Team(
+        id: 'nc',
+        name: 'NC 다이노스',
+        shortName: 'NC',
+        primaryColor: Color(0xFF315C8D),
+        secondaryColor: Color(0xFFFFFFFF),
+      ),
+      awayTeam: const Team(
+        id: 'kiwoom',
+        name: '키움 히어로즈',
+        shortName: '키움',
+        primaryColor: Color(0xFF820024),
+        secondaryColor: Color(0xFFFFFFFF),
+      ),
+      homeScore: 1,
+      awayScore: 0,
+      myTeam: const Team(
+        id: 'nc',
+        name: 'NC 다이노스',
+        shortName: 'NC',
+        primaryColor: Color(0xFF315C8D),
+        secondaryColor: Color(0xFFFFFFFF),
+      ),
       result: GameResult.win,
+      imageUrl: null, // No image to test placeholder
+      isFavorite: true,
+    ),
+    GameRecord(
+      id: 5,
+      dateTime: DateTime(2025, 4, 6, 14, 0),
+      stadium: const Stadium(id: 'jamsil', name: '잠실실내체육관', city: '서울'),
+      homeTeam: const Team(
+        id: 'doosan',
+        name: '두산 베어스',
+        shortName: '두산',
+        primaryColor: Color(0xFF131230),
+        secondaryColor: Color(0xFFFFFFFF),
+      ),
+      awayTeam: const Team(
+        id: 'lotte',
+        name: '롯데 자이언츠',
+        shortName: '롯데',
+        primaryColor: Color(0xFF002856),
+        secondaryColor: Color(0xFFFFFFFF),
+      ),
+      homeScore: 1,
+      awayScore: 1,
+      myTeam: const Team(
+        id: 'doosan',
+        name: '두산 베어스',
+        shortName: '두산',
+        primaryColor: Color(0xFF131230),
+        secondaryColor: Color(0xFFFFFFFF),
+      ),
+      result: GameResult.draw,
+      imageUrl:
+          'https://images.unsplash.com/photo-1628926933973-3a21c881516b?q=80&w=312&h=312&fit=crop',
+      isFavorite: true,
     ),
   ];
-
-  /// 특정 팀의 기록 필터링
-  static List<GameRecord> getByTeam(String teamName) {
-    return records.where((record) => record.myTeam == teamName).toList();
-  }
-
-  /// 특정 결과의 기록 필터링
-  static List<GameRecord> getByResult(GameResult result) {
-    return records.where((record) => record.result == result).toList();
-  }
-
-  /// 특정 구장의 기록 필터링
-  static List<GameRecord> getByStadium(String stadiumName) {
-    return records.where((record) => record.stadium == stadiumName).toList();
-  }
-
-  /// 평점별 기록 필터링
-  static List<GameRecord> getByRating(double minRating) {
-    return records
-        .where((record) => (record.rating ?? 0) >= minRating)
-        .toList();
-  }
-
-  /// 최근 기록 가져오기
-  static List<GameRecord> getRecent(int count) {
-    final sortedRecords = List<GameRecord>.from(records)
-      ..sort((a, b) => b.dateTime.compareTo(a.dateTime));
-
-    return sortedRecords.take(count).toList();
-  }
-
-  /// 통계 계산
-  static Map<String, dynamic> getStatistics() {
-    final totalGames = records.length;
-    final wins = records.where((r) => r.result == GameResult.win).length;
-    final losses = records.where((r) => r.result == GameResult.lose).length;
-    final draws = records.where((r) => r.result == GameResult.draw).length;
-
-    final totalCost = records
-        .map((r) => r.totalCost ?? 0)
-        .fold(0, (sum, cost) => sum + cost);
-
-    final averageRating =
-        records
-            .where((r) => r.rating != null)
-            .map((r) => r.rating!)
-            .fold(0.0, (sum, rating) => sum + rating) /
-        records.where((r) => r.rating != null).length;
-
-    return {
-      'totalGames': totalGames,
-      'wins': wins,
-      'losses': losses,
-      'draws': draws,
-      'winRate': totalGames > 0 ? wins / totalGames : 0.0,
-      'totalCost': totalCost,
-      'averageCost': totalGames > 0 ? totalCost / totalGames : 0,
-      'averageRating': averageRating.isNaN ? 0.0 : averageRating,
-    };
-  }
 }

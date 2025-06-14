@@ -140,7 +140,8 @@ abstract class MockTeams {
   /// 팀 ID로 팀 찾기
   static Team? findById(String id) {
     try {
-      return teams.firstWhere((team) => team.id == id);
+      final results = teams.where((team) => team.id == id);
+      return results.isNotEmpty ? results.first : null;
     } catch (e) {
       return null;
     }
@@ -149,9 +150,10 @@ abstract class MockTeams {
   /// 팀 이름으로 팀 찾기
   static Team? findByName(String name) {
     try {
-      return teams.firstWhere(
+      final results = teams.where(
         (team) => team.name == name || team.shortName == name,
       );
+      return results.isNotEmpty ? results.first : null;
     } catch (e) {
       return null;
     }
