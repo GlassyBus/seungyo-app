@@ -113,7 +113,7 @@ class GameRecordCard extends StatelessWidget {
         Row(
           children: [
             Text(
-              record.homeTeam.shortName,
+              record.homeTeam.name,
               style: textTheme.bodyLarge?.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.w600,
@@ -123,7 +123,7 @@ class GameRecordCard extends StatelessWidget {
             const Text('VS'),
             const SizedBox(width: 8),
             Text(
-              record.awayTeam.shortName,
+              record.awayTeam.name,
               style: textTheme.bodyLarge?.copyWith(
                 color: colorScheme.primary,
                 fontWeight: FontWeight.w600,
