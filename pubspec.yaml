@@ -59,6 +59,12 @@ dependencies:
   url_launcher: ^6.3.1
   table_calendar: ^3.0.9
   path: ^1.8.3
+  
+  # 스크린샷 및 갤러리 저장
+  gal: ^2.3.0
+  permission_handler: ^11.3.1
+  screenshot: ^3.0.0
+  device_info_plus: ^10.1.2
 
 dev_dependencies:
   flutter_test:

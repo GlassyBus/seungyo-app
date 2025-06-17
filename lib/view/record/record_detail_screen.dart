@@ -1,7 +1,14 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:gal/gal.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:seungyo/theme/theme.dart';
 
 import '../../models/game_record.dart';
@@ -22,6 +29,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   late final bool isGameMinimum;
   late bool isFavorite;
   bool _hasChanges = false; // 변경사항 추적
+  final GlobalKey _bodyKey = GlobalKey(); // 캡처용 키 추가
 
   @override
   void initState() {
@@ -54,7 +62,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     return AppBar(
       title: const Text('직관 기록 상세'),
       actions: [
-        IconButton(icon: const Icon(Icons.edit), onPressed: _handleEdit),
         IconButton(icon: const Icon(Icons.download), onPressed: _handleDownload),
         IconButton(icon: const Icon(Icons.more_horiz), onPressed: _showActionModal),
       ],
@@ -73,6 +80,102 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           const SizedBox(height: 32),
           _buildCommentSection(colorScheme, textTheme),
           const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  // 캡처용 별도 위젯 - 스크롤 없이 전체 높이로 렌더링
+  Widget _buildCaptureWidget(ColorScheme colorScheme, TextTheme textTheme) {
+    return RepaintBoundary(
+      key: _bodyKey,
+      child: Container(
+        color: colorScheme.surface,
+        width: 400, // 고정 너비로 깔끔한 이미지 생성
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 캡처용 헤더 추가
+            _buildCaptureHeader(textTheme),
+            const SizedBox(height: 16),
+            _buildMainImage(),
+            _buildGameInfo(textTheme),
+            const SizedBox(height: 32),
+            _buildGameResultSection(colorScheme, textTheme),
+            const SizedBox(height: 32),
+            _buildCommentSection(colorScheme, textTheme),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 캡처용 헤더 위젯
+  Widget _buildCaptureHeader(TextTheme textTheme) {
+    // myTeam이 없으면 홈팀을 기본으로 사용
+    final myTeam = widget.game.myTeam ?? widget.game.homeTeam;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.navy, AppColors.navy.withOpacity(0.8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // 내 팀 로고
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: Center(
+              child:
+                  myTeam.logo?.isNotEmpty == true && myTeam.logo!.startsWith('assets/')
+                      ? ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: Image.asset(
+                          myTeam.logo!,
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.contain,
+                          errorBuilder:
+                              (context, error, stackTrace) => Text(
+                                _getTeamShortText(myTeam.name),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.navy,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                        ),
+                      )
+                      : Text(
+                        _getTeamShortText(myTeam.name),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: AppColors.navy,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          // 내 팀명
+          Text(
+            myTeam.name,
+            style: textTheme.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+          ),
         ],
       ),
     );
@@ -331,6 +434,14 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          // 캡처용 워터마크 추가
+          Center(
+            child: Text(
+              '승리요정으로 기록한 소중한 추억 ⚾',
+              style: textTheme.bodySmall?.copyWith(color: AppColors.gray50, fontSize: 12),
+            ),
+          ),
         ],
       ),
     );
@@ -354,8 +465,150 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     );
   }
 
-  void _handleDownload() {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('다운로드 기능을 구현해주세요')));
+  Future<void> _handleDownload() async {
+    try {
+      // 권한 요청
+      await _requestPermissions();
+
+      // 로딩 표시
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                SizedBox(width: 16),
+                Text('이미지를 저장하는 중...'),
+              ],
+            ),
+            duration: Duration(seconds: 10),
+          ),
+        );
+      }
+
+      final colorScheme = Theme.of(context).colorScheme;
+      final textTheme = Theme.of(context).textTheme;
+
+      // 캡처용 위젯을 별도로 생성하여 이미지화
+      final captureWidget = _buildCaptureWidget(colorScheme, textTheme);
+
+      // 위젯을 화면 밖에서 렌더링하기 위해 Offstage로 감싸서 build
+      await _buildOffstageWidget(captureWidget);
+
+      // 잠시 대기하여 위젯이 완전히 렌더링되도록 함
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // RepaintBoundary에서 이미지 추출
+      final boundary = _bodyKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) {
+        throw Exception('캡처할 영역을 찾을 수 없습니다.');
+      }
+
+      final image = await boundary.toImage(pixelRatio: 2.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) {
+        throw Exception('이미지 데이터를 생성할 수 없습니다.');
+      }
+
+      final pngBytes = byteData.buffer.asUint8List();
+
+      // 임시 파일 생성
+      final tempDir = await getTemporaryDirectory();
+      final fileName = 'seungyo_record_${DateTime.now().millisecondsSinceEpoch}.png';
+      final tempFile = File(path.join(tempDir.path, fileName));
+      await tempFile.writeAsBytes(pngBytes);
+
+      // gal 패키지를 사용하여 갤러리에 저장
+      await Gal.putImage(tempFile.path, album: 'Seungyo');
+
+      // 임시 파일 삭제
+      if (await tempFile.exists()) {
+        await tempFile.delete();
+      }
+
+      // 로딩 스낵바 제거
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('이미지가 갤러리에 저장되었습니다.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // 로딩 스낵바 제거
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('이미지 저장 실패: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // 위젯을 화면 밖에서 렌더링하는 헬퍼 메서드
+  Future<void> _buildOffstageWidget(Widget widget) async {
+    final overlay = Overlay.of(context);
+    OverlayEntry? overlayEntry;
+
+    overlayEntry = OverlayEntry(
+      builder:
+          (context) => Positioned(
+            left: -1000, // 화면 밖에 위치
+            top: -1000,
+            child: Material(child: widget),
+          ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    // 다음 프레임까지 대기
+    await WidgetsBinding.instance.endOfFrame;
+
+    // 잠시 후 제거
+    Future.delayed(const Duration(seconds: 2), () {
+      overlayEntry?.remove();
+    });
+  }
+
+  Future<void> _requestPermissions() async {
+    if (Platform.isAndroid) {
+      // Android 13 (API 33) 이상에서는 특별한 권한이 필요하지 않음
+      final androidInfo = await _getAndroidVersion();
+      if (androidInfo >= 33) {
+        return; // Android 13 이상에서는 권한 요청 불필요
+      }
+
+      // Android 12 이하에서는 WRITE_EXTERNAL_STORAGE 권한 필요
+      final permission = await Permission.storage.request();
+      if (!permission.isGranted) {
+        throw Exception('저장소 권한이 필요합니다.');
+      }
+    } else if (Platform.isIOS) {
+      final permission = await Permission.photos.request();
+      if (!permission.isGranted) {
+        throw Exception('사진 접근 권한이 필요합니다.');
+      }
+    }
+  }
+
+  Future<int> _getAndroidVersion() async {
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.version.sdkInt;
+    } catch (e) {
+      return 30; // 기본값 (Android 11)
+    }
   }
 
   void _showActionModal() {
