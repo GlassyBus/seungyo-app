@@ -45,6 +45,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   int _drawCount = 0; // 무승부 기록 (표시용)
   int _loseCount = 0; // 패배 기록
 
+  // 뒤로가기 더블 탭 관련
+  DateTime? _lastBackPressed;
+
   final UserService _userService = UserService();
   final ScheduleService _scheduleService = ScheduleService();
   final NewsService _newsService = NewsService();
@@ -172,12 +175,40 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: _buildCurrentAppBar(),
-      body: _isLoading ? _buildLoadingState() : _buildContent(),
-      bottomNavigationBar: CustomBottomNavigationBar(currentIndex: _currentTabIndex, onTabChanged: _onTabChanged),
+    return WillPopScope(
+      onWillPop: _handleDoubleBackPress,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: _buildCurrentAppBar(),
+        body: _isLoading ? _buildLoadingState() : _buildContent(),
+        bottomNavigationBar: CustomBottomNavigationBar(currentIndex: _currentTabIndex, onTabChanged: _onTabChanged),
+      ),
     );
+  }
+
+  Future<bool> _handleDoubleBackPress() async {
+    print('MainScreen: Back button pressed on tab $_currentTabIndex');
+    final now = DateTime.now();
+    const duration = Duration(seconds: 2);
+
+    if (_lastBackPressed == null || now.difference(_lastBackPressed!) > duration) {
+      // 첫 번째 뒤로가기 또는 2초가 지난 후
+      print('MainScreen: First back press or timeout, showing warning');
+      _lastBackPressed = now;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('뒤로 버튼을 한 번 더 누르면 앱이 종료됩니다.'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Color(0xFF09004C),
+        ),
+      );
+      return false; // 앱을 종료하지 않음
+    } else {
+      // 2초 이내에 두 번째 뒤로가기
+      print('MainScreen: Second back press within 2 seconds, exiting app');
+      return true; // 앱 종료
+    }
   }
 
   PreferredSizeWidget? _buildCurrentAppBar() {
