@@ -8,7 +8,9 @@ import 'record_detail_screen.dart';
 import 'widgets/game_record_card.dart';
 
 class RecordListPage extends StatefulWidget {
-  const RecordListPage({super.key});
+  final VoidCallback? onRecordChanged; // 기록 변경 콜백 추가
+
+  const RecordListPage({super.key, this.onRecordChanged});
 
   @override
   State<RecordListPage> createState() => _RecordListPageState();
@@ -222,6 +224,11 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
     if (result == true) {
       print('RecordScreen: Changes detected from detail page, refreshing list...');
       await _loadRecords();
+
+      // 부모(메인 화면)에게 변경사항 알림
+      if (widget.onRecordChanged != null) {
+        widget.onRecordChanged!();
+      }
     }
   }
 
@@ -239,6 +246,11 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
             _records[index] = record.copyWith(isFavorite: !record.isFavorite);
           }
         });
+
+        // 부모(메인 화면)에게 변경사항 알림
+        if (widget.onRecordChanged != null) {
+          widget.onRecordChanged!();
+        }
       } else {
         print('RecordScreen: Failed to toggle favorite');
         if (mounted) {

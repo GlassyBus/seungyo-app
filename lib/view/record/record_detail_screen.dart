@@ -367,6 +367,11 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       result,
     ) {
       if (result == true) {
+        // 수정 성공 시 메시지 표시
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('기록이 수정되었습니다.'), backgroundColor: Colors.green, duration: Duration(seconds: 2)),
+        );
+
         Navigator.pop(context, true); // 수정이 완료되면 true 반환
       }
     });

@@ -207,14 +207,15 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       print('MainScreen: Same tab selected, ignoring...');
       return;
     }
-    
+
     setState(() {
       _currentTabIndex = index;
     });
 
-    // 기록 탭으로 이동할 때 홈 데이터 새로고침 (통계 업데이트를 위해)
-    if (index == 1) {
-      print('MainScreen: Switched to records tab, refreshing data...');
+    // 기록 탭에서 다른 탭으로 이동할 때는 새로고침하지 않음
+    // 홈 탭으로 돌아올 때만 새로고침 (다른 탭에서 변경사항이 있을 수 있음)
+    if (index == 0) {
+      print('MainScreen: Switched to home tab, refreshing data...');
       _loadHomeData();
     }
   }
@@ -292,7 +293,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildRecordsContent() {
-    return RecordListPage(key: ValueKey(_currentTabIndex == 1 ? DateTime.now().millisecondsSinceEpoch : 0));
+    return RecordListPage(
+      key: ValueKey(_currentTabIndex == 1 ? DateTime.now().millisecondsSinceEpoch : 0),
+      onRecordChanged: () {
+        // 기록이 변경되었을 때 홈 데이터 새로고침
+        print('MainScreen: Record changed, refreshing home data...');
+        _loadHomeData();
+      },
+    );
   }
 
   Widget _buildScheduleContent() {
