@@ -171,51 +171,87 @@ class RecordService {
   // 기록 업데이트
   Future<bool> updateRecord(int id, GameRecordForm form) async {
     try {
+      print('RecordService: Starting updateRecord for ID: $id');
+
       final existingRecord = await _getRecordById(id);
       if (existingRecord == null) {
+        print('RecordService: Record not found for ID: $id');
         throw Exception('Record not found');
       }
 
+      print('RecordService: Found existing record, proceeding with update...');
+
       // 이미지 처리
       List<String> photosPaths = [];
+
+      // 기존 이미지 경로들 유지
       if (existingRecord.photosJson != null) {
-        photosPaths = List<String>.from(jsonDecode(existingRecord.photosJson!));
+        try {
+          photosPaths = List<String>.from(jsonDecode(existingRecord.photosJson!));
+          print('RecordService: Loaded ${photosPaths.length} existing photos');
+        } catch (e) {
+          print('RecordService: Error parsing existing photos JSON: $e');
+        }
       }
 
+      // 새로운 이미지들 추가
       if (form.imagePaths != null && form.imagePaths!.isNotEmpty) {
-        // 새 이미지들이 선택된 경우
+        print('RecordService: Processing ${form.imagePaths!.length} new images');
         for (final imagePath in form.imagePaths!) {
           if (!imagePath.startsWith('/data/')) {
             final permanentPath = await _saveImagePermanently(imagePath);
             photosPaths.add(permanentPath);
+            print('RecordService: Added new image: $permanentPath');
+          } else {
+            // 이미 영구 저장된 경로인 경우 그대로 유지
+            if (!photosPaths.contains(imagePath)) {
+              photosPaths.add(imagePath);
+            }
           }
         }
       } else if (form.imagePath != null && !form.imagePath!.startsWith('/data/')) {
         // 하위 호환성: 단일 이미지 처리
         final permanentPath = await _saveImagePermanently(form.imagePath!);
         photosPaths.add(permanentPath);
+        print('RecordService: Added single new image: $permanentPath');
       }
 
       // 업데이트된 기록 생성
       final updatedRecord = RecordsCompanion(
         id: Value(id),
         date: Value(form.gameDateTime!),
-        stadiumId: Value(form.stadiumId ?? existingRecord.stadiumId),
-        homeTeamId: Value(form.homeTeamId ?? existingRecord.homeTeamId),
-        awayTeamId: Value(form.awayTeamId ?? existingRecord.awayTeamId),
+        stadiumId: Value(form.stadiumId!),
+        homeTeamId: Value(form.homeTeamId!),
+        awayTeamId: Value(form.awayTeamId!),
         homeScore: Value(form.homeScore ?? 0),
         awayScore: Value(form.awayScore ?? 0),
-        canceled: Value(existingRecord.canceled),
+        canceled: Value(form.canceled),
         seat: Value(form.seatInfo),
         comment: Value(form.comment),
         photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
-        isFavorite: Value(existingRecord.isFavorite),
+        isFavorite: Value(form.isFavorite),
         createdAt: Value(existingRecord.createdAt),
       );
 
-      return await _database.updateRecord(updatedRecord);
+      print('RecordService: Updating record in database...');
+      final success = await _database.updateRecord(updatedRecord);
+      print('RecordService: Update result: $success');
+
+      // 업데이트 후 확인
+      if (success) {
+        final updatedRecordFromDb = await _getRecordById(id);
+        if (updatedRecordFromDb != null) {
+          print('RecordService: Verification - Record updated successfully');
+          print('  - Stadium: ${updatedRecordFromDb.stadiumId}');
+          print('  - Teams: ${updatedRecordFromDb.homeTeamId} vs ${updatedRecordFromDb.awayTeamId}');
+          print('  - Score: ${updatedRecordFromDb.homeScore}-${updatedRecordFromDb.awayScore}');
+        }
+      }
+
+      return success;
     } catch (e) {
       print('Error updating record: $e');
+      print('Error stack trace: ${StackTrace.current}');
       return false;
     }
   }

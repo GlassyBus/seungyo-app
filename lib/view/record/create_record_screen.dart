@@ -49,8 +49,55 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     _loadStadiums();
     _loadTeams();
 
+    // 수정 모드인 경우 기존 데이터로 초기화
+    if (widget.gameRecord != null) {
+      _initializeWithExistingRecord();
+    }
+
     // 디버그: DB 상태 확인
     _debugDatabaseStatus();
+  }
+
+  void _initializeWithExistingRecord() {
+    final record = widget.gameRecord!;
+    print('CreateRecordScreen: Initializing with existing record ID: ${record.id}');
+
+    // 폼 데이터 설정
+    _form = GameRecordForm(
+      gameDateTime: record.dateTime,
+      stadiumId: record.stadium.id,
+      homeTeamId: record.homeTeam.id,
+      awayTeamId: record.awayTeam.id,
+      homeScore: record.homeScore,
+      awayScore: record.awayScore,
+      seatInfo: record.seatInfo,
+      comment: record.memo,
+      isFavorite: record.isFavorite,
+      canceled: record.canceled,
+    );
+
+    // 컨트롤러에 텍스트 설정
+    _seatController.text = record.seatInfo ?? '';
+    _commentController.text = record.memo;
+
+    // 체크박스 상태 설정
+    _isMemorableGame = record.isFavorite;
+    _isGameMinimum = record.canceled;
+
+    // 기존 이미지들 로드
+    if (record.photos.isNotEmpty) {
+      _selectedImages = record.photos.map((path) => File(path)).toList();
+      _form = _form.copyWith(imagePaths: record.photos);
+    }
+
+    print('CreateRecordScreen: Form initialized with existing data');
+    print('  - DateTime: ${_form.gameDateTime}');
+    print('  - Stadium: ${_form.stadiumId}');
+    print('  - Home Team: ${_form.homeTeamId}');
+    print('  - Away Team: ${_form.awayTeamId}');
+    print('  - Seat: ${_form.seatInfo}');
+    print('  - Comment: ${_form.comment}');
+    print('  - Photos: ${record.photos.length}');
   }
 
   Future<void> _debugDatabaseStatus() async {
@@ -140,7 +187,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         icon: Icon(Icons.close, color: Theme.of(context).colorScheme.onSurface),
         onPressed: _handleBackPress,
       ),
-      title: Text('직관 기록 작성', style: Theme.of(context).textTheme.titleLarge),
+      title: Text(widget.gameRecord != null ? '직관 기록 수정' : '직관 기록 작성', style: Theme.of(context).textTheme.titleLarge),
       actions: [
         _isSaving
             ? Padding(
@@ -219,7 +266,12 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                   borderRadius: BorderRadius.circular(12),
                   child: Stack(
                     children: [
-                      Image.file(_selectedImages.first, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                      Image.file(
+                        _selectedImages.first,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
                       if (_selectedImages.length > 1)
                         Positioned(
                           top: 8,
@@ -791,11 +843,24 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     }
 
     try {
-      print('CreateRecordScreen: Calling RecordService.addRecord...');
       setState(() => _isSaving = true);
 
-      final recordId = await _recordService.addRecord(_form);
-      print('CreateRecordScreen: Record added successfully with ID: $recordId');
+      if (widget.gameRecord != null) {
+        // 수정 모드
+        print('CreateRecordScreen: Updating existing record ID: ${widget.gameRecord!.id}');
+        final success = await _recordService.updateRecord(widget.gameRecord!.id, _form);
+
+        if (success) {
+          print('CreateRecordScreen: Record updated successfully');
+        } else {
+          throw Exception('Failed to update record');
+        }
+      } else {
+        // 새 기록 추가 모드
+        print('CreateRecordScreen: Adding new record...');
+        final recordId = await _recordService.addRecord(_form);
+        print('CreateRecordScreen: Record added successfully with ID: $recordId');
+      }
 
       if (mounted) {
         print('CreateRecordScreen: Navigating back with success result');
@@ -804,9 +869,12 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     } catch (e) {
       print('CreateRecordScreen: Error in _submitForm: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('기록 저장 중 오류가 발생했습니다: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(widget.gameRecord != null ? '기록 수정 중 오류가 발생했습니다: $e' : '기록 저장 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) {
