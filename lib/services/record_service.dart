@@ -249,8 +249,17 @@ class RecordService {
   // 즐겨찾기 토글
   Future<bool> toggleFavorite(int id) async {
     try {
+      print('RecordService: Toggling favorite for record ID: $id');
+
       final record = await _getRecordById(id);
-      if (record == null) return false;
+      if (record == null) {
+        print('RecordService: Record not found for ID: $id');
+        return false;
+      }
+
+      print('RecordService: Current favorite status: ${record.isFavorite}');
+      final newFavoriteStatus = !record.isFavorite;
+      print('RecordService: New favorite status will be: $newFavoriteStatus');
 
       final updatedRecord = RecordsCompanion(
         id: Value(id),
@@ -264,13 +273,25 @@ class RecordService {
         seat: Value(record.seat),
         comment: Value(record.comment),
         photosJson: Value(record.photosJson),
-        isFavorite: Value(!record.isFavorite),
+        isFavorite: Value(newFavoriteStatus),
         createdAt: Value(record.createdAt),
       );
 
-      return await _database.updateRecord(updatedRecord);
+      final success = await _database.updateRecord(updatedRecord);
+      print('RecordService: Update result: $success');
+
+      // 업데이트 후 확인
+      if (success) {
+        final updatedRecordFromDb = await _getRecordById(id);
+        if (updatedRecordFromDb != null) {
+          print('RecordService: Verification - DB now shows favorite status: ${updatedRecordFromDb.isFavorite}');
+        }
+      }
+
+      return success;
     } catch (e) {
       print('Error toggling favorite: $e');
+      print('Error stack trace: ${StackTrace.current}');
       return false;
     }
   }

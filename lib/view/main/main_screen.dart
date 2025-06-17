@@ -202,6 +202,12 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   void _onTabChanged(int index) {
+    // 이미 같은 탭이 선택되어 있으면 무시
+    if (_currentTabIndex == index) {
+      print('MainScreen: Same tab selected, ignoring...');
+      return;
+    }
+    
     setState(() {
       _currentTabIndex = index;
     });
@@ -291,40 +297,6 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   Widget _buildScheduleContent() {
     return const SchedulePage();
-  }
-
-  // 팀 엠블럼 반환
-  String _getTeamEmblem(String teamName) {
-    final emblems = {
-      'SSG': '🔴',
-      '키움': '🟣',
-      'LG': '🔴',
-      'KIA': '🟠',
-      '한화': '🟠',
-      '삼성': '🔵',
-      '두산': '🐻',
-      'KT': '⚫',
-      'NC': '🔵',
-      '롯데': '🔴',
-    };
-    return emblems[teamName] ?? '⚾';
-  }
-
-  // 팀 색상 반환
-  Color _getTeamColor(String teamName) {
-    final colors = {
-      'SSG': const Color(0xFFCE0E2D),
-      '키움': const Color(0xFF570514),
-      'LG': const Color(0xFFC30452),
-      'KIA': const Color(0xFFEA0029),
-      '한화': const Color(0xFFFF6600),
-      '삼성': const Color(0xFF074CA1),
-      '두산': const Color(0xFF131230),
-      'KT': const Color(0xFF000000),
-      'NC': const Color(0xFF315288),
-      '롯데': const Color(0xFF041E42),
-    };
-    return colors[teamName] ?? const Color(0xFF656A77);
   }
 
   // 직관 기록 버튼 탭 처리

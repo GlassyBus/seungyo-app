@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:seungyo/theme/theme.dart';
 
 import '../../models/game_record.dart';
+import '../../services/record_service.dart';
 import 'create_record_screen.dart';
 import 'widgets/action_modal.dart';
 
@@ -19,11 +20,14 @@ class RecordDetailPage extends StatefulWidget {
 
 class _RecordDetailPageState extends State<RecordDetailPage> {
   late final bool isGameMinimum;
+  late bool isFavorite;
+  bool _hasChanges = false; // 변경사항 추적
 
   @override
   void initState() {
     super.initState();
     isGameMinimum = widget.game.canceled;
+    isFavorite = widget.game.isFavorite;
   }
 
   @override
@@ -31,11 +35,18 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: _buildAppBar(),
-      body: _buildBody(colorScheme, textTheme),
-      bottomNavigationBar: _buildBottomNavigationBar(colorScheme),
+    return WillPopScope(
+      onWillPop: () async {
+        // 변경사항이 있으면 true를 반환하여 이전 화면에 알림
+        Navigator.pop(context, _hasChanges);
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: _buildAppBar(),
+        body: _buildBody(colorScheme, textTheme),
+        bottomNavigationBar: _buildBottomNavigationBar(colorScheme),
+      ),
     );
   }
 
@@ -43,7 +54,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     return AppBar(
       title: const Text('직관 기록 상세'),
       actions: [
-        IconButton(icon: const Icon(Icons.edit), onPressed: _handleEdit),
         IconButton(icon: const Icon(Icons.download), onPressed: _handleDownload),
         IconButton(icon: const Icon(Icons.more_horiz), onPressed: _showActionModal),
       ],
@@ -190,7 +200,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       children: [
         _buildTeamInfo(
           widget.game.homeTeam.name,
-          widget.game.homeTeam.shortName, // shortName 직접 사용
+          widget.game.homeTeam.primaryColor,
           widget.game.homeTeam.logo ?? '',
           textTheme,
         ),
@@ -199,7 +209,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         Text('${widget.game.awayScore}', style: textTheme.displayLarge),
         _buildTeamInfo(
           widget.game.awayTeam.name,
-          widget.game.awayTeam.shortName, // shortName 직접 사용
+          widget.game.awayTeam.primaryColor,
           widget.game.awayTeam.logo ?? '',
           textTheme,
         ),
@@ -207,7 +217,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     );
   }
 
-  Widget _buildTeamInfo(String teamName, String shortName, String logoPath, TextTheme textTheme) {
+  Widget _buildTeamInfo(String teamName, Color color, String logoPath, TextTheme textTheme) {
     return Row(
       children: [
         Container(
@@ -230,7 +240,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
                         fit: BoxFit.contain,
                         errorBuilder:
                             (context, error, stackTrace) => Text(
-                              shortName.isNotEmpty ? shortName : '⚾',
+                              _getTeamShortText(teamName),
                               style: textTheme.bodySmall?.copyWith(
                                 color: AppColors.navy,
                                 fontWeight: FontWeight.bold,
@@ -240,7 +250,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
                       ),
                     )
                     : Text(
-                      shortName.isNotEmpty ? shortName : '⚾',
+                      _getTeamShortText(teamName),
                       style: textTheme.bodySmall?.copyWith(
                         color: AppColors.navy,
                         fontWeight: FontWeight.bold,
@@ -253,6 +263,21 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         Text(teamName, style: textTheme.titleMedium),
       ],
     );
+  }
+
+  /// 팀명을 간단한 텍스트 로고로 변환
+  String _getTeamShortText(String teamName) {
+    if (teamName.contains('KIA') || teamName.contains('타이거즈')) return 'KIA';
+    if (teamName.contains('KT') || teamName.contains('위즈')) return 'KT';
+    if (teamName.contains('LG') || teamName.contains('트윈스')) return 'LG';
+    if (teamName.contains('NC') || teamName.contains('다이노스')) return 'NC';
+    if (teamName.contains('SSG') || teamName.contains('랜더스')) return 'SSG';
+    if (teamName.contains('두산') || teamName.contains('베어스')) return '두산';
+    if (teamName.contains('롯데') || teamName.contains('자이언츠')) return '롯데';
+    if (teamName.contains('삼성') || teamName.contains('라이온즈')) return '삼성';
+    if (teamName.contains('키움') || teamName.contains('히어로즈')) return '키움';
+    if (teamName.contains('한화') || teamName.contains('이글스')) return '한화';
+    return '⚾';
   }
 
   Widget _buildGameMinimumCheckbox() {
@@ -296,13 +321,12 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           Center(child: Text('기억에 남는 경기였나요?', style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70))),
           const SizedBox(height: 16),
           Center(
-            child: AnimatedScale(
-              scale: widget.game.isFavorite ? 1.1 : 1.0,
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                Icons.favorite,
-                color: widget.game.isFavorite ? AppColors.negative : AppColors.gray30,
-                size: 80,
+            child: GestureDetector(
+              onTap: _toggleFavorite,
+              child: AnimatedScale(
+                scale: isFavorite ? 1.1 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(Icons.favorite, color: isFavorite ? AppColors.negative : AppColors.gray30, size: 80),
               ),
             ),
           ),
@@ -342,13 +366,63 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       result,
     ) {
       if (result == true) {
-        Navigator.pop(context, true);
+        Navigator.pop(context, true); // 수정이 완료되면 true 반환
       }
     });
   }
 
   void _handleDelete() {
     _showDeleteConfirmDialog();
+  }
+
+  Future<void> _toggleFavorite() async {
+    try {
+      // UI 즉시 업데이트
+      setState(() {
+        isFavorite = !isFavorite;
+      });
+
+      // RecordService를 사용하여 DB 업데이트
+      final recordService = RecordService();
+      final success = await recordService.toggleFavorite(widget.game.id);
+
+      if (!success) {
+        // DB 업데이트 실패 시 UI 롤백
+        setState(() {
+          isFavorite = !isFavorite;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('즐겨찾기 업데이트에 실패했습니다.'), backgroundColor: Colors.red));
+        }
+      } else {
+        // 성공 시 - 뒤로 갈 때 리스트 새로고침을 위해 플래그 설정
+        _hasChanges = true;
+
+        // 성공 피드백
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(isFavorite ? '즐겨찾기에 추가되었습니다.' : '즐겨찾기에서 제거되었습니다.'),
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // 에러 발생 시 UI 롤백
+      setState(() {
+        isFavorite = !isFavorite;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('오류가 발생했습니다: $e'), backgroundColor: Colors.red));
+      }
+    }
   }
 
   void _showDeleteConfirmDialog() {

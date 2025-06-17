@@ -212,8 +212,17 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
     );
   }
 
-  void _navigateToDetail(GameRecord record) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)));
+  void _navigateToDetail(GameRecord record) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)),
+    );
+
+    // 상세 화면에서 변경사항이 있으면 리스트 새로고침
+    if (result == true) {
+      print('RecordScreen: Changes detected from detail page, refreshing list...');
+      await _loadRecords();
+    }
   }
 
   Future<void> _toggleFavorite(GameRecord record) async {
