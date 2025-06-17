@@ -7,7 +7,8 @@ import 'team.dart';
 enum GameResult {
   win('승리'),
   lose('패배'),
-  draw('무승부');
+  draw('무승부'),
+  cancel('취소');
 
   const GameResult(this.displayName);
 
@@ -79,7 +80,8 @@ class GameRecord extends Equatable {
   final bool canceled;
 
   /// 경기 날짜 (시간 제외)
-  DateTime get gameDate => DateTime(dateTime.year, dateTime.month, dateTime.day);
+  DateTime get gameDate =>
+      DateTime(dateTime.year, dateTime.month, dateTime.day);
 
   /// JSON으로부터 GameRecord 객체 생성
   factory GameRecord.fromJson(Map<String, dynamic> json) {
@@ -102,8 +104,10 @@ class GameRecord extends Equatable {
       ticketPrice: json['ticketPrice'],
       totalCost: json['totalCost'],
       highlights: json['highlights']?.cast<String>(),
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      createdAt:
+          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
       result: GameResult.values.firstWhere((e) => e.name == json['result']),
       seatInfo: json['seatInfo'],
       weather: json['weather'] ?? '',
