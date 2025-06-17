@@ -11,6 +11,7 @@ import '../../models/game_record.dart';
 import '../../models/stadium.dart' as app_models;
 import '../../models/team.dart' as app_models;
 import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
 import 'widgets/date_time_picker_modal.dart';
 import 'widgets/score_input_modal.dart';
 import 'widgets/stadium_picker_modal.dart';
@@ -34,7 +35,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   final FocusNode _commentFocusNode = FocusNode();
   List<File> _selectedImages = [];
   bool _isMemorableGame = false;
-  bool _isGameMinimum = false;
+  bool _isGameCanceled = false; // 경기취소 상태
   bool _isLoading = false;
   bool _isImageLoading = false;
   bool _isSaving = false;
@@ -48,28 +49,14 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     _form = GameRecordForm();
     _loadStadiums();
     _loadTeams();
-
-    // 디버그: DB 상태 확인
-    _debugDatabaseStatus();
-  }
-
-  Future<void> _debugDatabaseStatus() async {
-    print('=== CreateRecordScreen - DB 상태 확인 ===');
-    await DatabaseService().printDatabaseStatus();
   }
 
   Future<void> _loadStadiums() async {
     try {
-      print('경기장 데이터 로딩 시작...');
       final stadiums = await DatabaseService().getStadiumsAsAppModels();
-      print('로딩된 경기장 수: ${stadiums.length}');
-      if (stadiums.isNotEmpty) {
-        print('첫 번째 경기장: ${stadiums.first.name} (${stadiums.first.id})');
-      }
       setState(() {
         _stadiums = stadiums;
       });
-      print('경기장 데이터 로딩 완료');
     } catch (e) {
       print('Error loading stadiums: $e');
     }
@@ -77,16 +64,10 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   Future<void> _loadTeams() async {
     try {
-      print('팀 데이터 로딩 시작...');
       final teams = await DatabaseService().getTeamsAsAppModels();
-      print('로딩된 팀 수: ${teams.length}');
-      if (teams.isNotEmpty) {
-        print('첫 번째 팀: ${teams.first.name} (${teams.first.id})');
-      }
       setState(() {
         _teams = teams;
       });
-      print('팀 데이터 로딩 완료');
     } catch (e) {
       print('Error loading teams: $e');
     }
@@ -148,13 +129,19 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
               child: SizedBox(
                 width: 24,
                 height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.primary),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
             )
             : IconButton(
               icon: Icon(
                 Icons.check,
-                color: _canSave() ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
+                color:
+                    _canSave()
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.outline,
               ),
               onPressed: _canSave() ? _handleSave : null,
             ),
@@ -166,24 +153,27 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 16),
               _buildImageSection(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 25),
               _buildInfoSection(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 25),
               _buildGameInfoSection(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 25),
               _buildCommentSection(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 25),
               _buildMemorableGameSection(),
-              // 키보드가 표시될 때 충분한 공간 확보
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom > 0 ? 300 : 100),
+              SizedBox(
+                height:
+                    MediaQuery.of(context).viewInsets.bottom > 0 ? 300 : 100,
+              ),
             ],
           ),
         ),
@@ -196,11 +186,10 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       onTap: _showImagePicker,
       child: Container(
         width: double.infinity,
-        height: 200,
+        height: 180,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Theme.of(context).colorScheme.outline),
+          color: AppColors.gray10,
+          borderRadius: BorderRadius.circular(8),
         ),
         child:
             _isImageLoading
@@ -208,44 +197,105 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
+                      CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       const SizedBox(height: 16),
-                      Text('이미지 로딩 중...', style: TextStyle(color: Theme.of(context).colorScheme.outline, fontSize: 14)),
+                      Text(
+                        '이미지 로딩 중...',
+                        style: AppTextStyles.body3.copyWith(
+                          color: AppColors.gray70,
+                        ),
+                      ),
                     ],
                   ),
                 )
                 : _selectedImages.isNotEmpty
                 ? ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   child: Stack(
                     children: [
-                      Image.file(_selectedImages.first, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
+                      Image.file(
+                        _selectedImages.first,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
                       if (_selectedImages.length > 1)
                         Positioned(
                           top: 8,
                           right: 8,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.black.withOpacity(0.7),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               '+${_selectedImages.length - 1}',
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                              style: AppTextStyles.caption.copyWith(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
                     ],
                   ),
                 )
-                : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.add_photo_alternate_outlined, size: 48, color: Theme.of(context).colorScheme.outline),
-                    const SizedBox(height: 8),
-                    Text('사진 추가', style: TextStyle(color: Theme.of(context).colorScheme.outline, fontSize: 16)),
-                  ],
+                : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: AppColors.gray50,
+                                width: 2.5,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Icon(
+                              Icons.image_outlined,
+                              size: 20,
+                              color: AppColors.gray50,
+                            ),
+                          ),
+                          Positioned(
+                            top: -2,
+                            right: -2,
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: AppColors.gray50,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.add,
+                                size: 12,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '사진 추가',
+                        style: AppTextStyles.body3.copyWith(
+                          color: AppColors.gray50,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
       ),
     );
@@ -256,84 +306,117 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       children: [
         _buildInfoRow(
           '일정',
-          _form.gameDateTime != null ? _formatDateTime(_form.gameDateTime!) : '날짜를 선택해주세요.',
+          _form.gameDateTime != null
+              ? _formatDateTime(_form.gameDateTime!)
+              : '날짜를 선택해주세요.',
           () => _showDateTimePicker(),
         ),
-        const SizedBox(height: 16),
+        Divider(color: AppColors.gray20, height: 1),
+        const SizedBox(height: 18),
         _buildInfoRow(
           '위치',
-          _form.stadiumId != null ? _getStadiumNameById(_form.stadiumId!) : '경기장을 선택해주세요.',
+          _form.stadiumId != null
+              ? _getStadiumNameById(_form.stadiumId!)
+              : '경기장을 선택해주세요.',
           () => _showStadiumPicker(),
         ),
-        const SizedBox(height: 16),
-        _buildSeatInput(),
+        Divider(color: AppColors.gray20, height: 1),
+        const SizedBox(height: 18),
+        _buildInfoRow(
+          '좌석',
+          _seatController.text.isNotEmpty
+              ? _seatController.text
+              : '좌석을 입력해주세요.',
+          null,
+          isTextField: true,
+        ),
+        Divider(color: AppColors.gray20, height: 1),
       ],
     );
   }
 
-  Widget _buildInfoRow(String label, String value, VoidCallback onTap) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    VoidCallback? onTap, {
+    bool isTextField = false,
+  }) {
     final isPlaceholder = value.contains('선택해주세요') || value.contains('입력해주세요');
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(border: Border(bottom: BorderSide(color: colorScheme.outlineVariant))),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 60,
-              child: Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Text(
-                value,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(color: isPlaceholder ? colorScheme.outline : null),
+    Widget content = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 60,
+          padding: const EdgeInsets.only(top: 1),
+          child: Text(
+            label,
+            style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child:
+              isTextField
+                  ? TextField(
+                    controller: _seatController,
+                    decoration: InputDecoration(
+                      hintText: '좌석을 입력해주세요.',
+                      hintStyle: AppTextStyles.body3.copyWith(
+                        color: AppColors.gray50,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.only(top: 1),
+                      isDense: true,
+                    ),
+                    style: AppTextStyles.body3.copyWith(color: AppColors.black),
+                    onChanged: (value) {
+                      setState(() {
+                        _form = _form.copyWith(
+                          seatInfo: value.isEmpty ? null : value,
+                        );
+                      });
+                    },
+                  )
+                  : Padding(
+                    padding: const EdgeInsets.only(top: 1),
+                    child: Text(
+                      value,
+                      style: AppTextStyles.body3.copyWith(
+                        color:
+                            isPlaceholder ? AppColors.gray50 : AppColors.black,
+                      ),
+                    ),
+                  ),
+        ),
+        if (onTap != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Transform.rotate(
+              angle: 3.14159,
+              child: Icon(
+                Icons.arrow_back_ios,
+                size: 18,
+                color: AppColors.gray50,
               ),
             ),
-            Icon(Icons.chevron_right, color: colorScheme.outline),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
-  }
 
-  Widget _buildSeatInput() {
-    final colorScheme = Theme.of(context).colorScheme;
+    if (onTap != null) {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          child: content,
+        ),
+      );
+    }
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: colorScheme.outlineVariant))),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 60,
-            child: Text('좌석', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.outline)),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: TextField(
-              controller: _seatController,
-              decoration: InputDecoration(
-                hintText: '좌석을 입력해주세요.',
-                hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: colorScheme.outline),
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.zero,
-              ),
-              style: Theme.of(context).textTheme.bodyLarge,
-              onChanged: (value) {
-                setState(() {
-                  _form = _form.copyWith(seatInfo: value.isEmpty ? null : value);
-                });
-              },
-            ),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 18),
+      child: content,
     );
   }
 
@@ -343,23 +426,123 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       children: [
         Text(
           '경기 정보',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.outline),
+          style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 10),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondaryContainer,
+            color: AppColors.navy5,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
             children: [
-              _buildTeamLabels(),
-              const SizedBox(height: 16),
-              _buildTeamSelection(),
-              const SizedBox(height: 20),
-              _buildGameMinimumCheckbox(),
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '응원팀',
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.body3.copyWith(
+                          color: AppColors.gray80,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '상대팀',
+                        textAlign: TextAlign.right,
+                        style: AppTextStyles.body3.copyWith(
+                          color: AppColors.gray80,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 5, 20, 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        _buildTeamButtonWithLogo(
+                          _form.homeTeamId,
+                          () => _showTeamPicker(true),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap:
+                              (_form.homeTeamId != null &&
+                                      _form.awayTeamId != null &&
+                                      !_isGameCanceled)
+                                  ? _showScoreInput
+                                  : null,
+                          child: Text(
+                            _isGameCanceled
+                                ? '-'
+                                : (_form.homeScore != null
+                                    ? '${_form.homeScore}'
+                                    : '-'),
+                            style: AppTextStyles.h2.copyWith(
+                              color: AppColors.navy,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap:
+                          (_form.homeTeamId != null &&
+                                  _form.awayTeamId != null &&
+                                  !_isGameCanceled)
+                              ? _showScoreInput
+                              : null,
+                      child: Container(
+                        width: 25,
+                        alignment: Alignment.center,
+                        child: Text(
+                          ':',
+                          style: AppTextStyles.h3.copyWith(
+                            color: AppColors.gray70,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap:
+                              (_form.homeTeamId != null &&
+                                      _form.awayTeamId != null &&
+                                      !_isGameCanceled)
+                                  ? _showScoreInput
+                                  : null,
+                          child: Text(
+                            _isGameCanceled
+                                ? '-'
+                                : (_form.awayScore != null
+                                    ? '${_form.awayScore}'
+                                    : '-'),
+                            style: AppTextStyles.h2.copyWith(
+                              color: AppColors.navy,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildTeamButtonWithLogo(
+                          _form.awayTeamId,
+                          () => _showTeamPicker(false),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              _buildGameCancelCheckbox(),
             ],
           ),
         ),
@@ -367,102 +550,152 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     );
   }
 
-  Widget _buildTeamLabels() {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildTeamButtonWithLogo(String? teamId, VoidCallback onTap) {
+    if (teamId != null) {
+      final team = _teams.firstWhereOrNull((t) => t.id == teamId);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('응원팀', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.outline)),
-        Text('상대팀', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.outline)),
-      ],
-    );
-  }
-
-  Widget _buildTeamSelection() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildTeamButton('응원팀', _form.homeTeamId, () => _showTeamPicker(true)),
-        GestureDetector(
-          onTap: _form.homeTeamId != null && _form.awayTeamId != null ? _showScoreInput : null,
-          child: Row(
-            children: [
-              Text(
-                _form.homeScore != null ? '${_form.homeScore}' : '-',
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  color:
-                      _form.homeScore != null
-                          ? Theme.of(context).colorScheme.onSurface
-                          : Theme.of(context).colorScheme.outline,
-                ),
+      return GestureDetector(
+        onTap: onTap,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              Text(
-                ':',
-                style: Theme.of(
-                  context,
-                ).textTheme.displayMedium?.copyWith(color: Theme.of(context).colorScheme.outline),
-              ),
-              Text(
-                _form.awayScore != null ? '${_form.awayScore}' : '-',
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  color:
-                      _form.awayScore != null
-                          ? Theme.of(context).colorScheme.onSurface
-                          : Theme.of(context).colorScheme.outline,
-                ),
-              ),
-            ],
-          ),
-        ),
-        _buildTeamButton('상대팀', _form.awayTeamId, () => _showTeamPicker(false)),
-      ],
-    );
-  }
-
-  Widget _buildTeamButton(String label, String? teamId, VoidCallback onTap) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(color: colorScheme.primary, borderRadius: BorderRadius.circular(8)),
-        child: Text(
-          teamId != null ? _getTeamNameById(teamId) : '팀 선택',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: colorScheme.onPrimary, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGameMinimumCheckbox() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Row(
-      children: [
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _isGameMinimum = !_isGameMinimum;
-            });
-          },
-          child: Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: _isGameMinimum ? colorScheme.primary : Colors.white,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: _isGameMinimum ? colorScheme.primary : colorScheme.outline, width: 2),
+              child: ClipOval(child: _buildTeamLogo(team)),
             ),
-            child: _isGameMinimum ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
+            const SizedBox(width: 6),
+            Text(
+              _getTeamNameById(teamId),
+              style: AppTextStyles.body3.copyWith(color: AppColors.navy),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.navy,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '팀 선택',
+            style: AppTextStyles.body3.copyWith(color: Colors.white),
           ),
         ),
-        const SizedBox(width: 8),
-        Text('경기최소', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.outline)),
-      ],
+      );
+    }
+  }
+
+  Widget _buildTeamLogo(app_models.Team? team) {
+    if (team == null) {
+      return _buildDefaultTeamIcon();
+    }
+
+    if (team.logo != null && team.logo!.isNotEmpty) {
+      if (team.logo!.startsWith('assets/')) {
+        return Image.asset(
+          team.logo!,
+          width: 30,
+          height: 30,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildFallbackLogo(team);
+          },
+        );
+      } else {
+        return Center(
+          child: Text(team.logo!, style: const TextStyle(fontSize: 20)),
+        );
+      }
+    } else {
+      return _buildFallbackLogo(team);
+    }
+  }
+
+  Widget _buildFallbackLogo(app_models.Team team) {
+    if (team.shortName.isNotEmpty) {
+      return Center(
+        child: Text(
+          team.shortName.substring(0, 1),
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.navy,
+          ),
+        ),
+      );
+    } else {
+      return const Center(
+        child: Icon(Icons.sports_baseball, size: 20, color: AppColors.navy),
+      );
+    }
+  }
+
+  Widget _buildDefaultTeamIcon() {
+    return Container(
+      width: 30,
+      height: 30,
+      color: AppColors.gray20,
+      child: Icon(Icons.sports_baseball, size: 20, color: AppColors.gray50),
+    );
+  }
+
+  Widget _buildGameCancelCheckbox() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.gray10,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _isGameCanceled = !_isGameCanceled;
+                if (_isGameCanceled) {
+                  _form = _form.copyWith(homeScore: null, awayScore: null);
+                }
+              });
+            },
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: _isGameCanceled ? AppColors.navy : AppColors.gray30,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child:
+                  _isGameCanceled
+                      ? const Icon(Icons.check, size: 12, color: Colors.white)
+                      : null,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            '경기취소',
+            style: AppTextStyles.body3.copyWith(
+              color: _isGameCanceled ? AppColors.navy : AppColors.gray50,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -470,60 +703,79 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '코멘트',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Theme.of(context).colorScheme.outline),
+        Divider(color: AppColors.gray20, height: 1),
+        const SizedBox(height: 18),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 60,
+              padding: const EdgeInsets.only(top: 1),
+              child: Text(
+                '코멘트',
+                style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFormField(
+                controller: _commentController,
+                maxLines: null,
+                textAlign: TextAlign.left,
+                style: AppTextStyles.body3.copyWith(color: AppColors.black),
+                decoration: InputDecoration(
+                  hintText: '코멘트를 남겨주세요.',
+                  hintStyle: AppTextStyles.body3.copyWith(
+                    color: AppColors.gray50,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.only(top: 1),
+                  isDense: true,
+                ),
+                onChanged: (value) {
+                  _form = _form.copyWith(comment: value);
+                },
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _commentController,
-          focusNode: _commentFocusNode,
-          decoration: InputDecoration(
-            hintText: '코멘트를 남겨주세요.',
-            hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.outline),
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.zero,
-          ),
-          style: Theme.of(context).textTheme.bodyLarge,
-          maxLines: 3,
-          onChanged: (value) {
-            setState(() {
-              _form = _form.copyWith(comment: value.isEmpty ? null : value);
-            });
-          },
-          onTap: () {
-            // 텍스트 필드를 탭하면 화면을 스크롤하여 키보드 위에 표시
-            Future.delayed(const Duration(milliseconds: 300), () {
-              Scrollable.ensureVisible(
-                _commentFocusNode.context!,
-                alignment: 0.5,
-                duration: const Duration(milliseconds: 300),
-              );
-            });
-          },
-        ),
+        const SizedBox(height: 18),
+        Divider(color: AppColors.gray20, height: 1),
       ],
     );
   }
 
   Widget _buildMemorableGameSection() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           '기억에 남는 경기였나요?',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.outline),
+          style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
         ),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _isMemorableGame = !_isMemorableGame;
-            });
-          },
-          child: AnimatedScale(
-            scale: _isMemorableGame ? 1.1 : 1.0,
-            duration: const Duration(milliseconds: 200),
-            child: Icon(Icons.favorite, color: _isMemorableGame ? AppColors.negative : AppColors.gray30, size: 80),
+        const SizedBox(height: 15),
+        Center(
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _isMemorableGame = !_isMemorableGame;
+              });
+            },
+            child: AnimatedScale(
+              scale: _isMemorableGame ? 1.1 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              child: Container(
+                width: 60,
+                height: 56,
+                alignment: Alignment.center,
+                child: Icon(
+                  _isMemorableGame ? Icons.favorite : Icons.favorite_border,
+                  color:
+                      _isMemorableGame ? AppColors.negative : AppColors.gray50,
+                  size: 60,
+                ),
+              ),
+            ),
           ),
         ),
       ],
@@ -538,7 +790,10 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
           (context) => Container(
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
             ),
             child: SafeArea(
               child: Column(
@@ -548,7 +803,10 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                   Container(
                     width: 40,
                     height: 4,
-                    decoration: BoxDecoration(color: AppColors.gray30, borderRadius: BorderRadius.circular(2)),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E0E0),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   ListTile(
@@ -602,7 +860,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
     } finally {
       setState(() {
         _isImageLoading = false;
@@ -625,11 +885,15 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
         setState(() {
           _selectedImages = pickedFiles.map((file) => File(file.path)).toList();
-          _form = _form.copyWith(imagePaths: pickedFiles.map((file) => file.path).toList());
+          _form = _form.copyWith(
+            imagePaths: pickedFiles.map((file) => file.path).toList(),
+          );
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
     } finally {
       setState(() {
         _isImageLoading = false;
@@ -696,7 +960,8 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   void _showScoreInput() {
-    if (_form.homeTeamId == null || _form.awayTeamId == null) return;
+    if (_form.homeTeamId == null || _form.awayTeamId == null || _isGameCanceled)
+      return;
 
     showModalBottomSheet(
       context: context,
@@ -710,7 +975,10 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             initialAwayScore: _form.awayScore,
             onScoreSelected: (homeScore, awayScore) {
               setState(() {
-                _form = _form.copyWith(homeScore: homeScore, awayScore: awayScore);
+                _form = _form.copyWith(
+                  homeScore: homeScore,
+                  awayScore: awayScore,
+                );
               });
             },
           ),
@@ -739,9 +1007,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       // 폼 데이터 업데이트
       _form = _form.copyWith(
         seatInfo: _seatController.text.isEmpty ? null : _seatController.text,
-        comment: _commentController.text.isEmpty ? null : _commentController.text,
+        comment:
+            _commentController.text.isEmpty ? null : _commentController.text,
         isFavorite: _isMemorableGame, // 기억에 남는 경기는 자동으로 즐겨찾기에 추가
-        canceled: _isGameMinimum, // 경기최소는 취소된 경기로 처리
+        canceled: _isGameCanceled, // 경기취소 상태
+        // 경기취소시에는 점수를 null로 유지 (이미 체크박스에서 null로 설정됨)
       );
 
       print('CreateRecordScreen: Form updated with final data');
@@ -762,7 +1032,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       print('CreateRecordScreen: Save completed successfully');
     } catch (e) {
       print('CreateRecordScreen: Save failed with error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
     } finally {
       print('CreateRecordScreen: Resetting saving state');
       setState(() {
@@ -784,9 +1056,12 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
     if (!_form.isValid) {
       print('CreateRecordScreen: Form isValid check failed');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
@@ -804,9 +1079,12 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     } catch (e) {
       print('CreateRecordScreen: Error in _submitForm: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('기록 저장 중 오류가 발생했습니다: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('기록 저장 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) {
