@@ -2,9 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:seungyo/theme/theme.dart';
+import 'package:collection/collection.dart';
 
 import '../../models/game_record.dart';
+import '../../models/team.dart' as app_models;
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../../services/database_service.dart';
 import 'create_record_screen.dart';
 import 'widgets/action_modal.dart';
 
@@ -18,291 +22,637 @@ class RecordDetailPage extends StatefulWidget {
 }
 
 class _RecordDetailPageState extends State<RecordDetailPage> {
-  late final bool isGameMinimum;
+  List<app_models.Team> _teams = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  static const double _imageSectionHeight = 220.0;
+  static const double _sectionPadding = 20.0;
+  static const double _verticalSpacing = 25.0;
+  static const double _teamLogoSize = 30.0;
+  static const double _heartIconSize = 60.0;
+  static const double _infoRowVerticalPadding = 18.0;
+  static const double _labelWidth = 60.0;
 
   @override
   void initState() {
     super.initState();
-    isGameMinimum = widget.game.canceled;
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      final teams = await DatabaseService().getTeamsAsAppModels();
+
+      if (mounted) {
+        setState(() {
+          _teams = teams;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      // 팀 로딩 실패해도 화면은 표시하되, 팀 정보만 제한적으로 표시
+      if (mounted) {
+        setState(() {
+          _teams = []; // 빈 리스트로 설정
+          _isLoading = false;
+          // 에러 메시지는 설정하지 않아서 화면이 정상 표시되도록 함
+        });
+      }
+    }
+  }
+
+  app_models.Team? _getTeamById(String teamId) {
+    return _teams.firstWhereOrNull((team) => team.id == teamId);
+  }
+
+  bool _isImageFileValid(String imagePath) {
+    try {
+      final file = File(imagePath);
+      return file.existsSync();
+    } catch (e) {
+      return false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: _buildAppBar(),
-      body: _buildBody(colorScheme, textTheme),
-      bottomNavigationBar: _buildBottomNavigationBar(colorScheme),
+      body: _buildBody(),
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('직관 기록 상세'),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      elevation: 0,
+      leading: IconButton(
+        icon: Icon(
+          Icons.arrow_back_ios,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: Text(
+        '직관 기록 상세',
+        style: AppTextStyles.body1.copyWith(
+          color: AppColors.black,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
       actions: [
-        IconButton(icon: const Icon(Icons.edit), onPressed: _handleEdit),
-        IconButton(icon: const Icon(Icons.download), onPressed: _handleDownload),
-        IconButton(icon: const Icon(Icons.more_horiz), onPressed: _showActionModal),
+        IconButton(
+          icon: Icon(Icons.download, color: AppColors.black),
+          onPressed: _handleDownload,
+        ),
+        IconButton(
+          icon: Icon(Icons.more_horiz, color: AppColors.black),
+          onPressed: _showActionModal,
+        ),
       ],
     );
   }
 
-  Widget _buildBody(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildBody() {
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: AppColors.gray50),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage!,
+              style: AppTextStyles.body2.copyWith(color: AppColors.gray80),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _initializeData,
+              child: const Text('다시 시도'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildMainImage(),
-          _buildGameInfo(textTheme),
-          const SizedBox(height: 32),
-          _buildGameResultSection(colorScheme, textTheme),
-          const SizedBox(height: 32),
-          _buildCommentSection(colorScheme, textTheme),
+          _buildImageSection(),
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else ...[
+            _buildInfoSection(),
+            _buildGameInfoSection(),
+            _buildCommentSection(),
+            _buildMemorableGameSection(),
+          ],
           const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildMainImage() {
+  Widget _buildImageSection() {
     return Container(
       width: double.infinity,
-      height: 300,
-      margin: const EdgeInsets.all(16),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child:
-            widget.game.photos.isNotEmpty
-                ? Stack(
-                  children: [
-                    PageView.builder(
-                      itemCount: widget.game.photos.length,
-                      itemBuilder: (context, index) {
-                        return Image.file(
-                          File(widget.game.photos[index]),
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) => Container(
-                                color: AppColors.gray20,
-                                child: const Center(child: Icon(Icons.image, size: 80, color: AppColors.gray50)),
-                              ),
-                        );
-                      },
-                    ),
-                    if (widget.game.photos.length > 1)
-                      Positioned(
-                        bottom: 16,
-                        right: 16,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${widget.game.photos.length}장',
-                            style: const TextStyle(color: Colors.white, fontSize: 12),
+      height: _imageSectionHeight,
+      margin: const EdgeInsets.all(_sectionPadding),
+      decoration: BoxDecoration(
+        color: AppColors.gray10,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: _buildImageContent(),
+    );
+  }
+
+  Widget _buildImageContent() {
+    if (widget.game.photos.isEmpty) {
+      return Center(
+        child: Icon(Icons.image, size: 80, color: AppColors.gray50),
+      );
+    }
+
+    final firstImagePath = widget.game.photos.first;
+
+    if (!_isImageFileValid(firstImagePath)) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.broken_image, size: 80, color: AppColors.gray50),
+            const SizedBox(height: 8),
+            Text(
+              '이미지를 불러올 수 없습니다',
+              style: AppTextStyles.caption.copyWith(color: AppColors.gray80),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Stack(
+        children: [
+          Image.file(
+            File(firstImagePath),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+            errorBuilder:
+                (context, error, stackTrace) => Container(
+                  color: AppColors.gray10,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.broken_image,
+                          size: 80,
+                          color: AppColors.gray50,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '이미지 로드 실패',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.gray80,
                           ),
                         ),
-                      ),
-                  ],
-                )
-                : Container(
-                  color: AppColors.gray20,
-                  child: const Center(child: Icon(Icons.image, size: 80, color: AppColors.gray50)),
+                      ],
+                    ),
+                  ),
                 ),
-      ),
-    );
-  }
-
-  Widget _buildGameInfo(TextTheme textTheme) {
-    final dateFormat = DateFormat('yyyy.MM.dd(E) HH:mm', 'ko_KR');
-    final formattedDate = dateFormat.format(widget.game.dateTime);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          _buildInfoRow('일정', formattedDate, textTheme),
-          const SizedBox(height: 16),
-          _buildInfoRow('위치', widget.game.stadium.name, textTheme),
-          const SizedBox(height: 16),
-          _buildInfoRow('좌석', widget.game.seatInfo ?? '', textTheme),
+          ),
+          if (widget.game.photos.length > 1) _buildImageCountBadge(),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, TextTheme textTheme) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(width: 60, child: Text(label, style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70))),
-        const SizedBox(width: 20),
-        Expanded(child: Text(value, style: textTheme.bodyLarge)),
-      ],
+  Widget _buildImageCountBadge() {
+    return Positioned(
+      top: 8,
+      right: 8,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          '+${widget.game.photos.length - 1}',
+          style: AppTextStyles.caption.copyWith(color: Colors.white),
+        ),
+      ),
     );
   }
 
-  Widget _buildGameResultSection(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildInfoSection() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: _sectionPadding),
       child: Column(
+        children: [
+          _buildInfoRow('일정', _formatDateTime(widget.game.dateTime)),
+          _buildDivider(),
+          const SizedBox(height: _infoRowVerticalPadding),
+          _buildInfoRow('위치', widget.game.stadium.name),
+          _buildDivider(),
+          const SizedBox(height: _infoRowVerticalPadding),
+          _buildInfoRow('좌석', widget.game.seatInfo ?? '정보 없음'),
+          _buildDivider(),
+          const SizedBox(height: _verticalSpacing),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Divider(color: AppColors.gray20, height: 1);
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: _infoRowVerticalPadding),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('경기 정보', style: textTheme.titleLarge?.copyWith(color: AppColors.gray70)),
-          const SizedBox(height: 16),
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(color: AppColors.navy5, borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              children: [
-                _buildTeamLabels(textTheme),
-                const SizedBox(height: 16),
-                _buildScoreDisplay(textTheme),
-                const SizedBox(height: 20),
-                _buildGameMinimumCheckbox(),
-              ],
+            width: _labelWidth,
+            padding: const EdgeInsets.only(top: 1),
+            child: Text(
+              label,
+              style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTeamLabels(TextTheme textTheme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text('홈팀', style: textTheme.bodySmall?.copyWith(color: AppColors.gray70)),
-        Text('상대팀', style: textTheme.bodySmall?.copyWith(color: AppColors.gray70)),
-      ],
-    );
-  }
-
-  Widget _buildScoreDisplay(TextTheme textTheme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildTeamInfo(
-          widget.game.homeTeam.name,
-          widget.game.homeTeam.shortName, // shortName 직접 사용
-          widget.game.homeTeam.logo ?? '',
-          textTheme,
-        ),
-        Text('${widget.game.homeScore}', style: textTheme.displayLarge),
-        Text(':', style: textTheme.displayLarge?.copyWith(color: AppColors.gray50)),
-        Text('${widget.game.awayScore}', style: textTheme.displayLarge),
-        _buildTeamInfo(
-          widget.game.awayTeam.name,
-          widget.game.awayTeam.shortName, // shortName 직접 사용
-          widget.game.awayTeam.logo ?? '',
-          textTheme,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTeamInfo(String teamName, String shortName, String logoPath, TextTheme textTheme) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.gray30, width: 1),
-          ),
-          child: Center(
-            child:
-                logoPath.isNotEmpty && logoPath.startsWith('assets/')
-                    ? ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        logoPath,
-                        width: 32,
-                        height: 32,
-                        fit: BoxFit.contain,
-                        errorBuilder:
-                            (context, error, stackTrace) => Text(
-                              shortName.isNotEmpty ? shortName : '⚾',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: AppColors.navy,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                      ),
-                    )
-                    : Text(
-                      shortName.isNotEmpty ? shortName : '⚾',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: AppColors.navy,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(teamName, style: textTheme.titleMedium),
-      ],
-    );
-  }
-
-  Widget _buildGameMinimumCheckbox() {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Row(
-        children: [
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: isGameMinimum ? Theme.of(context).colorScheme.primary : Colors.transparent,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(
-                color: isGameMinimum ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
-                width: 2,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Text(
+                value,
+                style: AppTextStyles.body3.copyWith(color: AppColors.black),
               ),
             ),
-            child: isGameMinimum ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '경기최소',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCommentSection(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildGameInfoSection() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: _sectionPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('코멘트', style: textTheme.titleLarge?.copyWith(color: AppColors.gray70)),
-          const SizedBox(height: 16),
-          Text(widget.game.memo, style: textTheme.bodyLarge),
-          const SizedBox(height: 24),
-          Center(child: Text('기억에 남는 경기였나요?', style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70))),
-          const SizedBox(height: 16),
+          Text(
+            '경기 정보',
+            style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
+          ),
+          const SizedBox(height: 10),
+          _buildGameInfoCard(),
+          // 경기취소 섹션 항상 표시
+          const SizedBox(height: 10),
+          _buildGameCancelCheckbox(),
+          const SizedBox(height: _verticalSpacing),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGameInfoCard() {
+    // 디버깅을 위한 로그
+    print('Game canceled status: ${widget.game.canceled}');
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.navy5,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          _buildTeamLabels(),
+          _buildScoreRow(),
+          const SizedBox(height: 18), // 하단 패딩만
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTeamLabels() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              '응원팀',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              '상대팀',
+              textAlign: TextAlign.right,
+              style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoreRow() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 5, 20, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildTeamScore(widget.game.homeTeam.id, widget.game.homeScore, true),
+          _buildScoreColon(),
+          _buildTeamScore(
+            widget.game.awayTeam.id,
+            widget.game.awayScore,
+            false,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTeamScore(String teamId, int score, bool isHome) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children:
+          isHome
+              ? [
+                _buildTeamWithLogo(teamId),
+                const SizedBox(width: 8),
+                _buildScoreText(score),
+              ]
+              : [
+                _buildScoreText(score),
+                const SizedBox(width: 8),
+                _buildTeamWithLogo(teamId),
+              ],
+    );
+  }
+
+  Widget _buildScoreText(int score) {
+    return Text(
+      widget.game.canceled ? '-' : score.toString(),
+      style: AppTextStyles.h2.copyWith(color: AppColors.navy),
+    );
+  }
+
+  Widget _buildScoreColon() {
+    return Container(
+      width: 25,
+      alignment: Alignment.center,
+      child: Text(
+        ':',
+        style: AppTextStyles.h3.copyWith(color: AppColors.gray70),
+      ),
+    );
+  }
+
+  Widget _buildTeamWithLogo(String teamId) {
+    final team = _getTeamById(teamId);
+
+    // 팀 정보가 없을 경우 게임 레코드에서 정보 가져오기
+    String teamName = '알 수 없는 팀';
+    if (team != null) {
+      teamName = team.name;
+    } else {
+      // 게임 레코드에서 팀 이름 찾기
+      if (teamId == widget.game.homeTeam.id) {
+        teamName = widget.game.homeTeam.name;
+      } else if (teamId == widget.game.awayTeam.id) {
+        teamName = widget.game.awayTeam.name;
+      }
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: _teamLogoSize,
+          height: _teamLogoSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipOval(child: _buildTeamLogo(team)),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          teamName,
+          style: AppTextStyles.body3.copyWith(color: AppColors.navy),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTeamLogo(app_models.Team? team) {
+    if (team == null) {
+      return _buildDefaultTeamIcon();
+    }
+
+    if (team.logo != null && team.logo!.isNotEmpty) {
+      if (team.logo!.startsWith('assets/')) {
+        return Image.asset(
+          team.logo!,
+          width: _teamLogoSize,
+          height: _teamLogoSize,
+          fit: BoxFit.contain,
+          errorBuilder:
+              (context, error, stackTrace) => _buildFallbackLogo(team),
+        );
+      } else {
+        return Center(
+          child: Text(
+            team.logo!,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        );
+      }
+    }
+
+    return _buildFallbackLogo(team);
+  }
+
+  Widget _buildFallbackLogo(app_models.Team team) {
+    if (team.shortName.isNotEmpty) {
+      return Container(
+        width: _teamLogoSize,
+        height: _teamLogoSize,
+        color: AppColors.gray10,
+        child: Center(
+          child: Text(
+            team.shortName.substring(0, 1).toUpperCase(),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.navy,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return _buildDefaultTeamIcon();
+  }
+
+  Widget _buildDefaultTeamIcon() {
+    return Container(
+      width: _teamLogoSize,
+      height: _teamLogoSize,
+      color: AppColors.gray20,
+      child: const Icon(
+        Icons.sports_baseball,
+        size: 20,
+        color: AppColors.gray50,
+      ),
+    );
+  }
+
+  Widget _buildGameCancelCheckbox() {
+    final bool isCanceled = widget.game.canceled;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FB), // 항상 동일한 배경색
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color:
+                  isCanceled
+                      ? const Color(0xFFD7DCE7) // 활성화: 체크박스 색상
+                      : AppColors.gray20, // 비활성화: 연한 회색
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child:
+                isCanceled
+                    ? const Icon(Icons.check, size: 12, color: Colors.white)
+                    : null, // 비활성화 시 체크 아이콘 없음
+          ),
+          const SizedBox(width: 5),
+          Text(
+            '경기취소',
+            style: AppTextStyles.body3.copyWith(
+              color: const Color(0xFFB5BDCB), // 항상 동일한 텍스트 색상
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCommentSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _sectionPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildDivider(),
+          const SizedBox(height: _infoRowVerticalPadding),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: _labelWidth,
+                padding: const EdgeInsets.only(top: 1),
+                child: Text(
+                  '코멘트',
+                  style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Text(
+                    widget.game.memo.isEmpty ? '코멘트가 없습니다.' : widget.game.memo,
+                    style: AppTextStyles.body3.copyWith(
+                      color:
+                          widget.game.memo.isEmpty
+                              ? AppColors.gray50
+                              : AppColors.black,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: _infoRowVerticalPadding),
+          _buildDivider(),
+          const SizedBox(height: _verticalSpacing),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMemorableGameSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _sectionPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            '기억에 남는 경기였나요?',
+            style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
+          ),
+          const SizedBox(height: 15),
           Center(
             child: AnimatedScale(
               scale: widget.game.isFavorite ? 1.1 : 1.0,
               duration: const Duration(milliseconds: 200),
-              child: Icon(
-                Icons.favorite,
-                color: widget.game.isFavorite ? AppColors.negative : AppColors.gray30,
-                size: 80,
+              child: Container(
+                width: _heartIconSize,
+                height: 56,
+                alignment: Alignment.center,
+                child: Icon(
+                  widget.game.isFavorite
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color:
+                      widget.game.isFavorite
+                          ? AppColors.negative
+                          : AppColors.gray50,
+                  size: _heartIconSize,
+                ),
               ),
             ),
           ),
@@ -311,36 +661,52 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     );
   }
 
-  Widget _buildBottomNavigationBar(ColorScheme colorScheme) {
+  Widget _buildBottomNavigationBar() {
     return Container(
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.gray10, width: 1))),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.gray20, width: 1)),
+      ),
       child: BottomNavigationBar(
-        backgroundColor: colorScheme.surface,
-        selectedItemColor: colorScheme.onSurface,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        selectedItemColor: AppColors.black,
         unselectedItemColor: AppColors.gray50,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.sports_baseball_outlined), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.sports_baseball), label: ''),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_today_outlined),
+            label: '',
+          ),
         ],
       ),
     );
   }
 
   void _handleDownload() {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('다운로드 기능을 구현해주세요')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('다운로드 기능을 구현해주세요')));
   }
 
   void _showActionModal() {
-    RecordActionModal.show(context, onEdit: _handleEdit, onDelete: _handleDelete);
+    RecordActionModal.show(
+      context,
+      onEdit: _handleEdit,
+      onDelete: _handleDelete,
+    );
   }
 
   void _handleEdit() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => CreateRecordScreen(gameRecord: widget.game))).then((
-      result,
-    ) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateRecordScreen(gameRecord: widget.game),
+      ),
+    ).then((result) {
       if (result == true) {
         Navigator.pop(context, true);
       }
@@ -352,27 +718,50 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   }
 
   void _showDeleteConfirmDialog() {
-    final textTheme = Theme.of(context).textTheme;
-
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('기록 삭제', style: textTheme.titleLarge),
-            content: Text('이 기록을 삭제하시겠습니까?\n삭제된 기록은 복구할 수 없습니다.', style: textTheme.bodyMedium),
+            title: Text(
+              '기록 삭제',
+              style: AppTextStyles.h2.copyWith(color: AppColors.black),
+            ),
+            content: Text(
+              '이 기록을 삭제하시겠습니까?\n삭제된 기록은 복구할 수 없습니다.',
+              style: AppTextStyles.body2.copyWith(color: AppColors.gray80),
+            ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: Text('취소', style: textTheme.bodyMedium)),
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  '취소',
+                  style: AppTextStyles.body2.copyWith(color: AppColors.gray80),
+                ),
+              ),
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
                 },
-                style: TextButton.styleFrom(foregroundColor: AppColors.negative),
-                child: Text('삭제', style: textTheme.bodyMedium),
+                child: Text(
+                  '삭제',
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.negative,
+                  ),
+                ),
               ),
             ],
           ),
     );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    const weekdays = ['월', '화', '수', '목', '금', '토', '일'];
+    final weekday = weekdays[dateTime.weekday - 1];
+
+    return '${dateTime.year}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.day.toString().padLeft(2, '0')}($weekday) ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }
