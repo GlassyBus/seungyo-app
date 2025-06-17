@@ -9,6 +9,7 @@ import '../../models/team.dart' as app_models;
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/database_service.dart';
+import '../../services/image_save_service.dart';
 import 'create_record_screen.dart';
 import 'widgets/action_modal.dart';
 
@@ -205,41 +206,70 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       );
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Stack(
-        children: [
-          Image.file(
-            File(firstImagePath),
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-            errorBuilder:
-                (context, error, stackTrace) => Container(
-                  color: AppColors.gray10,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.broken_image,
-                          size: 80,
-                          color: AppColors.gray50,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '이미지 로드 실패',
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.gray80,
+    return GestureDetector(
+      onTap: () {
+        ImageSaveService.saveImageToGallery(firstImagePath, context);
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          children: [
+            Image.file(
+              File(firstImagePath),
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              errorBuilder:
+                  (context, error, stackTrace) => Container(
+                    color: AppColors.gray10,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            size: 80,
+                            color: AppColors.gray50,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            '이미지 로드 실패',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.gray80,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+            ),
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-          ),
-          if (widget.game.photos.length > 1) _buildImageCountBadge(),
-        ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.download, size: 14, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text(
+                      '저장',
+                      style: AppTextStyles.caption.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (widget.game.photos.length > 1) _buildImageCountBadge(),
+          ],
+        ),
       ),
     );
   }
@@ -326,7 +356,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           ),
           const SizedBox(height: 10),
           _buildGameInfoCard(),
-          // 경기취소 섹션 항상 표시
           const SizedBox(height: 10),
           _buildGameCancelCheckbox(),
           const SizedBox(height: _verticalSpacing),
@@ -336,9 +365,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   }
 
   Widget _buildGameInfoCard() {
-    // 디버깅을 위한 로그
-    print('Game canceled status: ${widget.game.canceled}');
-
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -349,7 +375,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         children: [
           _buildTeamLabels(),
           _buildScoreRow(),
-          const SizedBox(height: 18), // 하단 패딩만
+          const SizedBox(height: 18),
         ],
       ),
     );
@@ -546,7 +572,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FB), // 항상 동일한 배경색
+        color: const Color(0xFFF7F8FB),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -556,22 +582,19 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
             width: 16,
             height: 16,
             decoration: BoxDecoration(
-              color:
-                  isCanceled
-                      ? const Color(0xFFD7DCE7) // 활성화: 체크박스 색상
-                      : AppColors.gray20, // 비활성화: 연한 회색
+              color: isCanceled ? const Color(0xFFD7DCE7) : AppColors.gray20,
               borderRadius: BorderRadius.circular(4),
             ),
             child:
                 isCanceled
                     ? const Icon(Icons.check, size: 12, color: Colors.white)
-                    : null, // 비활성화 시 체크 아이콘 없음
+                    : null,
           ),
           const SizedBox(width: 5),
           Text(
             '경기취소',
             style: AppTextStyles.body3.copyWith(
-              color: const Color(0xFFB5BDCB), // 항상 동일한 텍스트 색상
+              color: const Color(0xFFB5BDCB),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -687,9 +710,14 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   }
 
   void _handleDownload() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('다운로드 기능을 구현해주세요')));
+    if (widget.game.photos.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('저장할 이미지가 없습니다.')));
+      return;
+    }
+
+    ImageSaveService.saveImageToGallery(widget.game.photos.first, context);
   }
 
   void _showActionModal() {
