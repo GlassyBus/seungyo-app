@@ -14,7 +14,8 @@ class RecordListPage extends StatefulWidget {
   State<RecordListPage> createState() => _RecordListPageState();
 }
 
-class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObserver {
+class _RecordListPageState extends State<RecordListPage>
+    with WidgetsBindingObserver {
   bool _showOnlyFavorites = false;
   bool _isLoading = true;
   List<GameRecord> _records = [];
@@ -88,16 +89,24 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('기록을 불러오는 중 오류가 발생했습니다: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('기록을 불러오는 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
 
   List<GameRecord> get _filteredRecords {
-    final filtered = _showOnlyFavorites ? _records.where((record) => record.isFavorite).toList() : _records;
-    print('RecordScreen: Filtered records count: ${filtered.length} (showOnlyFavorites: $_showOnlyFavorites)');
+    final filtered =
+        _showOnlyFavorites
+            ? _records.where((record) => record.isFavorite).toList()
+            : _records;
+    print(
+      'RecordScreen: Filtered records count: ${filtered.length} (showOnlyFavorites: $_showOnlyFavorites)',
+    );
     return filtered;
   }
 
@@ -117,20 +126,31 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
         children: [
           CircularProgressIndicator(color: colorScheme.primary),
           const SizedBox(height: 16),
-          Text('기록을 불러오는 중...', style: AppTextStyles.body2.copyWith(color: colorScheme.outline)),
+          Text(
+            '기록을 불러오는 중...',
+            style: AppTextStyles.body2.copyWith(color: colorScheme.outline),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildContent(BuildContext context) {
-    return Column(children: [_buildFilterSection(context), Expanded(child: _buildRecordsList())]);
+    return Column(
+      children: [
+        _buildFilterSection(context),
+        Expanded(child: _buildRecordsList()),
+      ],
+    );
   }
 
   Widget _buildFilterSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [_buildCustomCheckbox()]),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [_buildCustomCheckbox()],
+      ),
     );
   }
 
@@ -148,17 +168,27 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: _showOnlyFavorites ? const Color(0xFF09004C) : Colors.white,
+              color:
+                  _showOnlyFavorites ? const Color(0xFF09004C) : Colors.white,
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
-                color: _showOnlyFavorites ? const Color(0xFF09004C) : const Color(0xFFE6EAF2),
+                color:
+                    _showOnlyFavorites
+                        ? const Color(0xFF09004C)
+                        : const Color(0xFFE6EAF2),
                 width: 2,
               ),
             ),
-            child: _showOnlyFavorites ? const Icon(Icons.check, color: Colors.white, size: 16) : null,
+            child:
+                _showOnlyFavorites
+                    ? const Icon(Icons.check, color: Colors.white, size: 16)
+                    : null,
           ),
           const SizedBox(width: 8),
-          Text('하트만 보기', style: AppTextStyles.body2.copyWith(color: const Color(0xFF100F21))),
+          Text(
+            '하트만 보기',
+            style: AppTextStyles.body2.copyWith(color: const Color(0xFF100F21)),
+          ),
         ],
       ),
     );
@@ -195,15 +225,24 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.sentiment_dissatisfied_outlined, size: 60, color: colorScheme.outline),
+          Icon(
+            Icons.sentiment_dissatisfied_outlined,
+            size: 60,
+            color: colorScheme.outline,
+          ),
           const SizedBox(height: 16),
           Text(
             _showOnlyFavorites ? '즐겨찾기한 기록이 없어요' : '아직 작성된 기록이 없어요',
-            style: AppTextStyles.subtitle1.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.w600),
+            style: AppTextStyles.subtitle1.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
-            _showOnlyFavorites ? '기록에 하트를 눌러 즐겨찾기에 추가해보세요!' : '상단의 + 버튼을 눌러 첫 기록을 추가해보세요!',
+            _showOnlyFavorites
+                ? '기록에 하트를 눌러 즐겨찾기에 추가해보세요!'
+                : '상단의 + 버튼을 눌러 첫 기록을 추가해보세요!',
             style: AppTextStyles.body2.copyWith(color: colorScheme.outline),
             textAlign: TextAlign.center,
           ),
@@ -213,7 +252,17 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
   }
 
   void _navigateToDetail(GameRecord record) {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)),
+    ).then((result) {
+      if (result == true) {
+        print(
+          'RecordScreen: Record updated from detail screen, refreshing list...',
+        );
+        _loadRecords();
+      }
+    });
   }
 
   Future<void> _toggleFavorite(GameRecord record) async {
@@ -233,23 +282,32 @@ class _RecordListPageState extends State<RecordListPage> with WidgetsBindingObse
       } else {
         print('RecordScreen: Failed to toggle favorite');
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('즐겨찾기 변경에 실패했습니다'), backgroundColor: Colors.red));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('즐겨찾기 변경에 실패했습니다'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       }
     } catch (e) {
       print('RecordScreen: Error toggling favorite: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('즐겨찾기 변경 중 오류가 발생했습니다: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('즐겨찾기 변경 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
 
   void _handleAdd() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateRecordScreen())).then((result) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
+    ).then((result) {
       if (result == true) {
         print('RecordScreen: Record added successfully, refreshing list...');
         _loadRecords();

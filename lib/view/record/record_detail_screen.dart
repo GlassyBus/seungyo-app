@@ -9,6 +9,7 @@ import '../../models/team.dart' as app_models;
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../services/database_service.dart';
+import '../../services/record_service.dart';
 import '../../services/image_save_service.dart';
 import 'create_record_screen.dart';
 import 'widgets/action_modal.dart';
@@ -26,6 +27,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   List<app_models.Team> _teams = [];
   bool _isLoading = true;
   String? _errorMessage;
+  GameRecord? _currentGame;
 
   static const double _imageSectionHeight = 220.0;
   static const double _sectionPadding = 20.0;
@@ -38,6 +40,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   @override
   void initState() {
     super.initState();
+    _currentGame = widget.game;
     _initializeData();
   }
 
@@ -83,11 +86,21 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+    return WillPopScope(
+      onWillPop: () async {
+        // 좋아요 상태가 변경되었는지 확인
+        final hasChanged =
+            _currentGame != null &&
+            _currentGame!.isFavorite != widget.game.isFavorite;
+        Navigator.pop(context, hasChanged);
+        return false; // WillPopScope가 pop을 처리했으므로 false 반환
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        appBar: _buildAppBar(),
+        body: _buildBody(),
+        bottomNavigationBar: _buildBottomNavigationBar(),
+      ),
     );
   }
 
@@ -100,7 +113,13 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           Icons.arrow_back_ios,
           color: Theme.of(context).colorScheme.onSurface,
         ),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () {
+          // 좋아요 상태가 변경되었는지 확인
+          final hasChanged =
+              _currentGame != null &&
+              _currentGame!.isFavorite != widget.game.isFavorite;
+          Navigator.pop(context, hasChanged);
+        },
       ),
       title: Text(
         '직관 기록 상세',
@@ -659,22 +678,25 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           ),
           const SizedBox(height: 15),
           Center(
-            child: AnimatedScale(
-              scale: widget.game.isFavorite ? 1.1 : 1.0,
-              duration: const Duration(milliseconds: 200),
-              child: Container(
-                width: _heartIconSize,
-                height: 56,
-                alignment: Alignment.center,
-                child: Icon(
-                  widget.game.isFavorite
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  color:
-                      widget.game.isFavorite
-                          ? AppColors.negative
-                          : AppColors.gray50,
-                  size: _heartIconSize,
+            child: GestureDetector(
+              onTap: _handleFavoriteToggle,
+              child: AnimatedScale(
+                scale: _currentGame?.isFavorite == true ? 1.1 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: Container(
+                  width: _heartIconSize,
+                  height: 56,
+                  alignment: Alignment.center,
+                  child: Icon(
+                    _currentGame?.isFavorite == true
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                    color:
+                        _currentGame?.isFavorite == true
+                            ? AppColors.negative
+                            : AppColors.gray50,
+                    size: _heartIconSize,
+                  ),
                 ),
               ),
             ),
@@ -767,12 +789,44 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
                 ),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(context);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
+
+                  try {
+                    final success = await RecordService().deleteRecord(
+                      widget.game.id,
+                    );
+
+                    if (success) {
+                      if (mounted) {
+                        Navigator.pop(context, true);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('기록이 삭제되었습니다'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } else {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('기록 삭제에 실패했습니다'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('삭제 중 오류가 발생했습니다: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: Text(
                   '삭제',
@@ -784,6 +838,51 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
             ],
           ),
     );
+  }
+
+  void _handleFavoriteToggle() async {
+    if (_currentGame == null) return;
+
+    try {
+      final recordService = RecordService();
+      final success = await recordService.toggleFavorite(_currentGame!.id);
+
+      if (success && mounted) {
+        final newFavoriteStatus = !_currentGame!.isFavorite;
+
+        setState(() {
+          _currentGame = _currentGame!.copyWith(isFavorite: newFavoriteStatus);
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                newFavoriteStatus ? '좋아하는 경기에 추가했어요' : '좋아하는 경기에서 제거했어요',
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('즐겨찾기 업데이트에 실패했습니다'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   String _formatDateTime(DateTime dateTime) {
