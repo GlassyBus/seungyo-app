@@ -3,11 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:seungyo/providers/schedule_provider.dart';
 import 'package:seungyo/widgets/loading_indicator.dart';
 import 'package:seungyo/widgets/error_view.dart';
-import 'package:seungyo/widgets/custom_app_bar.dart';
 import 'widgets/enhanced_calendar.dart';
 import 'widgets/calendar_header.dart';
 import 'widgets/no_schedule_view.dart';
-import 'widgets/schedule_item.dart';
+import 'widgets/record_item.dart';
 
 /// 경기 일정 페이지
 class SchedulePage extends StatefulWidget {
@@ -31,7 +30,7 @@ class _SchedulePageState extends State<SchedulePage> {
     return Consumer<ScheduleProvider>(
       builder: (context, provider, child) {
         if (provider.isLoading) {
-          return const LoadingIndicator(message: '경기 일정을 불러오는 중...');
+          return const LoadingIndicator(message: '직관 기록을 불러오는 중...');
         }
 
         if (provider.hasError) {
@@ -59,7 +58,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   onDateSelected: provider.selectDate,
                   onMonthChanged: provider.changeMonth,
                 ),
-                _buildSelectedDateSchedules(context, provider),
+                _buildSelectedDateRecords(context, provider),
               ],
             ),
           ),
@@ -68,14 +67,14 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
-  /// 선택된 날짜의 경기 일정 위젯 생성
-  Widget _buildSelectedDateSchedules(
+  /// 선택된 날짜의 직관 기록 위젯 생성
+  Widget _buildSelectedDateRecords(
     BuildContext context,
     ScheduleProvider provider,
   ) {
-    final selectedSchedules = provider.daySchedules;
+    final selectedRecords = provider.daySchedules;
 
-    if (selectedSchedules.isEmpty) {
+    if (selectedRecords.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16.0),
         child: NoScheduleView(isRainCanceled: false),
@@ -83,15 +82,14 @@ class _SchedulePageState extends State<SchedulePage> {
     }
 
     return Column(
-      children:
-          selectedSchedules.map((schedule) {
-            return ScheduleItem(
-              schedule: schedule,
-              onTap: () {
-                // TODO: 경기 세부 정보 화면으로 이동
-              },
-            );
-          }).toList(),
+      children: selectedRecords.map((record) {
+        return RecordItem(
+          record: record,
+          onTap: () {
+            // TODO: 직관 기록 세부 정보 화면으로 이동
+          },
+        );
+      }).toList(),
     );
   }
 }
