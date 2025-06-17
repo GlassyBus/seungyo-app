@@ -54,6 +54,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     return AppBar(
       title: const Text('직관 기록 상세'),
       actions: [
+        IconButton(icon: const Icon(Icons.edit), onPressed: _handleEdit),
         IconButton(icon: const Icon(Icons.download), onPressed: _handleDownload),
         IconButton(icon: const Icon(Icons.more_horiz), onPressed: _showActionModal),
       ],
@@ -438,9 +439,8 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
               TextButton(onPressed: () => Navigator.pop(context), child: Text('취소', style: textTheme.bodyMedium)),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('기록이 삭제되었습니다')));
+                  Navigator.pop(context); // 다이얼로그 닫기
+                  _performDelete(); // 실제 삭제 수행
                 },
                 style: TextButton.styleFrom(foregroundColor: AppColors.negative),
                 child: Text('삭제', style: textTheme.bodyMedium),
@@ -448,5 +448,79 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
             ],
           ),
     );
+  }
+
+  Future<void> _performDelete() async {
+    try {
+      print('RecordDetailScreen: Starting delete process for record ID: ${widget.game.id}');
+
+      // 로딩 표시
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                SizedBox(width: 16),
+                Text('기록을 삭제하는 중...'),
+              ],
+            ),
+            duration: Duration(seconds: 30), // 충분한 시간
+          ),
+        );
+      }
+
+      // RecordService를 사용하여 DB에서 삭제
+      final recordService = RecordService();
+      final success = await recordService.deleteRecord(widget.game.id);
+
+      // 로딩 스낵바 제거
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+
+      if (success) {
+        print('RecordDetailScreen: Record deleted successfully');
+
+        if (mounted) {
+          // 성공 메시지 표시
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('기록이 삭제되었습니다.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // 상세 화면 닫고 리스트 새로고침을 위해 true 반환
+          Navigator.pop(context, true);
+        }
+      } else {
+        print('RecordDetailScreen: Failed to delete record');
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('기록 삭제에 실패했습니다.'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('RecordDetailScreen: Error during delete: $e');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('삭제 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }
