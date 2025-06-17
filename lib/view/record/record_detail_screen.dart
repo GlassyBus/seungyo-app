@@ -53,7 +53,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         backgroundColor: colorScheme.surface,
         appBar: _buildAppBar(),
         body: _buildBody(colorScheme, textTheme),
-        bottomNavigationBar: _buildBottomNavigationBar(colorScheme),
       ),
     );
   }
@@ -442,24 +441,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
               style: textTheme.bodySmall?.copyWith(color: AppColors.gray50, fontSize: 12),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigationBar(ColorScheme colorScheme) {
-    return Container(
-      decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.gray10, width: 1))),
-      child: BottomNavigationBar(
-        backgroundColor: colorScheme.surface,
-        selectedItemColor: colorScheme.onSurface,
-        unselectedItemColor: AppColors.gray50,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.sports_baseball_outlined), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), label: ''),
         ],
       ),
     );
