@@ -29,7 +29,9 @@ class RecordService {
       final gameRecords = <GameRecord>[];
 
       for (final record in dbRecords) {
-        final gameRecord = await DatabaseService().convertRecordToGameRecord(record);
+        final gameRecord = await DatabaseService().convertRecordToGameRecord(
+          record,
+        );
         if (gameRecord != null) {
           gameRecords.add(gameRecord);
         }
@@ -37,7 +39,9 @@ class RecordService {
 
       // 날짜 기준으로 내림차순 정렬 (최신 기록이 위로)
       gameRecords.sort((a, b) => b.dateTime.compareTo(a.dateTime));
-      print('RecordService: Converted and sorted ${gameRecords.length} game records');
+      print(
+        'RecordService: Converted and sorted ${gameRecords.length} game records',
+      );
 
       return gameRecords;
     } catch (e) {
@@ -93,7 +97,9 @@ class RecordService {
       print(
         'RecordService: Form data - DateTime: ${form.gameDateTime}, Stadium: ${form.stadiumId}, HomeTeam: ${form.homeTeamId}, AwayTeam: ${form.awayTeamId}',
       );
-      print('RecordService: Form scores - Home: ${form.homeScore}, Away: ${form.awayScore}');
+      print(
+        'RecordService: Form scores - Home: ${form.homeScore}, Away: ${form.awayScore}',
+      );
       print(
         'RecordService: Form extras - Seat: ${form.seatInfo}, Comment: ${form.comment}, Favorite: ${form.isFavorite}, Canceled: ${form.canceled}',
       );
@@ -138,7 +144,9 @@ class RecordService {
         canceled: Value(form.canceled),
         seat: Value(form.seatInfo),
         comment: Value(form.comment),
-        photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
+        photosJson: Value(
+          photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null,
+        ),
         isFavorite: Value(form.isFavorite),
       );
 
@@ -148,9 +156,12 @@ class RecordService {
 
       // 검증: 실제로 DB에 들어갔는지 확인
       final allRecords = await _database.getAllRecords();
-      print('RecordService: Total records in DB after insert: ${allRecords.length}');
+      print(
+        'RecordService: Total records in DB after insert: ${allRecords.length}',
+      );
 
-      final insertedRecord = allRecords.where((r) => r.id == recordId).firstOrNull;
+      final insertedRecord =
+          allRecords.where((r) => r.id == recordId).firstOrNull;
       if (insertedRecord != null) {
         print('RecordService: Verification successful - Record found in DB');
         print(
@@ -187,7 +198,9 @@ class RecordService {
       // 기존 이미지 경로들 유지
       if (existingRecord.photosJson != null) {
         try {
-          photosPaths = List<String>.from(jsonDecode(existingRecord.photosJson!));
+          photosPaths = List<String>.from(
+            jsonDecode(existingRecord.photosJson!),
+          );
           print('RecordService: Loaded ${photosPaths.length} existing photos');
         } catch (e) {
           print('RecordService: Error parsing existing photos JSON: $e');
@@ -196,7 +209,9 @@ class RecordService {
 
       // 새로운 이미지들 추가
       if (form.imagePaths != null && form.imagePaths!.isNotEmpty) {
-        print('RecordService: Processing ${form.imagePaths!.length} new images');
+        print(
+          'RecordService: Processing ${form.imagePaths!.length} new images',
+        );
         for (final imagePath in form.imagePaths!) {
           if (!imagePath.startsWith('/data/')) {
             final permanentPath = await _saveImagePermanently(imagePath);
@@ -209,7 +224,8 @@ class RecordService {
             }
           }
         }
-      } else if (form.imagePath != null && !form.imagePath!.startsWith('/data/')) {
+      } else if (form.imagePath != null &&
+          !form.imagePath!.startsWith('/data/')) {
         // 하위 호환성: 단일 이미지 처리
         final permanentPath = await _saveImagePermanently(form.imagePath!);
         photosPaths.add(permanentPath);
@@ -228,7 +244,9 @@ class RecordService {
         canceled: Value(form.canceled),
         seat: Value(form.seatInfo),
         comment: Value(form.comment),
-        photosJson: Value(photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null),
+        photosJson: Value(
+          photosPaths.isNotEmpty ? jsonEncode(photosPaths) : null,
+        ),
         isFavorite: Value(form.isFavorite),
         createdAt: Value(existingRecord.createdAt),
       );
@@ -243,8 +261,12 @@ class RecordService {
         if (updatedRecordFromDb != null) {
           print('RecordService: Verification - Record updated successfully');
           print('  - Stadium: ${updatedRecordFromDb.stadiumId}');
-          print('  - Teams: ${updatedRecordFromDb.homeTeamId} vs ${updatedRecordFromDb.awayTeamId}');
-          print('  - Score: ${updatedRecordFromDb.homeScore}-${updatedRecordFromDb.awayScore}');
+          print(
+            '  - Teams: ${updatedRecordFromDb.homeTeamId} vs ${updatedRecordFromDb.awayTeamId}',
+          );
+          print(
+            '  - Score: ${updatedRecordFromDb.homeScore}-${updatedRecordFromDb.awayScore}',
+          );
         }
       }
 
@@ -320,7 +342,9 @@ class RecordService {
       if (success) {
         final updatedRecordFromDb = await _getRecordById(id);
         if (updatedRecordFromDb != null) {
-          print('RecordService: Verification - DB now shows favorite status: ${updatedRecordFromDb.isFavorite}');
+          print(
+            'RecordService: Verification - DB now shows favorite status: ${updatedRecordFromDb.isFavorite}',
+          );
         }
       }
 
@@ -343,6 +367,19 @@ class RecordService {
     } catch (e) {
       print('Error getting stats: $e');
       return {'win': 0, 'lose': 0, 'total': 0};
+    }
+  }
+
+  // ID로 기록 조회 (public 메서드)
+  Future<GameRecord?> getRecordById(int id) async {
+    try {
+      final record = await _getRecordById(id);
+      if (record == null) return null;
+
+      return await DatabaseService().convertRecordToGameRecord(record);
+    } catch (e) {
+      print('Error getting record by ID: $e');
+      return null;
     }
   }
 
