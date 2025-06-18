@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
 import 'stat_card.dart';
 
 class StatsSection extends StatelessWidget {
@@ -17,31 +19,52 @@ class StatsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 데이터가 없는 상태인지 확인 (모든 값이 0인 경우)
+    final bool hasData =
+        totalGames > 0 || winCount > 0 || drawCount > 0 || loseCount > 0;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '지금까지 직관 기록은',
-            style: TextStyle(
-              color: Color(0xFF09004C),
-              fontSize: 18,
+            style: AppTextStyles.subtitle1.copyWith(
+              color: AppColors.navy,
               fontWeight: FontWeight.w700,
-              fontFamily: 'KBO',
-              letterSpacing: -0.02,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           Row(
             children: [
-              Expanded(child: StatCard(label: '직관', value: totalGames)),
+              Expanded(
+                child: StatCard(
+                  label: '직관',
+                  value: totalGames,
+                  hasData: hasData,
+                ),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: StatCard(label: '승리', value: winCount)),
+              Expanded(
+                child: StatCard(label: '승리', value: winCount, hasData: hasData),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: StatCard(label: '무승부', value: drawCount)),
+              Expanded(
+                child: StatCard(
+                  label: '무승부',
+                  value: drawCount,
+                  hasData: hasData,
+                ),
+              ),
               const SizedBox(width: 8),
-              Expanded(child: StatCard(label: '패배', value: loseCount)),
+              Expanded(
+                child: StatCard(
+                  label: '패배',
+                  value: loseCount,
+                  hasData: hasData,
+                ),
+              ),
             ],
           ),
         ],

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
 import '../../../models/game_schedule.dart';
 
 class GameCard extends StatelessWidget {
@@ -15,59 +18,68 @@ class GameCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FB),
+        color: AppColors.gray10,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${game.stadium}, $timeString',
-                style: const TextStyle(
-                  color: Color(0xFF09004C),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: 'KBO',
-                  letterSpacing: -0.03,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${game.stadium}, $timeString',
+                  style: AppTextStyles.body3.copyWith(
+                    color: AppColors.navy,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  _buildTeamInfo(game.homeTeam),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6),
-                    child: Text(
-                      'VS',
-                      style: TextStyle(
-                        color: Color(0xFF9DA5B3),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'KBO',
-                        letterSpacing: -0.03,
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _buildTeamInfo(game.homeTeam),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        'VS',
+                        style: AppTextStyles.body3.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                  _buildTeamInfo(game.awayTeam),
-                ],
-              ),
-            ],
-          ),
-          GestureDetector(
-            onTap: onEditTap,
-            child: Container(
-              width: 20,
-              height: 20,
-              decoration: const BoxDecoration(color: Colors.transparent),
-              child: const Icon(Icons.edit, color: Color(0xFF100F21), size: 20),
+                    _buildTeamInfo(game.awayTeam),
+                  ],
+                ),
+              ],
             ),
           ),
+          if (onEditTap != null)
+            GestureDetector(
+              onTap: onEditTap,
+              child: Container(
+                width: 32,
+                height: 32,
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SvgPicture.asset(
+                  'assets/icons/edit-20px.svg',
+                  width: 20,
+                  height: 20,
+                  colorFilter: ColorFilter.mode(
+                    AppColors.black,
+                    BlendMode.srcIn,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -75,29 +87,29 @@ class GameCard extends StatelessWidget {
 
   Widget _buildTeamInfo(String teamName) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 25,
-          height: 25,
-          decoration: const BoxDecoration(shape: BoxShape.circle),
-          child: _getTeamLogo(teamName),
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: _getTeamColor(teamName),
+          ),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: 6),
         Text(
           teamName,
-          style: const TextStyle(
-            color: Color(0xFF100F21),
-            fontSize: 16,
+          style: AppTextStyles.subtitle2.copyWith(
+            color: AppColors.black,
             fontWeight: FontWeight.w500,
-            fontFamily: 'KBO',
-            letterSpacing: -0.03,
           ),
         ),
       ],
     );
   }
 
-  Widget _getTeamLogo(String teamName) {
+  Color _getTeamColor(String teamName) {
     final teamColors = {
       'SSG': const Color(0xFFCF0022),
       '키움': const Color(0xFF570514),
@@ -111,11 +123,6 @@ class GameCard extends StatelessWidget {
       '롯데': const Color(0xFF041E42),
     };
 
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: teamColors[teamName] ?? const Color(0xFF9DA5B3),
-      ),
-    );
+    return teamColors[teamName] ?? AppColors.textSecondary;
   }
 }
