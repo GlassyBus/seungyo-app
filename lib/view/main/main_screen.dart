@@ -15,6 +15,7 @@ import '../../services/news_service.dart';
 import '../../services/record_service.dart';
 import '../../services/schedule_service.dart';
 import '../../services/user_service.dart';
+import '../../theme/app_colors.dart';
 import '../../widgets/bottom_navigation_bar.dart';
 import '../auth/user_profile_screen.dart';
 import 'components/profile_component.dart';
@@ -26,7 +27,11 @@ class MainScreen extends StatefulWidget {
   final Function(ThemeMode)? onThemeModeChanged;
   final ThemeMode currentThemeMode;
 
-  const MainScreen({Key? key, this.onThemeModeChanged, this.currentThemeMode = ThemeMode.system}) : super(key: key);
+  const MainScreen({
+    Key? key,
+    this.onThemeModeChanged,
+    this.currentThemeMode = ThemeMode.system,
+  }) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -67,19 +72,26 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   void _initializeAnimations() {
-    _fadeController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this);
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
 
-    _slideController = AnimationController(duration: const Duration(milliseconds: 600), vsync: this);
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+    ).animate(
+      CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+    );
 
     _fadeController.forward();
     _slideController.forward();
@@ -127,16 +139,30 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           }).toList();
 
       final totalGames = validRecords.length;
-      final winCount = validRecords.where((record) => record.result == GameResult.win).length;
-      final drawCount = validRecords.where((record) => record.result == GameResult.draw).length;
-      final loseCount = validRecords.where((record) => record.result == GameResult.lose).length;
+      final winCount =
+          validRecords
+              .where((record) => record.result == GameResult.win)
+              .length;
+      final drawCount =
+          validRecords
+              .where((record) => record.result == GameResult.draw)
+              .length;
+      final loseCount =
+          validRecords
+              .where((record) => record.result == GameResult.lose)
+              .length;
 
-      print('MainScreen: Statistics - Total: $totalGames, Win: $winCount, Draw: $drawCount, Lose: $loseCount');
+      print(
+        'MainScreen: Statistics - Total: $totalGames, Win: $winCount, Draw: $drawCount, Lose: $loseCount',
+      );
 
       // 뉴스 데이터 로드 (응원 구단 키워드 포함)
       print('MainScreen: Loading news...');
       final teamKeyword = favoriteTeam?.name ?? '두산';
-      final newsItems = await _newsService.getNewsByKeyword(teamKeyword, limit: 4);
+      final newsItems = await _newsService.getNewsByKeyword(
+        teamKeyword,
+        limit: 4,
+      );
       print('MainScreen: Loaded ${newsItems.length} news items');
 
       setState(() {
@@ -181,7 +207,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         backgroundColor: Colors.white,
         appBar: _buildCurrentAppBar(),
         body: _isLoading ? _buildLoadingState() : _buildContent(),
-        bottomNavigationBar: CustomBottomNavigationBar(currentIndex: _currentTabIndex, onTabChanged: _onTabChanged),
+        bottomNavigationBar: CustomBottomNavigationBar(
+          currentIndex: _currentTabIndex,
+          onTabChanged: _onTabChanged,
+        ),
       ),
     );
   }
@@ -191,7 +220,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     final now = DateTime.now();
     const duration = Duration(seconds: 2);
 
-    if (_lastBackPressed == null || now.difference(_lastBackPressed!) > duration) {
+    if (_lastBackPressed == null ||
+        now.difference(_lastBackPressed!) > duration) {
       // 첫 번째 뒤로가기 또는 2초가 지난 후
       print('MainScreen: First back press or timeout, showing warning');
       _lastBackPressed = now;
@@ -258,7 +288,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         children: [
           CircularProgressIndicator(color: Color(0xFF09004C)),
           SizedBox(height: 16),
-          Text('데이터를 불러오는 중...', style: TextStyle(color: Color(0xFF7E8695), fontSize: 16)),
+          Text(
+            '데이터를 불러오는 중...',
+            style: TextStyle(color: Color(0xFF7E8695), fontSize: 16),
+          ),
         ],
       ),
     );
@@ -289,16 +322,13 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 사용자 프로필 섹션
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                  child: ProfileComponent(
-                    userProfile: _userProfile,
-                    favoriteTeam: _favoriteTeam,
-                    onMoreTap: _navigateToUserProfile,
-                  ),
+                ProfileComponent(
+                  userProfile: _userProfile,
+                  favoriteTeam: _favoriteTeam,
+                  onMoreTap: _navigateToUserProfile,
                 ),
                 // Divider
-                Container(height: 8, color: const Color(0xFFF7F8FB)),
+                Container(height: 8, color: AppColors.gray10),
                 // 통계 섹션
                 StatsSection(
                   totalGames: _totalGames,
@@ -307,11 +337,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   loseCount: _loseCount,
                 ),
                 // Divider
-                Container(height: 8, color: const Color(0xFFF7F8FB)),
+                Container(height: 8, color: AppColors.gray10),
                 // 오늘의 경기 섹션
-                TodayGamesSection(todayGames: _todayGames, onGameEditTap: _handleRecordButtonTap),
+                TodayGamesSection(
+                  todayGames: _todayGames,
+                  onGameEditTap: _handleRecordButtonTap,
+                ),
                 // Divider
-                Container(height: 8, color: const Color(0xFFF7F8FB)),
+                Container(height: 8, color: AppColors.gray10),
                 // 최근 소식 섹션
                 NewsSection(newsItems: _newsItems, onNewsUrlTap: _openNewsUrl),
                 const SizedBox(height: 100),
@@ -325,7 +358,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   Widget _buildRecordsContent() {
     return RecordListPage(
-      key: ValueKey(_currentTabIndex == 1 ? DateTime.now().millisecondsSinceEpoch : 0),
+      key: ValueKey(
+        _currentTabIndex == 1 ? DateTime.now().millisecondsSinceEpoch : 0,
+      ),
       onRecordChanged: () {
         // 기록이 변경되었을 때 홈 데이터 새로고침
         print('MainScreen: Record changed, refreshing home data...');
@@ -356,9 +391,17 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         }).firstOrNull;
 
     if (existingRecord != null) {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => RecordDetailPage(game: existingRecord)));
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RecordDetailPage(game: existingRecord),
+        ),
+      );
     } else {
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateRecordScreen()));
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
+      );
     }
   }
 
@@ -381,7 +424,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     HapticFeedback.lightImpact();
     print('MainScreen: Navigating to CreateRecordScreen...');
 
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateRecordScreen()));
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
+    );
 
     // 기록 추가 후 홈 데이터 새로고침
     if (result == true) {
@@ -399,7 +445,10 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   void _navigateToUserProfile() {
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const UserProfilePage())).then((hasChanges) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const UserProfilePage()),
+    ).then((hasChanges) {
       // 변경사항이 있으면 홈 데이터 새로고침
       if (hasChanges == true) {
         _loadHomeData();

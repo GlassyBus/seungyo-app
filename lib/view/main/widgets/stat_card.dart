@@ -1,41 +1,42 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
 
 class StatCard extends StatelessWidget {
   final String label;
   final int value;
+  final bool hasData;
 
-  const StatCard({Key? key, required this.label, required this.value})
-    : super(key: key);
+  const StatCard({
+    Key? key,
+    required this.label,
+    required this.value,
+    this.hasData = true,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FB),
+        color: AppColors.gray10,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: Color(0xFF656A77),
-              fontSize: 16,
+            style: AppTextStyles.body3.copyWith(
+              color: AppColors.gray80,
               fontWeight: FontWeight.w500,
-              fontFamily: 'KBO',
-              letterSpacing: -0.03,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
-            value.toString(),
-            style: const TextStyle(
-              color: Color(0xFF09004C),
-              fontSize: 32,
+            hasData ? value.toString() : '-',
+            style: AppTextStyles.h1.copyWith(
+              color: AppColors.navy,
               fontWeight: FontWeight.w700,
-              fontFamily: 'KBO',
-              letterSpacing: -0.02,
             ),
           ),
         ],

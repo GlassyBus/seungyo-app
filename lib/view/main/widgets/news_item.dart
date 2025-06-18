@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:seungyo/theme/app_colors.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
 
 class NewsItem extends StatelessWidget {
   final Map<String, dynamic> newsData;
@@ -10,40 +11,20 @@ class NewsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = newsData['imageUrl'] != null;
-    final colorScheme = Theme.of(context).colorScheme;
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.gray20.withOpacity(0.3),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: AppColors.gray5,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (hasImage) _buildNewsImage(),
-            SizedBox(width: hasImage ? 16 : 0),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildNewsTitle(),
-                  const SizedBox(height: 8),
-                  _buildNewsContent(),
-                ],
-              ),
-            ),
+            _buildNewsImage(),
+            const SizedBox(width: 12),
+            Expanded(child: _buildNewsContent()),
           ],
         ),
       ),
@@ -51,48 +32,67 @@ class NewsItem extends StatelessWidget {
   }
 
   Widget _buildNewsImage() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: SizedBox(
-        width: 100,
-        height: 80,
-        child: Image.network(
-          newsData['imageUrl'] ?? '',
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: AppColors.gray20,
-              child: Icon(
-                Icons.image_not_supported,
-                color: AppColors.gray60,
-                size: 24,
-              ),
-            );
-          },
-        ),
+    return Container(
+      width: 70,
+      height: 70,
+      decoration: BoxDecoration(
+        color: AppColors.gray20,
+        borderRadius: BorderRadius.circular(8),
       ),
+      child:
+          newsData['imageUrl'] != null
+              ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  newsData['imageUrl']!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return _buildPlaceholderImage();
+                  },
+                ),
+              )
+              : _buildPlaceholderImage(),
     );
   }
 
-  Widget _buildNewsTitle() {
-    return Text(
-      newsData['title'] ?? '',
-      style: TextStyle(
-        color: AppColors.navy,
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
+  Widget _buildPlaceholderImage() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.gray20,
+        borderRadius: BorderRadius.circular(8),
       ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      child: Icon(
+        Icons.image_not_supported_outlined,
+        color: AppColors.gray60,
+        size: 24,
+      ),
     );
   }
 
   Widget _buildNewsContent() {
-    return Text(
-      newsData['content'] ?? '',
-      style: TextStyle(color: AppColors.gray60, fontSize: 14),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          newsData['title'] ?? '제목 없음',
+          style: AppTextStyles.body1.copyWith(
+            color: AppColors.black,
+            fontWeight: FontWeight.w700,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          newsData['content'] ?? newsData['description'] ?? '내용 없음',
+          style: AppTextStyles.body3.copyWith(
+            color: AppColors.gray80,
+            fontWeight: FontWeight.w500,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }

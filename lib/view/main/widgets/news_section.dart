@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
 import 'news_item.dart';
 
 class NewsSection extends StatelessWidget {
@@ -14,21 +16,18 @@ class NewsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             '최근 소식은',
-            style: TextStyle(
-              color: Color(0xFF09004C),
-              fontSize: 18,
+            style: AppTextStyles.subtitle1.copyWith(
+              color: AppColors.navy,
               fontWeight: FontWeight.w700,
-              fontFamily: 'KBO',
-              letterSpacing: -0.02,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           _buildNewsList(),
         ],
       ),
@@ -54,23 +53,24 @@ class NewsSection extends StatelessWidget {
   }
 
   Widget _buildNoNews() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FB),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(Icons.article, size: 60, color: Color(0xFF656A77)),
-          SizedBox(height: 16),
+          Image.asset(
+            'assets/images/silent-120px.png',
+            width: 120,
+            height: 120,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 16),
           Text(
-            '최근 소식이 없습니다',
-            style: TextStyle(
-              color: Color(0xFF656A77),
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+            '소식이 없어요.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.subtitle1.copyWith(
+              fontWeight: FontWeight.w500,
+              color: AppColors.black,
             ),
           ),
         ],

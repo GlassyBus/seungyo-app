@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_text_styles.dart';
 import '../../../models/game_schedule.dart';
 import 'game_card.dart';
 
@@ -16,41 +18,36 @@ class TodayGamesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-    final weekday = weekdays[now.weekday % 7];
+    final weekday = weekdays[(now.weekday) % 7];
     final dateString =
         '${now.year}. ${now.month.toString().padLeft(2, '0')}. ${now.day.toString().padLeft(2, '0')}($weekday)';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 '오늘의 경기는',
-                style: TextStyle(
-                  color: Color(0xFF09004C),
-                  fontSize: 18,
+                style: AppTextStyles.subtitle1.copyWith(
+                  color: AppColors.navy,
                   fontWeight: FontWeight.w700,
-                  fontFamily: 'KBO',
-                  letterSpacing: -0.02,
                 ),
               ),
               Text(
                 dateString,
-                style: const TextStyle(
-                  color: Color(0xFF100F21),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  fontFamily: 'KBO',
-                  letterSpacing: -0.03,
+                style: AppTextStyles.body2.copyWith(
+                  color: AppColors.black,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           _buildGamesList(),
         ],
       ),
@@ -58,45 +55,91 @@ class TodayGamesSection extends StatelessWidget {
   }
 
   Widget _buildGamesList() {
+    // 1. 경기가 아예 없는 경우
     if (todayGames.isEmpty) {
       return _buildNoGameToday();
     }
 
-    return Column(
-      children:
-          todayGames
-              .map(
-                (game) =>
-                    GameCard(game: game, onEditTap: () => onGameEditTap(game)),
-              )
-              .toList(),
+    // 2. 모든 경기가 취소된 경우 (우천 취소)
+    final allGamesCanceled = todayGames.every(
+      (game) => game.status == GameStatus.canceled,
+    );
+    if (allGamesCanceled) {
+      return _buildCanceledGames();
+    }
+
+    // 3. 정상적인 경기가 있는 경우
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        children:
+            todayGames
+                .map(
+                  (game) => GameCard(
+                    game: game,
+                    onEditTap: () => onGameEditTap(game),
+                  ),
+                )
+                .toList(),
+      ),
     );
   }
 
   Widget _buildNoGameToday() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FB),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(Icons.sports_baseball, size: 60, color: Color(0xFF656A77)),
-          SizedBox(height: 16),
+          Image.asset(
+            'assets/images/break-time-120px.png', // 승요 캐릭터 (평상시)
+            width: 120,
+            height: 120,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 16),
           Text(
-            '오늘은 경기가 없습니다',
-            style: TextStyle(
-              color: Color(0xFF656A77),
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+            '경기가 없는 날이에요.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.subtitle1.copyWith(
+              fontWeight: FontWeight.w500,
+              color: AppColors.black,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
-            '휴식의 날입니다',
-            style: TextStyle(color: Color(0xFF656A77), fontSize: 14),
+            '일주일에 하루밖에 없는 화나지 않는 날',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.body3.copyWith(
+              color: AppColors.gray80,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCanceledGames() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/images/umbrella-120px.png', // 우산 든 승요 캐릭터
+            width: 120,
+            height: 120,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '우천으로 취소되었어요.',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.subtitle1.copyWith(
+              fontWeight: FontWeight.w500,
+              color: AppColors.black,
+            ),
           ),
         ],
       ),
