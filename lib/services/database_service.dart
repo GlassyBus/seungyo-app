@@ -72,7 +72,12 @@ class DatabaseService {
         final team = teams[i];
         print('Inserting team: ${team.name} (${team.id})');
         await _database.insertTeam(
-          TeamsCompanion.insert(id: team.id, name: team.name, code: team.code, emblem: Value(team.emblem)),
+          TeamsCompanion.insert(
+            id: team.id,
+            name: team.name,
+            code: team.code,
+            emblem: Value(team.emblem),
+          ),
         );
       }
       print('All teams inserted successfully');
@@ -89,7 +94,11 @@ class DatabaseService {
       for (final stadium in stadiums) {
         print('Inserting stadium: ${stadium.name} (${stadium.id})');
         await _database.insertStadium(
-          StadiumsCompanion.insert(id: stadium.id, name: stadium.name, city: Value(stadium.city)),
+          StadiumsCompanion.insert(
+            id: stadium.id,
+            name: stadium.name,
+            city: Value(stadium.city),
+          ),
         );
       }
       print('All stadiums inserted successfully');
@@ -232,8 +241,11 @@ class DatabaseService {
       final dbStadiums = await _database.getAllStadiums();
       return dbStadiums
           .map(
-            (dbStadium) =>
-                app_models.Stadium(id: dbStadium.id.toString(), name: dbStadium.name, city: dbStadium.city ?? ''),
+            (dbStadium) => app_models.Stadium(
+              id: dbStadium.id.toString(),
+              name: dbStadium.name,
+              city: dbStadium.city ?? '',
+            ),
           )
           .toList();
     } catch (e) {
@@ -277,7 +289,11 @@ class DatabaseService {
       return GameRecord(
         id: dbRecord.id,
         dateTime: dbRecord.date,
-        stadium: app_models.Stadium(id: stadium.id, name: stadium.name, city: stadium.city ?? ''),
+        stadium: app_models.Stadium(
+          id: stadium.id,
+          name: stadium.name,
+          city: stadium.city ?? '',
+        ),
         homeTeam: app_models.Team(
           id: homeTeam.id,
           name: homeTeam.name,
@@ -370,8 +386,12 @@ class DatabaseService {
         print('First 3 records:');
         for (int i = 0; i < (records.length > 3 ? 3 : records.length); i++) {
           final record = records[i];
-          print('  - Record ${record.id}: ${record.date} at ${record.stadiumId}');
-          print('    ${record.homeTeamId} vs ${record.awayTeamId} (${record.homeScore}-${record.awayScore})');
+          print(
+            '  - Record ${record.id}: ${record.date} at ${record.stadiumId}',
+          );
+          print(
+            '    ${record.homeTeamId} vs ${record.awayTeamId} (${record.homeScore}-${record.awayScore})',
+          );
         }
       }
 
@@ -386,7 +406,9 @@ class DatabaseService {
       final teams = await _database.getAllTeams();
       print('=== ALL TEAMS (${teams.length}) ===');
       for (final team in teams) {
-        print('ID: ${team.id}, Name: ${team.name}, Code: ${team.code}, Emblem: ${team.emblem}');
+        print(
+          'ID: ${team.id}, Name: ${team.name}, Code: ${team.code}, Emblem: ${team.emblem}',
+        );
       }
       print('========================');
     } catch (e) {
@@ -399,7 +421,9 @@ class DatabaseService {
       final stadiums = await _database.getAllStadiums();
       print('=== ALL STADIUMS (${stadiums.length}) ===');
       for (final stadium in stadiums) {
-        print('ID: ${stadium.id}, Name: ${stadium.name}, City: ${stadium.city}');
+        print(
+          'ID: ${stadium.id}, Name: ${stadium.name}, City: ${stadium.city}',
+        );
       }
       print('============================');
     } catch (e) {

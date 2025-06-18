@@ -10,7 +10,12 @@ import 'dotted_line_painter.dart';
 
 /// 게임 기록 카드 위젯 - DB 데이터를 사용하여 모든 데이터를 props로 받음
 class GameRecordCard extends StatelessWidget {
-  const GameRecordCard({super.key, required this.record, this.onTap, this.onFavoriteToggle});
+  const GameRecordCard({
+    super.key,
+    required this.record,
+    this.onTap,
+    this.onFavoriteToggle,
+  });
 
   final GameRecord record;
   final VoidCallback? onTap;
@@ -32,7 +37,11 @@ class GameRecordCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(cardBorderRadius),
         boxShadow: [
-          BoxShadow(color: const Color(0xFFD3D9E9).withOpacity(0.5), blurRadius: 12, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: const Color(0xFFD3D9E9).withOpacity(0.5),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       padding: const EdgeInsets.all(cardPadding),
@@ -53,7 +62,11 @@ class GameRecordCard extends StatelessWidget {
     );
   }
 
-  Widget _buildGameImage(BuildContext context, double borderRadius, double rowContentHeight) {
+  Widget _buildGameImage(
+    BuildContext context,
+    double borderRadius,
+    double rowContentHeight,
+  ) {
     const double imageWidth = 90.0;
     const double imageHeight = 98.0;
 
@@ -72,7 +85,9 @@ class GameRecordCard extends StatelessWidget {
                   ? Image.file(
                     File(record.photos.first),
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => _buildDefaultImagePlaceholder(),
+                    errorBuilder:
+                        (context, error, stackTrace) =>
+                            _buildDefaultImagePlaceholder(),
                   )
                   : _buildDefaultImagePlaceholder(),
               if (onFavoriteToggle != null)
@@ -84,13 +99,22 @@ class GameRecordCard extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 1)),
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 1),
+                          ),
                         ],
                       ),
                       padding: const EdgeInsets.all(2.0),
                       child: Icon(
-                        record.isFavorite ? Icons.favorite : Icons.favorite_outline,
-                        color: record.isFavorite ? const Color(0xFFEB4144) : Colors.white,
+                        record.isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_outline,
+                        color:
+                            record.isFavorite
+                                ? const Color(0xFFEB4144)
+                                : Colors.white,
                         size: 22.0,
                       ),
                     ),
@@ -107,7 +131,11 @@ class GameRecordCard extends StatelessWidget {
     return Container(
       color: const Color(0xFFF0F2F5),
       alignment: Alignment.center,
-      child: SvgPicture.asset('assets/icons/wings-57px.svg', width: 57, height: 69),
+      child: SvgPicture.asset(
+        'assets/icons/wings-57px.svg',
+        width: 57,
+        height: 69,
+      ),
     );
   }
 
@@ -127,14 +155,18 @@ class GameRecordCard extends StatelessWidget {
               children: [
                 Text(
                   DateFormatter.formatFullDateTime(record.dateTime),
-                  style: AppTextStyles.caption.copyWith(color: const Color(0xFF8A94A8)),
+                  style: AppTextStyles.caption.copyWith(
+                    color: const Color(0xFF8A94A8),
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   record.stadium.name,
-                  style: AppTextStyles.subtitle2.copyWith(color: const Color(0xFF09004C)),
+                  style: AppTextStyles.subtitle2.copyWith(
+                    color: const Color(0xFF09004C),
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -148,19 +180,30 @@ class GameRecordCard extends StatelessWidget {
                 Flexible(
                   child: Text(
                     record.homeTeam.shortName,
-                    style: AppTextStyles.body1.copyWith(color: const Color(0xFF09004C), fontSize: 22),
+                    style: AppTextStyles.body1.copyWith(
+                      color: const Color(0xFF09004C),
+                      fontSize: 22,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Text('VS', style: AppTextStyles.body3.copyWith(color: const Color(0xFF8A94A8))),
+                  child: Text(
+                    'VS',
+                    style: AppTextStyles.body3.copyWith(
+                      color: const Color(0xFF8A94A8),
+                    ),
+                  ),
                 ),
                 Flexible(
                   child: Text(
                     record.awayTeam.shortName,
-                    style: AppTextStyles.body1.copyWith(color: const Color(0xFF09004C), fontSize: 22),
+                    style: AppTextStyles.body1.copyWith(
+                      color: const Color(0xFF09004C),
+                      fontSize: 22,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -174,12 +217,18 @@ class GameRecordCard extends StatelessWidget {
   }
 
   Widget _buildVerticalDottedLine(double contentHeight) {
-    return Container(width: 10, height: contentHeight, child: CustomPaint(painter: DottedLinePainter()));
+    return Container(
+      width: 10,
+      height: contentHeight,
+      child: CustomPaint(painter: DottedLinePainter()),
+    );
   }
 
   Widget _buildResultSection(BuildContext context, double contentHeight) {
     const double resultSectionWidth = 86.0;
-    final (badgeColor, badgeTextColor, resultText) = _getResultStyle(record.result);
+    final (badgeColor, badgeTextColor, resultText) = _getResultStyle(
+      record.result,
+    );
 
     return SizedBox(
       width: resultSectionWidth,
@@ -193,18 +242,35 @@ class GameRecordCard extends StatelessWidget {
             // 결과 배지
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 1),
-              decoration: BoxDecoration(color: badgeColor, borderRadius: BorderRadius.circular(14)),
+              decoration: BoxDecoration(
+                color: badgeColor,
+                borderRadius: BorderRadius.circular(14),
+              ),
               child: Text(
                 resultText,
-                style: AppTextStyles.body3.copyWith(fontWeight: FontWeight.bold, color: badgeTextColor),
+                style: AppTextStyles.body3.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: badgeTextColor,
+                ),
               ),
             ),
             const SizedBox(height: 4),
-            // DB에서 실제 점수 표시
-            if (record.homeScore != null && record.awayScore != null)
+            // 점수
+            if (record.result == GameResult.cancel)
+              Text(
+                '-',
+                style: AppTextStyles.body1.copyWith(
+                  color: const Color(0xFF8A94A8), // black60
+                  fontSize: 28,
+                ),
+              )
+            else if (record.homeScore != null && record.awayScore != null)
               Text(
                 '${record.homeScore}:${record.awayScore}',
-                style: AppTextStyles.body1.copyWith(color: const Color(0xFF09004C), fontSize: 28),
+                style: AppTextStyles.body1.copyWith(
+                  color: const Color(0xFF09004C),
+                  fontSize: 28,
+                ),
               ),
           ],
         ),
@@ -220,6 +286,8 @@ class GameRecordCard extends StatelessWidget {
         return (const Color(0xFF09004C), Colors.white, 'LOSE');
       case GameResult.draw:
         return (const Color(0xFFE6EAF2), const Color(0xFF09004C), 'DRAW');
+      case GameResult.cancel:
+        return (const Color(0xFFE6EAF2), const Color(0xFF8A94A8), 'CANCEL');
     }
   }
 }
