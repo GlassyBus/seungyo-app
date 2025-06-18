@@ -9,7 +9,8 @@ class RecordItem extends StatelessWidget {
   final GameRecord record;
   final VoidCallback? onTap;
 
-  const RecordItem({Key? key, required this.record, this.onTap}) : super(key: key);
+  const RecordItem({Key? key, required this.record, this.onTap})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +19,15 @@ class RecordItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.gray5,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -35,8 +42,10 @@ class RecordItem extends StatelessWidget {
                 _buildHeader(textTheme),
                 const SizedBox(height: 16),
                 _buildTeamsInfo(textTheme),
-                if (record.seatInfo != null && record.seatInfo!.isNotEmpty) _buildSeatInfo(textTheme),
+                if (record.seatInfo != null && record.seatInfo!.isNotEmpty)
+                  _buildSeatInfo(textTheme),
                 if (record.isFavorite) _buildFavoriteIndicator(textTheme),
+                if (_isWinRecord()) _buildViewRecordLink(textTheme),
               ],
             ),
           ),
@@ -57,17 +66,26 @@ class RecordItem extends StatelessWidget {
         if (badgeInfo.text.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: badgeInfo.color, borderRadius: BorderRadius.circular(6)),
+            decoration: BoxDecoration(
+              color: badgeInfo.color,
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Text(
               badgeInfo.text,
-              style: textTheme.bodySmall?.copyWith(color: badgeInfo.textColor, fontWeight: FontWeight.bold),
+              style: textTheme.bodySmall?.copyWith(
+                color: badgeInfo.textColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         if (badgeInfo.text.isNotEmpty) const SizedBox(width: 12),
         Expanded(
           child: Text(
             '${record.stadium.name}, ${formattedTime}',
-            style: textTheme.bodyMedium?.copyWith(color: AppColors.navy, fontWeight: FontWeight.bold),
+            style: textTheme.bodyMedium?.copyWith(
+              color: AppColors.navy,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.gray50),
@@ -95,7 +113,9 @@ class RecordItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   record.homeTeam.name,
-                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -109,11 +129,24 @@ class RecordItem extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('${record.homeScore}', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                '${record.homeScore}',
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(width: 8),
-              Text(':', style: textTheme.titleLarge?.copyWith(color: AppColors.gray50)),
+              Text(
+                ':',
+                style: textTheme.titleLarge?.copyWith(color: AppColors.gray50),
+              ),
               const SizedBox(width: 8),
-              Text('${record.awayScore}', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                '${record.awayScore}',
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ),
@@ -126,7 +159,9 @@ class RecordItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   record.awayTeam.name,
-                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.end,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -155,7 +190,10 @@ class RecordItem extends StatelessWidget {
         children: [
           Icon(Icons.event_seat, size: 16, color: AppColors.gray50),
           const SizedBox(width: 4),
-          Text(record.seatInfo!, style: textTheme.bodySmall?.copyWith(color: AppColors.gray70)),
+          Text(
+            record.seatInfo!,
+            style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
+          ),
         ],
       ),
     );
@@ -169,7 +207,13 @@ class RecordItem extends StatelessWidget {
         children: [
           Icon(Icons.favorite, size: 16, color: Colors.red),
           const SizedBox(width: 4),
-          Text('즐겨찾기', style: textTheme.bodySmall?.copyWith(color: Colors.red, fontWeight: FontWeight.w600)),
+          Text(
+            '즐겨찾기',
+            style: textTheme.bodySmall?.copyWith(
+              color: Colors.red,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -178,20 +222,59 @@ class RecordItem extends StatelessWidget {
   /// 배지 정보 가져오기
   _BadgeInfo _getBadgeInfo() {
     if (record.canceled) {
-      return _BadgeInfo(color: AppColors.gray30, textColor: AppColors.black, text: '취소');
+      return _BadgeInfo(
+        color: AppColors.gray30,
+        textColor: AppColors.black,
+        text: '취소',
+      );
     }
 
     // 승부 결과 확인
     if (record.homeScore > record.awayScore) {
       // 홈팀 승리
-      return _BadgeInfo(color: AppColors.mint, textColor: AppColors.navy, text: 'WIN');
+      return _BadgeInfo(
+        color: AppColors.mint,
+        textColor: AppColors.navy,
+        text: 'WIN',
+      );
     } else if (record.homeScore < record.awayScore) {
       // 원정팀 승리 (홈팀 패배)
-      return _BadgeInfo(color: AppColors.navy, textColor: Colors.white, text: 'LOSE');
+      return _BadgeInfo(
+        color: AppColors.navy,
+        textColor: Colors.white,
+        text: 'LOSE',
+      );
     } else {
       // 무승부
-      return _BadgeInfo(color: AppColors.gray30, textColor: AppColors.black, text: 'DRAW');
+      return _BadgeInfo(
+        color: AppColors.gray30,
+        textColor: AppColors.black,
+        text: 'DRAW',
+      );
     }
+  }
+
+  bool _isWinRecord() {
+    return record.homeScore > record.awayScore;
+  }
+
+  Widget _buildViewRecordLink(TextTheme textTheme) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        children: [
+          Icon(Icons.link, size: 16, color: AppColors.gray50),
+          const SizedBox(width: 4),
+          Text(
+            '직관 기록 보기',
+            style: textTheme.bodySmall?.copyWith(
+              color: AppColors.gray50,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -201,5 +284,9 @@ class _BadgeInfo {
   final Color textColor;
   final String text;
 
-  _BadgeInfo({required this.color, required this.textColor, required this.text});
+  _BadgeInfo({
+    required this.color,
+    required this.textColor,
+    required this.text,
+  });
 }

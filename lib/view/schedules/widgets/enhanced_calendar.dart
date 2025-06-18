@@ -111,9 +111,9 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
                 child: Center(
                   child: Text(
                     label,
-                    style: textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: index == 0 ? Colors.red : AppColors.black,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.gray50,
                     ),
                   ),
                 ),
@@ -191,6 +191,8 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
 
     // 경기 결과 분석
     final gameResults = _analyzeGameResults(dayRecords);
+    final hasGames = dayRecords.isNotEmpty;
+    final hasCanceledGames = dayRecords.any((record) => record.canceled);
 
     return GestureDetector(
       onTap: isCurrentMonth ? () => _selectDate(day) : null,
@@ -202,58 +204,75 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: _getDateBackgroundColor(gameResults, isSelected, isToday),
+            color: isSelected ? const Color(0xFFD5FFF2) : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            border: _getDateBorder(isSelected, isToday),
-            boxShadow:
-                isSelected
-                    ? [
-                      BoxShadow(
-                        color: AppColors.navy.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                    : null,
           ),
           child: Stack(
             children: [
               // 메인 날짜 텍스트
               Center(
-                child: Text(
-                  '${day.day}',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: _getDateTextColor(
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _getCircleBackgroundColor(
                       gameResults,
-                      isCurrentMonth,
+                      hasGames,
+                      hasCanceledGames,
                       isSelected,
+                      dayRecords,
                     ),
-                    fontWeight:
-                        isSelected || isToday
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+                    border: _getCircleBorder(
+                      isSelected,
+                      isToday,
+                      hasGames,
+                      hasCanceledGames,
+                      gameResults,
+                      dayRecords,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${day.day}',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: _getDateTextColor(
+                          gameResults,
+                          isCurrentMonth,
+                          isSelected,
+                          hasGames,
+                          hasCanceledGames,
+                          dayRecords,
+                        ),
+                        fontWeight:
+                            isSelected
+                                ? FontWeight.w700
+                                : hasGames
+                                ? FontWeight.w700
+                                : FontWeight.normal,
+                      ),
+                    ),
                   ),
                 ),
               ),
-
-              // 경기 수 표시
-              if (dayRecords.isNotEmpty && isCurrentMonth)
-                Positioned(
-                  top: 2,
-                  right: 2,
-                  child: _buildGameCountBadge(dayRecords.length),
-                ),
 
               // 특별한 경기 표시 (즐겨찾기 등)
               if (_hasSpecialGames(dayRecords) && isCurrentMonth)
                 Positioned(
                   bottom: 2,
                   left: 2,
-                  child: _buildSpecialGameIndicator(),
+                  child: Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
                 ),
 
               // 오늘 날짜 표시
-              if (isToday && !isSelected)
+              if (isToday && !isSelected && !hasGames)
                 Positioned(
                   bottom: 2,
                   right: 2,
@@ -273,44 +292,43 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
     );
   }
 
-  /// 날짜 배경색 계산
-  Color _getDateBackgroundColor(
+  /// 원형 배경색 계산
+  Color _getCircleBackgroundColor(
     Map<GameResult, int> gameResults,
+    bool hasGames,
+    bool hasCanceledGames,
     bool isSelected,
-    bool isToday,
+    List<GameRecord> records,
   ) {
+    // 선택된 날짜의 경우 항상 흰색 원형 배경
     if (isSelected) {
-      return AppColors.navy;
+      return Colors.white;
     }
 
-    // 경기 결과에 따른 배경색 (우선순위: 승리 > 무승부 > 패배)
-    if (gameResults[GameResult.win] != null &&
-        gameResults[GameResult.win]! > 0) {
-      return AppColors.mint.withOpacity(0.8);
-    } else if (gameResults[GameResult.draw] != null &&
-        gameResults[GameResult.draw]! > 0) {
-      return AppColors.gray30.withOpacity(0.8);
-    } else if (gameResults[GameResult.lose] != null &&
-        gameResults[GameResult.lose]! > 0) {
-      return AppColors.navy.withOpacity(0.8);
+    if (!hasGames) {
+      // 경기가 없는 날짜는 투명
+      return Colors.transparent;
     }
 
-    if (isToday) {
-      return AppColors.mint.withOpacity(0.2);
+    // 가장 첫 번째 기록을 기준으로 색상 결정
+    final firstRecord = records.first;
+
+    // 첫 번째 기록이 취소된 경우
+    if (firstRecord.canceled) {
+      return Colors.white;
     }
 
-    return Colors.transparent;
-  }
-
-  /// 날짜 테두리 계산
-  Border? _getDateBorder(bool isSelected, bool isToday) {
-    if (isSelected) {
-      return Border.all(color: AppColors.mint, width: 2);
+    // 첫 번째 기록의 결과에 따른 배경색
+    switch (firstRecord.result) {
+      case GameResult.win:
+        return AppColors.mint;
+      case GameResult.lose:
+        return AppColors.navy;
+      case GameResult.draw:
+        return AppColors.gray50;
+      case GameResult.cancel:
+        return Colors.white;
     }
-    if (isToday) {
-      return Border.all(color: AppColors.mint, width: 1);
-    }
-    return null;
   }
 
   /// 날짜 텍스트 색상 계산
@@ -318,54 +336,38 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
     Map<GameResult, int> gameResults,
     bool isCurrentMonth,
     bool isSelected,
+    bool hasGames,
+    bool hasCanceledGames,
+    List<GameRecord> records,
   ) {
     if (!isCurrentMonth) {
       return AppColors.gray30;
     }
 
+    // 선택된 날짜의 경우 항상 진한 검은색 (Figma 디자인)
     if (isSelected) {
-      return Colors.white;
+      return const Color(0xFF100F21);
     }
 
-    // 패배가 있는 경우 흰색 텍스트
-    if (gameResults[GameResult.lose] != null &&
-        gameResults[GameResult.lose]! > 0) {
-      return Colors.white;
+    if (!hasGames) {
+      // 경기가 없는 경우
+      return AppColors.black;
     }
 
-    return AppColors.black;
-  }
+    // 가장 첫 번째 기록을 기준으로 텍스트 색상 결정
+    final firstRecord = records.first;
 
-  /// 경기 수 배지 위젯 생성
-  Widget _buildGameCountBadge(int count) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppColors.navy,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        '$count',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
+    // 첫 번째 기록이 취소된 경우 검은색 텍스트
+    if (firstRecord.canceled) {
+      return AppColors.black;
+    }
 
-  /// 특별 경기 표시 위젯 생성
-  Widget _buildSpecialGameIndicator() {
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        color: Colors.red,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 1),
-      ),
-    );
+    // 첫 번째 기록의 결과에 따른 텍스트 색상
+    if (firstRecord.result == GameResult.lose) {
+      return Colors.white; // 남색 배경에 흰색 텍스트
+    }
+
+    return AppColors.black; // 민트색/회색 배경에 검은색 텍스트
   }
 
   /// 경기 결과 분석
@@ -442,6 +444,33 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
             },
           ),
     );
+  }
+
+  /// 원형 테두리 계산
+  Border? _getCircleBorder(
+    bool isSelected,
+    bool isToday,
+    bool hasGames,
+    bool hasCanceledGames,
+    Map<GameResult, int> gameResults,
+    List<GameRecord> records,
+  ) {
+    if (isSelected) {
+      // 선택된 날짜는 진한 네이비 테두리 2px (Figma 디자인)
+      return Border.all(color: const Color(0xFF09004C), width: 2);
+    }
+
+    // 오늘 날짜이면서 경기가 없는 경우 민트색 테두리
+    if (isToday && !hasGames) {
+      return Border.all(color: AppColors.mint, width: 1);
+    }
+
+    // 가장 첫 번째 기록이 취소된 경우 민트색 테두리
+    if (hasGames && records.first.canceled) {
+      return Border.all(color: AppColors.mint, width: 1);
+    }
+
+    return null;
   }
 }
 

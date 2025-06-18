@@ -16,11 +16,27 @@ class ScheduleProvider extends ChangeNotifier {
   // Getters
   DateTime get selectedDate => _selectedDate;
   DateTime get currentMonth => _currentMonth;
-  Map<DateTime, List<GameRecord>> get scheduleMap => _recordMap; // 호환성을 위해 이름 유지
+  Map<DateTime, List<GameRecord>> get scheduleMap =>
+      _recordMap; // 호환성을 위해 이름 유지
   List<GameRecord> get daySchedules => _dayRecords; // 호환성을 위해 이름 유지
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
   String get errorMessage => _errorMessage;
+
+  /// 선택된 날짜에 모든 게임이 취소되었는지 확인
+  bool get isAllGamesCanceledOnSelectedDate {
+    final dateKey = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+    );
+
+    final allDayRecords = _recordMap[dateKey] ?? [];
+    // 기록이 없으면 false 반환
+    if (allDayRecords.isEmpty) return false;
+    // 모든 기록이 취소되었는지 확인
+    return allDayRecords.every((record) => record.canceled);
+  }
 
   /// 초기 데이터 로드
   Future<void> initialize() async {
@@ -35,26 +51,29 @@ class ScheduleProvider extends ChangeNotifier {
 
     try {
       print('직관 기록 로드 중...');
-      
+
       // 모든 직관 기록 가져오기
       final allRecords = await _recordService.getAllRecords();
       print('로드된 직관 기록 수: ${allRecords.length}');
 
       // 현재 월의 기록만 필터링
-      final monthRecords = allRecords.where((record) {
-        return record.gameDate.year == _currentMonth.year &&
-               record.gameDate.month == _currentMonth.month;
-      }).toList();
-      print('현재 월(${_currentMonth.year}년 ${_currentMonth.month}월) 기록: ${monthRecords.length}개');
+      final monthRecords =
+          allRecords.where((record) {
+            return record.gameDate.year == _currentMonth.year &&
+                record.gameDate.month == _currentMonth.month;
+          }).toList();
+      print(
+        '현재 월(${_currentMonth.year}년 ${_currentMonth.month}월) 기록: ${monthRecords.length}개',
+      );
 
       // 날짜별 기록 맵 생성
       _recordMap = _createRecordMap(monthRecords);
       print('기록 맵 생성 완료: ${_recordMap.keys.length}개 날짜');
-      
+
       // 선택된 날짜의 기록 업데이트
       _updateDayRecords();
       print('선택된 날짜 기록: ${_dayRecords.length}개');
-      
+
       _setLoading(false);
       print('=== loadSchedules 완료 ===');
     } catch (e) {
@@ -73,7 +92,7 @@ class ScheduleProvider extends ChangeNotifier {
   /// 날짜 선택
   void selectDate(DateTime date) {
     _selectedDate = date;
-    
+
     // 이미 로드된 데이터에서 해당 날짜의 기록만 필터링
     _updateDayRecords();
     notifyListeners();
@@ -94,9 +113,13 @@ class ScheduleProvider extends ChangeNotifier {
       _selectedDate.month,
       _selectedDate.day,
     );
-    
-    _dayRecords = _recordMap[dateKey] ?? [];
-    print('날짜 ${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day} 기록: ${_dayRecords.length}개');
+
+    // 해당 날짜의 기록에서 취소되지 않은 기록만 필터링
+    final allDayRecords = _recordMap[dateKey] ?? [];
+    _dayRecords = allDayRecords.where((record) => !record.canceled).toList();
+    print(
+      '날짜 ${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day} 기록: ${_dayRecords.length}개 (취소된 기록 제외: ${allDayRecords.length - _dayRecords.length}개)',
+    );
   }
 
   /// 날짜별 직관 기록 맵 생성

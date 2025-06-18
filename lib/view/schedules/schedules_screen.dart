@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:seungyo/providers/schedule_provider.dart';
 import 'package:seungyo/widgets/error_view.dart';
 import 'package:seungyo/widgets/loading_indicator.dart';
+import 'package:intl/intl.dart';
+import '../../theme/app_colors.dart';
 
 import '../record/record_detail_screen.dart';
 import 'widgets/calendar_header.dart';
@@ -42,30 +44,75 @@ class _SchedulePageState extends State<SchedulePage> {
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: provider.loadSchedules,
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: Column(
-              children: [
-                CalendarHeader(
-                  currentMonth: provider.currentMonth,
-                  onMonthChanged: provider.changeMonth,
-                  onTodayPressed: provider.goToToday,
-                ),
-                EnhancedCalendar(
-                  selectedDate: provider.selectedDate,
-                  currentMonth: provider.currentMonth,
-                  scheduleMap: provider.scheduleMap,
-                  onDateSelected: provider.selectDate,
-                  onMonthChanged: provider.changeMonth,
-                ),
-                _buildSelectedDateRecords(context, provider),
-              ],
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(
+              '경기 일정',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: AppColors.navy,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.notifications_outlined, color: AppColors.navy),
+                onPressed: () {},
+              ),
+            ],
+          ),
+          backgroundColor: Colors.white,
+          body: RefreshIndicator(
+            onRefresh: provider.loadSchedules,
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                children: [
+                  CalendarHeader(
+                    currentMonth: provider.currentMonth,
+                    onMonthChanged: provider.changeMonth,
+                    onTodayPressed: provider.goToToday,
+                  ),
+                  EnhancedCalendar(
+                    selectedDate: provider.selectedDate,
+                    currentMonth: provider.currentMonth,
+                    scheduleMap: provider.scheduleMap,
+                    onDateSelected: provider.selectDate,
+                    onMonthChanged: provider.changeMonth,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSelectedDateHeader(provider.selectedDate),
+                  _buildSelectedDateRecords(context, provider),
+                ],
+              ),
             ),
           ),
         );
       },
+    );
+  }
+
+  /// 선택된 날짜 헤더 위젯 생성
+  Widget _buildSelectedDateHeader(DateTime selectedDate) {
+    final formatter = DateFormat('yyyy. MM. dd(EEE)', 'ko_KR');
+    final formattedDate = formatter.format(selectedDate);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.navy,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        formattedDate,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 
@@ -77,9 +124,12 @@ class _SchedulePageState extends State<SchedulePage> {
     final selectedRecords = provider.daySchedules;
 
     if (selectedRecords.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: NoScheduleView(isRainCanceled: false),
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: NoScheduleView(
+          isAllGamesCanceled: provider.isAllGamesCanceledOnSelectedDate,
+          hasNoSchedule: !provider.isAllGamesCanceledOnSelectedDate,
+        ),
       );
     }
 
@@ -109,9 +159,9 @@ class _SchedulePageState extends State<SchedulePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('오류가 발생했습니다: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('오류가 발생했습니다: $e')));
       }
     }
   }
