@@ -16,6 +16,7 @@ import 'widgets/date_time_picker_modal.dart';
 import 'widgets/score_input_modal.dart';
 import 'widgets/stadium_picker_modal.dart';
 import 'widgets/team_picker_modal.dart';
+import 'widgets/image_editor_screen.dart';
 
 class CreateRecordScreen extends StatefulWidget {
   final GameRecord? gameRecord; // 수정할 기록 (null이면 새 기록)
@@ -280,6 +281,25 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
+                      ),
+                      Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () => _navigateToImageEditor(0),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Icon(
+                              Icons.edit,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
                       ),
                       if (_selectedImages.length > 1)
                         Positioned(
@@ -1217,6 +1237,26 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                     : AppTextStyles.h3.copyWith(color: AppColors.gray70),
           ),
         ),
+      ),
+    );
+  }
+
+  void _navigateToImageEditor(int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => ImageEditorScreen(
+              image: _selectedImages[index],
+              onImageEdited: (String editedImagePath) {
+                setState(() {
+                  _selectedImages[index] = File(editedImagePath);
+                  _form = _form.copyWith(
+                    imagePaths: _selectedImages.map((e) => e.path).toList(),
+                  );
+                });
+              },
+            ),
       ),
     );
   }
