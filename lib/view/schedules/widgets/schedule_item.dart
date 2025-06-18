@@ -100,9 +100,13 @@ class ScheduleItem extends StatelessWidget {
         Expanded(
           child: Row(
             children: [
-              Text(
-                schedule.homeTeamLogo ?? '⚾',
-                style: const TextStyle(fontSize: 24),
+              Image.asset(
+                schedule.homeTeamLogo ?? 'assets/emblems/bears.png',
+                width: 32,
+                height: 32,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Text('⚾', style: TextStyle(fontSize: 24));
+                },
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -173,9 +177,13 @@ class ScheduleItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                schedule.awayTeamLogo ?? '⚾',
-                style: const TextStyle(fontSize: 24),
+              Image.asset(
+                schedule.awayTeamLogo ?? 'assets/emblems/bears.png',
+                width: 32,
+                height: 32,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Text('⚾', style: TextStyle(fontSize: 24));
+                },
               ),
             ],
           ),
