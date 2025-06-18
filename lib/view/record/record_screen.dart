@@ -102,12 +102,17 @@ class _RecordListPageState extends State<RecordListPage>
   }
 
   List<GameRecord> get _filteredRecords {
+    // 먼저 취소되지 않은 기록만 필터링
+    final nonCanceledRecords =
+        _records.where((record) => !record.canceled).toList();
+
+    // 그 다음 즐겨찾기 필터 적용
     final filtered =
         _showOnlyFavorites
-            ? _records.where((record) => record.isFavorite).toList()
-            : _records;
+            ? nonCanceledRecords.where((record) => record.isFavorite).toList()
+            : nonCanceledRecords;
     print(
-      'RecordScreen: Filtered records count: ${filtered.length} (showOnlyFavorites: $_showOnlyFavorites)',
+      'RecordScreen: Filtered records count: ${filtered.length} (showOnlyFavorites: $_showOnlyFavorites, excluded canceled: ${_records.length - nonCanceledRecords.length})',
     );
     return filtered;
   }
