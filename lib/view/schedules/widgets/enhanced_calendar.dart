@@ -3,13 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../../models/game_record.dart';
 import '../../../theme/app_colors.dart';
-import '../../../models/game_schedule.dart';
 import '../../../utils/date_utils.dart';
 
 class EnhancedCalendar extends StatefulWidget {
   final DateTime selectedDate;
   final DateTime currentMonth;
-  final Map<DateTime, List<GameSchedule>> scheduleMap;
+  final Map<DateTime, List<GameRecord>> scheduleMap;
   final Function(DateTime) onDateSelected;
   final Function(int) onMonthChanged;
 
@@ -186,12 +185,12 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
         _longPressedDate != null &&
         AppDateUtils.isSameDay(day, _longPressedDate!);
 
-    // 해당 날짜의 경기 일정 가져오기
+    // 해당 날짜의 직관 기록 가져오기
     final dateKey = DateTime(day.year, day.month, day.day);
-    final daySchedules = widget.scheduleMap[dateKey] ?? [];
+    final dayRecords = widget.scheduleMap[dateKey] ?? [];
 
     // 경기 결과 분석
-    final gameResults = _analyzeGameResults(daySchedules);
+    final gameResults = _analyzeGameResults(dayRecords);
 
     return GestureDetector(
       onTap: isCurrentMonth ? () => _selectDate(day) : null,
@@ -238,15 +237,15 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
               ),
 
               // 경기 수 표시
-              if (daySchedules.isNotEmpty && isCurrentMonth)
+              if (dayRecords.isNotEmpty && isCurrentMonth)
                 Positioned(
                   top: 2,
                   right: 2,
-                  child: _buildGameCountBadge(daySchedules.length),
+                  child: _buildGameCountBadge(dayRecords.length),
                 ),
 
               // 특별한 경기 표시 (즐겨찾기 등)
-              if (_hasSpecialGames(daySchedules) && isCurrentMonth)
+              if (_hasSpecialGames(dayRecords) && isCurrentMonth)
                 Positioned(
                   bottom: 2,
                   left: 2,
@@ -370,12 +369,12 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
   }
 
   /// 경기 결과 분석
-  Map<GameResult, int> _analyzeGameResults(List<GameSchedule> schedules) {
+  Map<GameResult, int> _analyzeGameResults(List<GameRecord> records) {
     final results = <GameResult, int>{};
 
-    for (final schedule in schedules) {
-      if (schedule.status == GameStatus.finished) {
-        final result = schedule.result;
+    for (final record in records) {
+      if (!record.canceled) {
+        final result = record.result;
         results[result] = (results[result] ?? 0) + 1;
       }
     }
@@ -383,9 +382,9 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
     return results;
   }
 
-  /// 특별 경기 여부 확인
-  bool _hasSpecialGames(List<GameSchedule> schedules) {
-    return schedules.any((schedule) => schedule.hasAttended);
+  /// 특별 경기 여부 확인 (즐겨찾기 기록이 있는지)
+  bool _hasSpecialGames(List<GameRecord> records) {
+    return records.any((record) => record.isFavorite);
   }
 
   /// 날짜 선택 처리
@@ -424,7 +423,7 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
   /// 날짜 액션 메뉴 표시
   void _showDateActionMenu(DateTime date) {
     final dateKey = DateTime(date.year, date.month, date.day);
-    final daySchedules = widget.scheduleMap[dateKey] ?? [];
+    final dayRecords = widget.scheduleMap[dateKey] ?? [];
 
     showModalBottomSheet(
       context: context,
@@ -432,7 +431,7 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
       builder:
           (context) => DateActionMenu(
             date: date,
-            schedules: daySchedules,
+            records: dayRecords,
             onAddRecord: () {
               Navigator.pop(context);
               // TODO: 직관 기록 추가 화면으로 이동
@@ -449,14 +448,14 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
 /// 날짜 액션 메뉴 위젯
 class DateActionMenu extends StatelessWidget {
   final DateTime date;
-  final List<GameSchedule> schedules;
+  final List<GameRecord> records;
   final VoidCallback onAddRecord;
   final VoidCallback onViewSchedule;
 
   const DateActionMenu({
     Key? key,
     required this.date,
-    required this.schedules,
+    required this.records,
     required this.onAddRecord,
     required this.onViewSchedule,
   }) : super(key: key);
@@ -498,9 +497,9 @@ class DateActionMenu extends StatelessWidget {
             ),
             const SizedBox(height: 8),
 
-            if (schedules.isNotEmpty)
+            if (records.isNotEmpty)
               Text(
-                '${schedules.length}개의 경기',
+                '${records.length}개의 직관 기록',
                 style: textTheme.bodyMedium?.copyWith(color: AppColors.gray70),
               ),
 
@@ -515,12 +514,12 @@ class DateActionMenu extends StatelessWidget {
               onTap: onAddRecord,
             ),
 
-            if (schedules.isNotEmpty)
+            if (records.isNotEmpty)
               _buildActionItem(
                 context,
                 icon: Icons.event_note_outlined,
-                title: '경기 일정 보기',
-                subtitle: '이 날의 경기 일정을 확인합니다',
+                title: '직관 기록 보기',
+                subtitle: '이 날의 직관 기록을 확인합니다',
                 onTap: onViewSchedule,
               ),
 

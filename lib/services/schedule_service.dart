@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../models/game_schedule.dart';
 import '../services/record_service.dart';
+import '../constants/team_data.dart';
 
 class ScheduleService {
   static const String _fileName = 'game_schedules.json';
@@ -41,11 +42,7 @@ class ScheduleService {
     try {
       final allSchedules = await getAllSchedules();
       return allSchedules
-          .where(
-            (schedule) =>
-                schedule.dateTime.year == year &&
-                schedule.dateTime.month == month,
-          )
+          .where((schedule) => schedule.dateTime.year == year && schedule.dateTime.month == month)
           .toList();
     } catch (e) {
       print('Error getting schedules by month: $e');
@@ -82,17 +79,16 @@ class ScheduleService {
 
       for (int i = 0; i < schedules.length; i++) {
         final schedule = schedules[i];
-        
+
         // 같은 날짜, 같은 팀의 경기 찾기
-        final matchingRecords = records.where((record) {
-          return record.gameDate.year == schedule.dateTime.year &&
-              record.gameDate.month == schedule.dateTime.month &&
-              record.gameDate.day == schedule.dateTime.day &&
-              ((record.homeTeam.name == schedule.homeTeam &&
-                      record.awayTeam.name == schedule.awayTeam) ||
-                  (record.homeTeam.name == schedule.awayTeam &&
-                      record.awayTeam.name == schedule.homeTeam));
-        }).toList();
+        final matchingRecords =
+            records.where((record) {
+              return record.gameDate.year == schedule.dateTime.year &&
+                  record.gameDate.month == schedule.dateTime.month &&
+                  record.gameDate.day == schedule.dateTime.day &&
+                  ((record.homeTeam.name == schedule.homeTeam && record.awayTeam.name == schedule.awayTeam) ||
+                      (record.homeTeam.name == schedule.awayTeam && record.awayTeam.name == schedule.homeTeam));
+            }).toList();
 
         if (matchingRecords.isNotEmpty) {
           final matchingRecord = matchingRecords.first;
@@ -140,63 +136,70 @@ class ScheduleService {
   // 샘플 데이터 생성
   List<GameSchedule> _generateSampleData() {
     final now = DateTime.now();
-    final year = 2025;
-    final month = 8;
+    final year = now.year;
+    final month = now.month;
+
+    // 팀 데이터에서 로고 가져오기
+    String getTeamLogo(String teamName) {
+      final team = TeamData.teams.firstWhere(
+        (t) => t.name.contains(teamName) || t.code == teamName,
+        orElse: () => TeamData.teams.first,
+      );
+      return team.emblem;
+    }
 
     return [
-      // 8월 5일 경기
+      // 이번 달 5일 경기
       GameSchedule(
         id: 1,
         dateTime: DateTime(year, month, 5, 14, 0),
         stadium: '고척',
         homeTeam: 'SSG',
         awayTeam: '키움',
-        homeTeamLogo: '⚡',
-        awayTeamLogo: '🦸‍♂️',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('키움'),
         status: GameStatus.finished,
         homeScore: 3,
         awayScore: 2,
       ),
 
-      // 8월 14일 - 경기 없음
-
-      // 8월 15일 경기 (패배)
+      // 이번 달 15일 경기 (패배)
       GameSchedule(
         id: 2,
         dateTime: DateTime(year, month, 15, 14, 0),
         stadium: '고척',
         homeTeam: 'SSG',
         awayTeam: '키움',
-        homeTeamLogo: '⚡',
-        awayTeamLogo: '🦸‍♂️',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('키움'),
         status: GameStatus.finished,
         homeScore: 0,
         awayScore: 1,
       ),
 
-      // 8월 16일 경기 (승리)
+      // 이번 달 16일 경기 (승리)
       GameSchedule(
         id: 3,
         dateTime: DateTime(year, month, 16, 14, 0),
         stadium: '고척',
         homeTeam: 'SSG',
         awayTeam: '키움',
-        homeTeamLogo: '⚡',
-        awayTeamLogo: '🦸‍♂️',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('키움'),
         status: GameStatus.finished,
         homeScore: 5,
         awayScore: 2,
       ),
 
-      // 8월 17일 경기 (승리)
+      // 이번 달 17일 경기 (승리)
       GameSchedule(
         id: 4,
         dateTime: DateTime(year, month, 17, 14, 0),
         stadium: '고척',
         homeTeam: 'SSG',
         awayTeam: '키움',
-        homeTeamLogo: '⚡',
-        awayTeamLogo: '🦸‍♂️',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('키움'),
         status: GameStatus.finished,
         homeScore: 1,
         awayScore: 0,
@@ -207,8 +210,8 @@ class ScheduleService {
         stadium: '잠실',
         homeTeam: 'LG',
         awayTeam: 'KIA',
-        homeTeamLogo: '⚾',
-        awayTeamLogo: '🐅',
+        homeTeamLogo: getTeamLogo('LG'),
+        awayTeamLogo: getTeamLogo('KIA'),
         status: GameStatus.scheduled,
       ),
       GameSchedule(
@@ -217,35 +220,48 @@ class ScheduleService {
         stadium: '잠실',
         homeTeam: '한화',
         awayTeam: '삼성',
-        homeTeamLogo: '🦅',
-        awayTeamLogo: '🦁',
+        homeTeamLogo: getTeamLogo('한화'),
+        awayTeamLogo: getTeamLogo('삼성'),
         status: GameStatus.scheduled,
       ),
 
-      // 8월 18일 경기 (무승부)
+      // 이번 달 18일 경기 (무승부)
       GameSchedule(
         id: 7,
         dateTime: DateTime(year, month, 18, 14, 0),
         stadium: '고척',
         homeTeam: 'SSG',
         awayTeam: '키움',
-        homeTeamLogo: '⚡',
-        awayTeamLogo: '🦸‍♂️',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('키움'),
         status: GameStatus.finished,
         homeScore: 1,
         awayScore: 1,
       ),
 
-      // 8월 19일 경기 (우천 취소)
+      // 이번 달 19일 경기 (우천 취소)
       GameSchedule(
         id: 8,
         dateTime: DateTime(year, month, 19, 14, 0),
         stadium: '고척',
         homeTeam: 'SSG',
         awayTeam: '키움',
-        homeTeamLogo: '⚡',
-        awayTeamLogo: '🦸‍♂️',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('키움'),
         status: GameStatus.canceled,
+      ),
+
+      // 오늘 경기 (진행 예정)
+      GameSchedule(
+        id: 9,
+        dateTime: DateTime(year, month, now.day, 18, 30),
+        stadium: '문학',
+        homeTeam: 'SK',
+        awayTeam: '롯데',
+        homeTeamLogo: getTeamLogo('SSG'),
+        // SK가 없어서 SSG로 대체
+        awayTeamLogo: getTeamLogo('롯데'),
+        status: GameStatus.scheduled,
       ),
     ];
   }

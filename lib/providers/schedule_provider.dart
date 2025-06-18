@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import '../models/game_schedule.dart';
-import '../services/schedule_service.dart';
+import '../models/game_record.dart';
+import '../services/record_service.dart';
 
 class ScheduleProvider extends ChangeNotifier {
-  final ScheduleService _scheduleService = ScheduleService();
+  final RecordService _recordService = RecordService();
 
   DateTime _selectedDate = DateTime.now();
   DateTime _currentMonth = DateTime.now();
-  Map<DateTime, List<GameSchedule>> _scheduleMap = {};
-  List<GameSchedule> _daySchedules = [];
+  Map<DateTime, List<GameRecord>> _recordMap = {};
+  List<GameRecord> _dayRecords = [];
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
@@ -16,8 +16,8 @@ class ScheduleProvider extends ChangeNotifier {
   // Getters
   DateTime get selectedDate => _selectedDate;
   DateTime get currentMonth => _currentMonth;
-  Map<DateTime, List<GameSchedule>> get scheduleMap => _scheduleMap;
-  List<GameSchedule> get daySchedules => _daySchedules;
+  Map<DateTime, List<GameRecord>> get scheduleMap => _recordMap; // 호환성을 위해 이름 유지
+  List<GameRecord> get daySchedules => _dayRecords; // 호환성을 위해 이름 유지
   bool get isLoading => _isLoading;
   bool get hasError => _hasError;
   String get errorMessage => _errorMessage;
@@ -27,47 +27,56 @@ class ScheduleProvider extends ChangeNotifier {
     await loadSchedules();
   }
 
-  /// 경기 일정 로드
+  /// 직관 기록 로드 (기존 이름 유지하여 호환성 확보)
   Future<void> loadSchedules() async {
+    print('=== loadSchedules 시작 ===');
     _setLoading(true);
     _clearError();
 
     try {
-      // 직관 기록과 경기 일정 동기화
-      await _scheduleService.syncWithRecords();
+      print('직관 기록 로드 중...');
+      
+      // 모든 직관 기록 가져오기
+      final allRecords = await _recordService.getAllRecords();
+      print('로드된 직관 기록 수: ${allRecords.length}');
 
-      // 현재 월의 경기 일정 로드
-      final monthSchedules = await _scheduleService.getSchedulesByMonth(
-        _currentMonth.year,
-        _currentMonth.month,
-      );
+      // 현재 월의 기록만 필터링
+      final monthRecords = allRecords.where((record) {
+        return record.gameDate.year == _currentMonth.year &&
+               record.gameDate.month == _currentMonth.month;
+      }).toList();
+      print('현재 월(${_currentMonth.year}년 ${_currentMonth.month}월) 기록: ${monthRecords.length}개');
 
-      // 선택된 날짜의 경기 일정 로드
-      final daySchedules = await _scheduleService.getSchedulesByDate(
-        _selectedDate,
-      );
-
-      // 날짜별 경기 일정 맵 생성
-      final scheduleMap = _createScheduleMap(monthSchedules);
-
-      _scheduleMap = scheduleMap;
-      _daySchedules = daySchedules;
+      // 날짜별 기록 맵 생성
+      _recordMap = _createRecordMap(monthRecords);
+      print('기록 맵 생성 완료: ${_recordMap.keys.length}개 날짜');
+      
+      // 선택된 날짜의 기록 업데이트
+      _updateDayRecords();
+      print('선택된 날짜 기록: ${_dayRecords.length}개');
+      
       _setLoading(false);
+      print('=== loadSchedules 완료 ===');
     } catch (e) {
-      _setError('경기 일정을 불러오는 중 오류가 발생했습니다: $e');
+      print('에러 발생: $e');
+      _setError('직관 기록을 불러오는 중 오류가 발생했습니다: $e');
     }
   }
 
   /// 월 변경
   void changeMonth(int delta) {
     _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + delta);
+    // 월이 변경될 때만 데이터 로드
     loadSchedules();
   }
 
   /// 날짜 선택
   void selectDate(DateTime date) {
     _selectedDate = date;
-    loadSchedules();
+    
+    // 이미 로드된 데이터에서 해당 날짜의 기록만 필터링
+    _updateDayRecords();
+    notifyListeners();
   }
 
   /// 오늘 날짜로 이동
@@ -78,23 +87,33 @@ class ScheduleProvider extends ChangeNotifier {
     loadSchedules();
   }
 
-  /// 날짜별 경기 일정 맵 생성
-  Map<DateTime, List<GameSchedule>> _createScheduleMap(
-    List<GameSchedule> schedules,
-  ) {
-    final map = <DateTime, List<GameSchedule>>{};
+  /// 선택된 날짜의 기록 업데이트 (이미 로드된 데이터 활용)
+  void _updateDayRecords() {
+    final dateKey = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+    );
+    
+    _dayRecords = _recordMap[dateKey] ?? [];
+    print('날짜 ${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day} 기록: ${_dayRecords.length}개');
+  }
 
-    for (var schedule in schedules) {
+  /// 날짜별 직관 기록 맵 생성
+  Map<DateTime, List<GameRecord>> _createRecordMap(List<GameRecord> records) {
+    final map = <DateTime, List<GameRecord>>{};
+
+    for (var record in records) {
       final date = DateTime(
-        schedule.dateTime.year,
-        schedule.dateTime.month,
-        schedule.dateTime.day,
+        record.gameDate.year,
+        record.gameDate.month,
+        record.gameDate.day,
       );
 
       if (map.containsKey(date)) {
-        map[date]!.add(schedule);
+        map[date]!.add(record);
       } else {
-        map[date] = [schedule];
+        map[date] = [record];
       }
     }
 

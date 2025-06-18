@@ -69,9 +69,7 @@ class GamesTodayComponent extends StatelessWidget {
           else if (!hasGames)
             _buildNoGameView()
           else
-            Column(
-              children: gamesList.map((game) => _buildGameCard(game)).toList(),
-            ),
+            Column(children: gamesList.map((game) => _buildGameCard(game)).toList()),
         ],
       ),
     );
@@ -83,25 +81,25 @@ class GamesTodayComponent extends StatelessWidget {
       Game(
         location: '고척, 14:00',
         team1: 'SSG',
-        team1Image: 'assets/emblems/ssg.png',
+        team1Image: 'assets/emblems/landers.png',
         team2: '키움',
-        team2Image: 'assets/emblems/kiwoom.png',
+        team2Image: 'assets/emblems/heroes.png',
         editIcon: 'assets/icons/edit-20px.svg',
       ),
       Game(
         location: '잠실, 17:00',
         team1: 'LG',
-        team1Image: 'assets/emblems/lg.png',
+        team1Image: 'assets/emblems/twins.png',
         team2: 'KIA',
-        team2Image: 'assets/emblems/kia.png',
+        team2Image: 'assets/emblems/tigers.png',
         editIcon: 'assets/icons/edit-20px.svg',
       ),
       Game(
         location: '잠실, 18:30',
         team1: '한화',
-        team1Image: 'assets/emblems/hanwha.png',
+        team1Image: 'assets/emblems/eagles.png',
         team2: '삼성',
-        team2Image: 'assets/emblems/samsung.png',
+        team2Image: 'assets/emblems/lions.png',
         editIcon: 'assets/icons/edit-20px.svg',
       ),
     ];
@@ -113,18 +111,11 @@ class GamesTodayComponent extends StatelessWidget {
       width: double.infinity,
       height: 170,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FB),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFF7F8FB), borderRadius: BorderRadius.circular(12)),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            'assets/images/umbrella-120px.png',
-            width: 70,
-            height: 70,
-          ),
+          Image.asset('assets/images/umbrella-120px.png', width: 70, height: 70),
           const SizedBox(height: 12),
           const Text(
             '우천으로 취소되었어요.',
@@ -138,11 +129,7 @@ class GamesTodayComponent extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(
             '일주일에 하루뿐인 휴식이 아닌 날',
-            style: TextStyle(
-              fontFamily: 'KBO Dia Gothic',
-              fontSize: 14,
-              color: Color(0xFF7E8695),
-            ),
+            style: TextStyle(fontFamily: 'KBO Dia Gothic', fontSize: 14, color: Color(0xFF7E8695)),
           ),
         ],
       ),
@@ -155,18 +142,11 @@ class GamesTodayComponent extends StatelessWidget {
       width: double.infinity,
       height: 170,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F8FB),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFF7F8FB), borderRadius: BorderRadius.circular(12)),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            'assets/images/break-time-120px.png',
-            width: 70,
-            height: 70,
-          ),
+          Image.asset('assets/images/break-time-120px.png', width: 70, height: 70),
           const SizedBox(height: 12),
           const Text(
             '경기가 없는 날이에요.',
@@ -180,11 +160,7 @@ class GamesTodayComponent extends StatelessWidget {
           const SizedBox(height: 8),
           const Text(
             '일주일에 하루뿐인 휴식이 아닌 날',
-            style: TextStyle(
-              fontFamily: 'KBO Dia Gothic',
-              fontSize: 14,
-              color: Color(0xFF7E8695),
-            ),
+            style: TextStyle(fontFamily: 'KBO Dia Gothic', fontSize: 14, color: Color(0xFF7E8695)),
           ),
         ],
       ),
@@ -202,10 +178,7 @@ class GamesTodayComponent extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF7F8FB),
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(color: const Color(0xFFF7F8FB), borderRadius: BorderRadius.circular(12)),
         child: Row(
           children: [
             Expanded(
@@ -261,11 +234,7 @@ class GamesTodayComponent extends StatelessWidget {
         width: 20,
         height: 20,
         errorBuilder: (context, error, stackTrace) {
-          return Container(
-            width: 20,
-            height: 20,
-            color: const Color(0xFF9DA5B3),
-          );
+          return Container(width: 20, height: 20, color: const Color(0xFF9DA5B3));
         },
       );
     } else {

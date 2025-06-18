@@ -8,7 +8,9 @@ import 'record_detail_screen.dart';
 import 'widgets/game_record_card.dart';
 
 class RecordListPage extends StatefulWidget {
-  const RecordListPage({super.key});
+  final VoidCallback? onRecordChanged; // 기록 변경 콜백 추가
+
+  const RecordListPage({super.key, this.onRecordChanged});
 
   @override
   State<RecordListPage> createState() => _RecordListPageState();
@@ -251,18 +253,24 @@ class _RecordListPageState extends State<RecordListPage>
     );
   }
 
-  void _navigateToDetail(GameRecord record) {
-    Navigator.push(
+  void _navigateToDetail(GameRecord record) async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)),
-    ).then((result) {
-      if (result == true) {
-        print(
-          'RecordScreen: Record updated from detail screen, refreshing list...',
-        );
-        _loadRecords();
+    );
+
+    // 상세 화면에서 변경사항이 있으면 리스트 새로고침
+    if (result == true) {
+      print(
+        'RecordScreen: Changes detected from detail page, refreshing list...',
+      );
+      await _loadRecords();
+
+      // 부모(메인 화면)에게 변경사항 알림
+      if (widget.onRecordChanged != null) {
+        widget.onRecordChanged!();
       }
-    });
+    }
   }
 
   Future<void> _toggleFavorite(GameRecord record) async {
@@ -279,6 +287,11 @@ class _RecordListPageState extends State<RecordListPage>
             _records[index] = record.copyWith(isFavorite: !record.isFavorite);
           }
         });
+
+        // 부모(메인 화면)에게 변경사항 알림
+        if (widget.onRecordChanged != null) {
+          widget.onRecordChanged!();
+        }
       } else {
         print('RecordScreen: Failed to toggle favorite');
         if (mounted) {

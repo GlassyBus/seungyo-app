@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:seungyo/providers/schedule_provider.dart';
-import 'package:seungyo/widgets/loading_indicator.dart';
 import 'package:seungyo/widgets/error_view.dart';
-import 'package:seungyo/widgets/custom_app_bar.dart';
-import 'widgets/enhanced_calendar.dart';
+import 'package:seungyo/widgets/loading_indicator.dart';
+
+import '../record/record_detail_screen.dart';
 import 'widgets/calendar_header.dart';
+import 'widgets/enhanced_calendar.dart';
 import 'widgets/no_schedule_view.dart';
-import 'widgets/schedule_item.dart';
+import 'widgets/record_item.dart';
 
 /// 경기 일정 페이지
 class SchedulePage extends StatefulWidget {
@@ -31,7 +32,7 @@ class _SchedulePageState extends State<SchedulePage> {
     return Consumer<ScheduleProvider>(
       builder: (context, provider, child) {
         if (provider.isLoading) {
-          return const LoadingIndicator(message: '경기 일정을 불러오는 중...');
+          return const LoadingIndicator(message: '직관 기록을 불러오는 중...');
         }
 
         if (provider.hasError) {
@@ -59,7 +60,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   onDateSelected: provider.selectDate,
                   onMonthChanged: provider.changeMonth,
                 ),
-                _buildSelectedDateSchedules(context, provider),
+                _buildSelectedDateRecords(context, provider),
               ],
             ),
           ),
@@ -68,14 +69,14 @@ class _SchedulePageState extends State<SchedulePage> {
     );
   }
 
-  /// 선택된 날짜의 경기 일정 위젯 생성
-  Widget _buildSelectedDateSchedules(
+  /// 선택된 날짜의 직관 기록 위젯 생성
+  Widget _buildSelectedDateRecords(
     BuildContext context,
     ScheduleProvider provider,
   ) {
-    final selectedSchedules = provider.daySchedules;
+    final selectedRecords = provider.daySchedules;
 
-    if (selectedSchedules.isEmpty) {
+    if (selectedRecords.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16.0),
         child: NoScheduleView(isRainCanceled: false),
@@ -84,14 +85,34 @@ class _SchedulePageState extends State<SchedulePage> {
 
     return Column(
       children:
-          selectedSchedules.map((schedule) {
-            return ScheduleItem(
-              schedule: schedule,
-              onTap: () {
-                // TODO: 경기 세부 정보 화면으로 이동
-              },
+          selectedRecords.map((record) {
+            return RecordItem(
+              record: record,
+              onTap: () => _navigateToRecordDetail(context, record),
             );
           }).toList(),
     );
+  }
+
+  /// 직관 기록 상세 화면으로 이동
+  void _navigateToRecordDetail(BuildContext context, dynamic record) async {
+    try {
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)),
+      );
+
+      // 상세 화면에서 변경이 있었다면 목록 새로고침
+      if (result == true && mounted) {
+        final provider = context.read<ScheduleProvider>();
+        provider.loadSchedules();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('오류가 발생했습니다: $e')),
+        );
+      }
+    }
   }
 }
