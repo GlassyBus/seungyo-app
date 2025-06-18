@@ -495,10 +495,12 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             color: AppColors.navy5,
             borderRadius: BorderRadius.circular(12),
           ),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
           child: Column(
             children: [
+              // 응원팀/상대팀 레이블
               Container(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+                padding: const EdgeInsets.only(bottom: 5),
                 child: Row(
                   children: [
                     Expanded(
@@ -507,105 +509,105 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                         textAlign: TextAlign.center,
                         style: AppTextStyles.body3.copyWith(
                           color: AppColors.gray80,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                     Expanded(
                       child: Text(
                         '상대팀',
-                        textAlign: TextAlign.right,
+                        textAlign: TextAlign.center,
                         style: AppTextStyles.body3.copyWith(
                           color: AppColors.gray80,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
+              // 팀 정보와 스코어
               Container(
-                padding: const EdgeInsets.fromLTRB(20, 5, 20, 10),
+                padding: const EdgeInsets.only(bottom: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        _buildTeamButtonWithLogo(
-                          _form.homeTeamId,
-                          () => _showTeamPicker(true),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap:
-                              (_form.homeTeamId != null &&
-                                      _form.awayTeamId != null &&
-                                      !_isGameCanceled)
-                                  ? _showScoreInput
-                                  : null,
-                          child: Text(
+                    // 좌측: 응원팀 (홈팀) - 팀 버튼 + 스코어
+                    Expanded(
+                      flex: 3,
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: _buildTeamButtonWithLogo(
+                              _form.homeTeamId,
+                              () => _showTeamPicker(true),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildScoreButton(
                             _isGameCanceled
                                 ? '-'
                                 : (_form.homeScore != null
                                     ? '${_form.homeScore}'
                                     : '-'),
-                            style: AppTextStyles.h2.copyWith(
-                              color: AppColors.navy,
-                            ),
+                            (_form.homeTeamId != null &&
+                                    _form.awayTeamId != null &&
+                                    !_isGameCanceled)
+                                ? _showScoreInput
+                                : null,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                    GestureDetector(
-                      onTap:
-                          (_form.homeTeamId != null &&
-                                  _form.awayTeamId != null &&
-                                  !_isGameCanceled)
-                              ? _showScoreInput
-                              : null,
-                      child: Container(
-                        width: 25,
-                        alignment: Alignment.center,
-                        child: Text(
-                          ':',
-                          style: AppTextStyles.h3.copyWith(
-                            color: AppColors.gray70,
-                          ),
+                    // 중앙: 구분자 (:)
+                    Container(
+                      width: 25,
+                      alignment: Alignment.center,
+                      child: Text(
+                        ':',
+                        style: AppTextStyles.h1.copyWith(
+                          color: AppColors.gray50,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap:
-                              (_form.homeTeamId != null &&
-                                      _form.awayTeamId != null &&
-                                      !_isGameCanceled)
-                                  ? _showScoreInput
-                                  : null,
-                          child: Text(
+                    // 우측: 상대팀 (어웨이팀) - 스코어 + 팀 버튼
+                    Expanded(
+                      flex: 3,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          _buildScoreButton(
                             _isGameCanceled
                                 ? '-'
                                 : (_form.awayScore != null
                                     ? '${_form.awayScore}'
                                     : '-'),
-                            style: AppTextStyles.h2.copyWith(
-                              color: AppColors.navy,
+                            (_form.homeTeamId != null &&
+                                    _form.awayTeamId != null &&
+                                    !_isGameCanceled)
+                                ? _showScoreInput
+                                : null,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: _buildTeamButtonWithLogo(
+                              _form.awayTeamId,
+                              () => _showTeamPicker(false),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        _buildTeamButtonWithLogo(
-                          _form.awayTeamId,
-                          () => _showTeamPicker(false),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              _buildGameCancelCheckbox(),
             ],
           ),
         ),
+        const SizedBox(height: 10),
+        _buildGameCancelCheckbox(),
       ],
     );
   }
@@ -635,9 +637,13 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
               child: ClipOval(child: _buildTeamLogo(team)),
             ),
             const SizedBox(width: 6),
-            Text(
-              _getTeamNameById(teamId),
-              style: AppTextStyles.body3.copyWith(color: AppColors.navy),
+            Flexible(
+              child: Text(
+                _getTeamNameById(teamId),
+                style: AppTextStyles.body3.copyWith(color: AppColors.navy),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
           ],
         ),
@@ -1187,5 +1193,31 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     final weekday = weekdays[dateTime.weekday - 1];
 
     return '${dateTime.year}.${dateTime.month.toString().padLeft(2, '0')}.${dateTime.day.toString().padLeft(2, '0')}($weekday) ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildScoreButton(String text, VoidCallback? onTap) {
+    final isScoreText = text != ':';
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        constraints: BoxConstraints(
+          minWidth: isScoreText ? 40 : 25,
+          minHeight: 35,
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style:
+                isScoreText
+                    ? AppTextStyles.h2.copyWith(
+                      color: AppColors.navy,
+                      fontWeight: FontWeight.w600,
+                    )
+                    : AppTextStyles.h3.copyWith(color: AppColors.gray70),
+          ),
+        ),
+      ),
+    );
   }
 }

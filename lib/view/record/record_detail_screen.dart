@@ -83,6 +83,10 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     return _teams.firstWhereOrNull((team) => team.id == teamId);
   }
 
+  app_models.Team? _getTeamByName(String teamName) {
+    return _teams.firstWhereOrNull((team) => team.name == teamName);
+  }
+
   bool _isImageFileValid(String imagePath) {
     try {
       final file = File(imagePath);
@@ -397,124 +401,198 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         color: AppColors.navy5,
         borderRadius: BorderRadius.circular(12),
       ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
       child: Column(
         children: [
-          _buildTeamLabels(textTheme),
-          _buildScoreDisplay(textTheme),
-          const SizedBox(height: 18),
+          // 응원팀/상대팀 레이블 - Figma와 동일하게
+          Container(
+            padding: const EdgeInsets.only(bottom: 5),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '응원팀',
+                    style: AppTextStyles.body3.copyWith(
+                      color: AppColors.gray80,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '상대팀',
+                    style: AppTextStyles.body3.copyWith(
+                      color: AppColors.gray80,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // 팀 정보와 스코어 - Figma 디자인 정확히 반영
+          Container(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // 좌측: 응원팀 (홈팀) - 팀 버튼 + 스코어
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: _buildTeamButton(
+                          widget.game.homeTeam,
+                          textTheme,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.game.canceled ? '-' : '${widget.game.homeScore}',
+                        style: AppTextStyles.h1.copyWith(
+                          color: AppColors.navy,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // 중앙: 구분자 (:)
+                Container(
+                  width: 25,
+                  alignment: Alignment.center,
+                  child: Text(
+                    ':',
+                    style: AppTextStyles.h1.copyWith(
+                      color: AppColors.gray50,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                // 우측: 상대팀 (어웨이팀) - 스코어 + 팀 버튼
+                Expanded(
+                  flex: 3,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        widget.game.canceled ? '-' : '${widget.game.awayScore}',
+                        style: AppTextStyles.h1.copyWith(
+                          color: AppColors.navy,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: _buildTeamButton(
+                          widget.game.awayTeam,
+                          textTheme,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTeamLabels(TextTheme textTheme) {
+  Widget _buildTeamButton(app_models.Team team, TextTheme textTheme) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          '홈팀',
-          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
-        ),
-        Text(
-          '상대팀',
-          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildScoreDisplay(TextTheme textTheme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildTeamInfo(
-          widget.game.homeTeam.name,
-          widget.game.homeTeam.primaryColor,
-          widget.game.homeTeam.logo ?? '',
-          textTheme,
-        ),
-        Text('${widget.game.homeScore}', style: textTheme.displayLarge),
-        Text(
-          ':',
-          style: textTheme.displayLarge?.copyWith(color: AppColors.gray50),
-        ),
-        Text('${widget.game.awayScore}', style: textTheme.displayLarge),
-        _buildTeamInfo(
-          widget.game.awayTeam.name,
-          widget.game.awayTeam.primaryColor,
-          widget.game.awayTeam.logo ?? '',
-          textTheme,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTeamInfo(
-    String teamName,
-    Color color,
-    String logoPath,
-    TextTheme textTheme,
-  ) {
-    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: 30,
+          height: 30,
           decoration: BoxDecoration(
-            color: Colors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.gray30, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: Center(
-            child:
-                logoPath.isNotEmpty && logoPath.startsWith('assets/')
-                    ? ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        logoPath,
-                        width: 32,
-                        height: 32,
-                        fit: BoxFit.contain,
-                        errorBuilder:
-                            (context, error, stackTrace) => Text(
-                              _getTeamShortText(teamName),
-                              style: textTheme.bodySmall?.copyWith(
-                                color: AppColors.navy,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                      ),
-                    )
-                    : Text(
-                      _getTeamShortText(teamName),
-                      style: textTheme.bodySmall?.copyWith(
-                        color: AppColors.navy,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
+          child: ClipOval(child: _buildTeamLogo(team)),
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            team.name,
+            style: AppTextStyles.body3.copyWith(
+              color: AppColors.navy,
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
-        const SizedBox(width: 8),
-        Text(teamName, style: textTheme.titleMedium),
       ],
     );
   }
 
-  /// 팀명을 간단한 텍스트 로고로 변환
-  String _getTeamShortText(String teamName) {
-    if (teamName.contains('KIA') || teamName.contains('타이거즈')) return 'KIA';
-    if (teamName.contains('KT') || teamName.contains('위즈')) return 'KT';
-    if (teamName.contains('LG') || teamName.contains('트윈스')) return 'LG';
-    if (teamName.contains('NC') || teamName.contains('다이노스')) return 'NC';
-    if (teamName.contains('SSG') || teamName.contains('랜더스')) return 'SSG';
-    if (teamName.contains('두산') || teamName.contains('베어스')) return '두산';
-    if (teamName.contains('롯데') || teamName.contains('자이언츠')) return '롯데';
-    if (teamName.contains('삼성') || teamName.contains('라이온즈')) return '삼성';
-    if (teamName.contains('키움') || teamName.contains('히어로즈')) return '키움';
-    if (teamName.contains('한화') || teamName.contains('이글스')) return '한화';
-    return '⚾';
+  Widget _buildTeamLogo(app_models.Team? team) {
+    if (team == null) {
+      return _buildDefaultTeamIcon();
+    }
+
+    if (team.logo != null && team.logo!.isNotEmpty) {
+      if (team.logo!.startsWith('assets/')) {
+        return Image.asset(
+          team.logo!,
+          width: 30,
+          height: 30,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildFallbackLogo(team);
+          },
+        );
+      } else {
+        return Center(
+          child: Text(team.logo!, style: const TextStyle(fontSize: 20)),
+        );
+      }
+    } else {
+      return _buildFallbackLogo(team);
+    }
+  }
+
+  Widget _buildFallbackLogo(app_models.Team team) {
+    if (team.shortName.isNotEmpty) {
+      return Center(
+        child: Text(
+          team.shortName.substring(0, 1),
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.navy,
+          ),
+        ),
+      );
+    } else {
+      return const Center(
+        child: Icon(Icons.sports_baseball, size: 20, color: AppColors.navy),
+      );
+    }
+  }
+
+  Widget _buildDefaultTeamIcon() {
+    return Container(
+      width: 30,
+      height: 30,
+      color: AppColors.gray20,
+      child: Icon(Icons.sports_baseball, size: 20, color: AppColors.gray50),
+    );
   }
 
   Widget _buildGameCancelCheckbox() {
@@ -788,10 +866,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
 
   Future<void> _performDelete() async {
     try {
-      print(
-        'RecordDetailScreen: Starting delete process for record ID: ${widget.game.id}',
-      );
-
       // 로딩 표시
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -825,8 +899,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       }
 
       if (success) {
-        print('RecordDetailScreen: Record deleted successfully');
-
         if (mounted) {
           // 성공 메시지 표시
           ScaffoldMessenger.of(context).showSnackBar(
@@ -841,8 +913,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           Navigator.pop(context, true);
         }
       } else {
-        print('RecordDetailScreen: Failed to delete record');
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -854,8 +924,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         }
       }
     } catch (e) {
-      print('RecordDetailScreen: Error during delete: $e');
-
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -995,16 +1063,20 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
 
   Future<void> _requestPermissions() async {
     if (Platform.isAndroid) {
-      // Android 13 (API 33) 이상에서는 특별한 권한이 필요하지 않음
+      // Android 13 (API 33) 이상에서는 READ_MEDIA_IMAGES 권한 필요
       final androidInfo = await _getAndroidVersion();
       if (androidInfo >= 33) {
-        return; // Android 13 이상에서는 권한 요청 불필요
-      }
-
-      // Android 12 이하에서는 WRITE_EXTERNAL_STORAGE 권한 필요
-      final permission = await Permission.storage.request();
-      if (!permission.isGranted) {
-        throw Exception('저장소 권한이 필요합니다.');
+        // Android 13+ : READ_MEDIA_IMAGES 권한 확인
+        final permission = await Permission.photos.request();
+        if (!permission.isGranted) {
+          throw Exception('사진 접근 권한이 필요합니다.');
+        }
+      } else {
+        // Android 12 이하에서는 WRITE_EXTERNAL_STORAGE 권한 필요
+        final permission = await Permission.storage.request();
+        if (!permission.isGranted) {
+          throw Exception('저장소 권한이 필요합니다.');
+        }
       }
     } else if (Platform.isIOS) {
       final permission = await Permission.photos.request();
@@ -1016,9 +1088,14 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
 
   Future<int> _getAndroidVersion() async {
     try {
-      return 30; // 기본값으로 처리
-    } catch (e) {
+      if (Platform.isAndroid) {
+        // Android API 레벨을 직접 확인할 수 없으므로
+        // 최신 권한 정책을 적용하여 안전하게 처리
+        return 33; // Android 13으로 가정하여 새로운 권한 정책 적용
+      }
       return 30; // 기본값 (Android 11)
+    } catch (e) {
+      return 33; // 오류 시에도 최신 정책 적용
     }
   }
 
@@ -1175,6 +1252,105 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           ],
         ],
       ),
+    );
+  }
+
+  /// 팀명을 간단한 텍스트 로고로 변환
+  String _getTeamShortText(String teamName) {
+    if (teamName.contains('KIA') || teamName.contains('타이거즈')) return 'KIA';
+    if (teamName.contains('KT') || teamName.contains('위즈')) return 'KT';
+    if (teamName.contains('LG') || teamName.contains('트윈스')) return 'LG';
+    if (teamName.contains('NC') || teamName.contains('다이노스')) return 'NC';
+    if (teamName.contains('SSG') || teamName.contains('랜더스')) return 'SSG';
+    if (teamName.contains('두산') || teamName.contains('베어스')) return '두산';
+    if (teamName.contains('롯데') || teamName.contains('자이언츠')) return '롯데';
+    if (teamName.contains('삼성') || teamName.contains('라이온즈')) return '삼성';
+    if (teamName.contains('키움') || teamName.contains('히어로즈')) return '키움';
+    if (teamName.contains('한화') || teamName.contains('이글스')) return '한화';
+    return '⚾';
+  }
+
+  // 캡처용 팀 레이블 (기존 스타일 유지)
+  Widget _buildTeamLabels(TextTheme textTheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          '홈팀',
+          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
+        ),
+        Text(
+          '상대팀',
+          style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
+        ),
+      ],
+    );
+  }
+
+  // 캡처용 스코어 디스플레이 (기존 스타일 유지)
+  Widget _buildScoreDisplay(TextTheme textTheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildTeamInfo(widget.game.homeTeam, textTheme),
+        Text('${widget.game.homeScore}', style: textTheme.displayLarge),
+        Text(
+          ':',
+          style: textTheme.displayLarge?.copyWith(color: AppColors.gray50),
+        ),
+        Text('${widget.game.awayScore}', style: textTheme.displayLarge),
+        _buildTeamInfo(widget.game.awayTeam, textTheme),
+      ],
+    );
+  }
+
+  // 캡처용 팀 정보 (기존 스타일 유지)
+  Widget _buildTeamInfo(app_models.Team team, TextTheme textTheme) {
+    return Row(
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.gray30, width: 1),
+          ),
+          child: Center(
+            child:
+                team.logo?.isNotEmpty == true &&
+                        team.logo!.startsWith('assets/')
+                    ? ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        team.logo!,
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.contain,
+                        errorBuilder:
+                            (context, error, stackTrace) => Text(
+                              _getTeamShortText(team.name),
+                              style: textTheme.bodySmall?.copyWith(
+                                color: AppColors.navy,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                      ),
+                    )
+                    : Text(
+                      _getTeamShortText(team.name),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.navy,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(team.name, style: textTheme.titleMedium),
+      ],
     );
   }
 }
