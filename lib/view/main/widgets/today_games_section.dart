@@ -1,5 +1,7 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
+import '../../../models/game_record.dart';
 import '../../../models/game_schedule.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
@@ -7,11 +9,13 @@ import 'game_card.dart';
 
 class TodayGamesSection extends StatelessWidget {
   final List<GameSchedule> todayGames;
+  final List<GameRecord> attendedRecords; // 직관 기록 리스트 추가
   final Function(GameSchedule) onGameEditTap;
 
   const TodayGamesSection({
     Key? key,
     required this.todayGames,
+    required this.attendedRecords,
     required this.onGameEditTap,
   }) : super(key: key);
 
@@ -91,10 +95,16 @@ class TodayGamesSection extends StatelessWidget {
         children:
             todayGames
                 .map(
-                  (game) => GameCard(
-                    game: game,
-                    onEditTap: () => onGameEditTap(game),
-                  ),
+                  (game) {
+                    // 해당 경기에 대한 직관 기록이 있는지 확인
+                    final attendedRecord = _findAttendedRecord(game);
+                    
+                    return GameCard(
+                      game: game,
+                      attendedRecord: attendedRecord,
+                      onEditTap: () => onGameEditTap(game),
+                    );
+                  },
                 )
                 .toList(),
       ),
@@ -159,6 +169,23 @@ class TodayGamesSection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// 해당 경기에 대한 직관 기록을 찾는 함수
+  GameRecord? _findAttendedRecord(GameSchedule game) {
+    return attendedRecords.firstWhereOrNull(
+      (record) {
+        final recordDate = record.dateTime;
+        final gameDate = game.dateTime;
+
+        // 같은 날짜이고 같은 팀 매치업인지 확인
+        return recordDate.year == gameDate.year &&
+            recordDate.month == gameDate.month &&
+            recordDate.day == gameDate.day &&
+            record.homeTeam.name.contains(game.homeTeam) &&
+            record.awayTeam.name.contains(game.awayTeam);
+      },
     );
   }
 }

@@ -347,6 +347,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 // 오늘의 경기 섹션
                 TodayGamesSection(
                   todayGames: _todayGames,
+                  attendedRecords: _allRecords, // 직관 기록 전달
                   onGameEditTap: _handleRecordButtonTap,
                 ),
                 // Divider
@@ -392,18 +393,26 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           return recordDate.year == gameDate.year &&
               recordDate.month == gameDate.month &&
               recordDate.day == gameDate.day &&
-              record.homeTeam == game.homeTeam &&
-              record.awayTeam == game.awayTeam;
+              record.homeTeam.name.contains(game.homeTeam) &&
+              record.awayTeam.name.contains(game.awayTeam);
         }).firstOrNull;
 
     if (existingRecord != null) {
-      // 기존 기록이 있으면 수정 화면으로
-      Navigator.push(
+      // 기존 기록이 있으면 상세 화면으로 (수정이 아닌 조회)
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => RecordDetailPage(game: existingRecord),
         ),
       );
+
+      // 상세 화면에서 수정/삭제가 발생했으면 홈 데이터 새로고침
+      if (result == true) {
+        print(
+          'MainScreen: Record modified/deleted from detail view, refreshing home data...',
+        );
+        await _loadHomeData();
+      }
     } else {
       // 기존 기록이 없으면 새 기록 작성 화면으로 (경기 정보 미리 설정)
       final result = await Navigator.push(
