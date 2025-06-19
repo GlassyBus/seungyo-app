@@ -224,8 +224,8 @@ class RecordItem extends StatelessWidget {
     if (record.canceled) {
       return _BadgeInfo(
         color: AppColors.gray30,
-        textColor: AppColors.black,
-        text: '취소',
+        textColor: AppColors.gray70,
+        text: 'PPD',
       );
     }
 

@@ -268,7 +268,10 @@ class DatabaseService {
 
       // GameResult 계산
       GameResult result;
-      if (dbRecord.homeScore > dbRecord.awayScore) {
+      if (dbRecord.canceled) {
+        // 취소된 경기는 cancel 결과로 설정
+        result = GameResult.cancel;
+      } else if (dbRecord.homeScore > dbRecord.awayScore) {
         result = GameResult.win;
       } else if (dbRecord.homeScore < dbRecord.awayScore) {
         result = GameResult.lose;

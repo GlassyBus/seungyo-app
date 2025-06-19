@@ -755,7 +755,13 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             onTap: () {
               setState(() {
                 _isGameCanceled = !_isGameCanceled;
+                print(
+                  'CreateRecordScreen: Game canceled toggled to: $_isGameCanceled',
+                );
                 if (_isGameCanceled) {
+                  print(
+                    'CreateRecordScreen: Clearing scores due to cancellation',
+                  );
                   _form = _form.copyWith(homeScore: null, awayScore: null);
                 }
               });
@@ -1112,7 +1118,8 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       print('  - Seat: ${_form.seatInfo}');
       print('  - Comment: ${_form.comment}');
       print('  - Is Favorite: ${_form.isFavorite}');
-      print('  - Is Canceled: ${_form.canceled}');
+      print('  - Is Canceled: ${_form.canceled}'); // 이 부분이 중요!
+      print('  - UI _isGameCanceled: $_isGameCanceled');
 
       await _submitForm();
       print('CreateRecordScreen: Save completed successfully');
