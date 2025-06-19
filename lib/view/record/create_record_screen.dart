@@ -13,10 +13,10 @@ import '../../models/team.dart' as app_models;
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'widgets/date_time_picker_modal.dart';
+import 'widgets/image_editor_screen.dart';
 import 'widgets/score_input_modal.dart';
 import 'widgets/stadium_picker_modal.dart';
 import 'widgets/team_picker_modal.dart';
-import 'widgets/image_editor_screen.dart';
 
 class CreateRecordScreen extends StatefulWidget {
   final GameRecord? gameRecord; // 수정할 기록 (null이면 새 기록)
@@ -1212,7 +1212,128 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   void _handleBackPress() {
     if (_isSaving) return;
-    Navigator.of(context).pop();
+    _showExitConfirmDialog();
+  }
+
+  void _showExitConfirmDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 15),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 아이콘
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.error_outline,
+                    color: AppColors.black,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                // 제목
+                Text(
+                  '작성을 그만두시겠어요?',
+                  style: AppTextStyles.body1.copyWith(
+                    color: AppColors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 5),
+                // 설명
+                Text(
+                  '지금까지 작성된 내용은 저장되지 않아요.',
+                  style: AppTextStyles.body3.copyWith(
+                    color: AppColors.gray80,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actionsPadding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+            actions: [
+              Row(
+                children: [
+                  // 작성 계속하기 버튼
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: AppColors.navy,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          '작성 계속하기',
+                          style: AppTextStyles.body3.copyWith(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // 삭제하고 나가기 버튼
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFE5E5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // 다이얼로그 닫기
+                          Navigator.pop(context); // 작성 화면 닫기
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          '삭제하고 나가기',
+                          style: AppTextStyles.body3.copyWith(
+                            color: AppColors.negative,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+    );
   }
 
   String _formatDateTime(DateTime dateTime) {
