@@ -35,9 +35,11 @@ class GameListWidget extends StatelessWidget {
       return _buildEmptyState();
     }
 
-    // 2. 모든 경기가 취소된 경우 (우천 취소)
-    final allGamesCanceled = games.every((game) => game.status == GameStatus.canceled);
-    if (allGamesCanceled) {
+    // 2. 모든 경기가 취소/연기된 경우 (우천 취소/연기)
+    final allGamesCanceledOrPostponed = games.every(
+      (game) => game.status == GameStatus.canceled || game.status == GameStatus.postponed,
+    );
+    if (allGamesCanceledOrPostponed) {
       return _buildCanceledGames();
     }
 
@@ -149,7 +151,7 @@ class GameListWidget extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            '우천으로 취소되었어요.',
+            '우천으로 취소/연기되었어요.',
             textAlign: TextAlign.center,
             style: AppTextStyles.subtitle1.copyWith(fontWeight: FontWeight.w500, color: AppColors.black),
           ),

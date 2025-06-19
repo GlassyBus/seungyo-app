@@ -153,8 +153,8 @@ class GameCard extends StatelessWidget {
 
   /// 직관 기록이 없는 일반 경기 카드
   Widget _buildRegularGameCard(String timeString) {
-    // 경기 취소 여부 확인
-    final isCanceled = game.status == GameStatus.canceled;
+    // 경기 취소 또는 연기 여부 확인
+    final isCanceledOrPostponed = game.status == GameStatus.canceled || game.status == GameStatus.postponed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -168,8 +168,8 @@ class GameCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 경기 취소 태그 추가
-                if (isCanceled) ...[
+                // 경기 취소/연기 태그 추가
+                if (isCanceledOrPostponed) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(6)),
@@ -208,7 +208,7 @@ class GameCard extends StatelessWidget {
               ],
             ),
           ),
-          if (onEditTap != null && !isCanceled) // 취소된 경기는 편집 불가
+          if (onEditTap != null && !isCanceledOrPostponed) // 취소/연기된 경기는 편집 불가
             GestureDetector(
               onTap: onEditTap,
               child: Container(
