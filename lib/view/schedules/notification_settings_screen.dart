@@ -134,34 +134,18 @@ class NotificationSettingsScreen extends StatelessWidget {
       return;
     }
 
-    // 알림을 켜는 경우 권한 확인
+    // 알림을 켜는 경우 권한 확인 및 요청
     final notificationService = NotificationService();
     final hasPermission =
         await notificationService.requestNotificationPermission();
 
     if (hasPermission) {
-      // 권한이 있으면 알림 설정 변경
       onSuccess();
     } else {
-      // 권한이 없으면 토글을 강제로 off로 설정
-      if (context.mounted) {
-        // 토글을 off로 설정 (onSuccess는 호출하지 않음)
-        Provider.of<NotificationSettingsProvider>(context, listen: false)
-          ..setGameStartNotification(false)
-          ..setGameEndNotification(false);
-
-        // 사용자에게 알림
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('알림 권한이 필요합니다. 설정에서 권한을 허용해주세요.'),
-            backgroundColor: AppColors.negative,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      // 권한이 없으면 off 상태 유지
+      Provider.of<NotificationSettingsProvider>(context, listen: false)
+        ..setGameStartNotification(false)
+        ..setGameEndNotification(false);
     }
   }
 
