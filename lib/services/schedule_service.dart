@@ -44,11 +44,7 @@ class ScheduleService {
     try {
       final allSchedules = await getAllSchedules();
       return allSchedules
-          .where(
-            (schedule) =>
-                schedule.dateTime.year == year &&
-                schedule.dateTime.month == month,
-          )
+          .where((schedule) => schedule.dateTime.year == year && schedule.dateTime.month == month)
           .toList();
     } catch (e) {
       print('Error getting schedules by month: $e');
@@ -59,9 +55,7 @@ class ScheduleService {
   // 특정 날짜의 경기 일정 가져오기
   Future<List<GameSchedule>> getSchedulesByDate(DateTime date) async {
     try {
-      print(
-        'ScheduleService: Getting schedules for ${date.year}-${date.month}-${date.day}',
-      );
+      print('ScheduleService: Getting schedules for ${date.year}-${date.month}-${date.day}');
       final allSchedules = await getAllSchedules();
       print('ScheduleService: Total schedules loaded: ${allSchedules.length}');
 
@@ -75,13 +69,9 @@ class ScheduleService {
               )
               .toList();
 
-      print(
-        'ScheduleService: Found ${filteredSchedules.length} schedules for ${date.year}-${date.month}-${date.day}',
-      );
+      print('ScheduleService: Found ${filteredSchedules.length} schedules for ${date.year}-${date.month}-${date.day}');
       for (final schedule in filteredSchedules) {
-        print(
-          'ScheduleService: - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}',
-        );
+        print('ScheduleService: - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}');
       }
 
       return filteredSchedules;
@@ -109,10 +99,8 @@ class ScheduleService {
               return record.gameDate.year == schedule.dateTime.year &&
                   record.gameDate.month == schedule.dateTime.month &&
                   record.gameDate.day == schedule.dateTime.day &&
-                  ((record.homeTeam.name == schedule.homeTeam &&
-                          record.awayTeam.name == schedule.awayTeam) ||
-                      (record.homeTeam.name == schedule.awayTeam &&
-                          record.awayTeam.name == schedule.homeTeam));
+                  ((record.homeTeam.name == schedule.homeTeam && record.awayTeam.name == schedule.awayTeam) ||
+                      (record.homeTeam.name == schedule.awayTeam && record.awayTeam.name == schedule.homeTeam));
             }).toList();
 
         if (matchingRecords.isNotEmpty) {
@@ -473,6 +461,293 @@ class ScheduleService {
         awayTeamLogo: getTeamLogo('SSG'),
         status: GameStatus.canceled,
       ),
+
+      // 6월 14일 경기들
+      GameSchedule(
+        id: 53,
+        dateTime: DateTime(2025, 6, 14, 14, 0),
+        stadium: '잠실',
+        homeTeam: 'LG',
+        awayTeam: '두산',
+        homeTeamLogo: getTeamLogo('LG'),
+        awayTeamLogo: getTeamLogo('두산'),
+        status: GameStatus.finished,
+        homeScore: 8,
+        awayScore: 4,
+      ),
+      GameSchedule(
+        id: 54,
+        dateTime: DateTime(2025, 6, 14, 17, 0),
+        stadium: '문학',
+        homeTeam: 'SSG',
+        awayTeam: '키움',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('키움'),
+        status: GameStatus.finished,
+        homeScore: 6,
+        awayScore: 3,
+      ),
+      GameSchedule(
+        id: 55,
+        dateTime: DateTime(2025, 6, 14, 17, 0),
+        stadium: '사직',
+        homeTeam: '롯데',
+        awayTeam: 'KIA',
+        homeTeamLogo: getTeamLogo('롯데'),
+        awayTeamLogo: getTeamLogo('KIA'),
+        status: GameStatus.finished,
+        homeScore: 2,
+        awayScore: 7,
+      ),
+      GameSchedule(
+        id: 56,
+        dateTime: DateTime(2025, 6, 14, 17, 0),
+        stadium: '창원',
+        homeTeam: 'NC',
+        awayTeam: '한화',
+        homeTeamLogo: getTeamLogo('NC'),
+        awayTeamLogo: getTeamLogo('한화'),
+        status: GameStatus.finished,
+        homeScore: 5,
+        awayScore: 2,
+      ),
+      GameSchedule(
+        id: 57,
+        dateTime: DateTime(2025, 6, 14, 17, 0),
+        stadium: '수원',
+        homeTeam: 'KT',
+        awayTeam: '삼성',
+        homeTeamLogo: getTeamLogo('KT'),
+        awayTeamLogo: getTeamLogo('삼성'),
+        status: GameStatus.finished,
+        homeScore: 1,
+        awayScore: 3,
+      ),
+
+      // 6월 15일 경기들
+      GameSchedule(
+        id: 58,
+        dateTime: DateTime(2025, 6, 15, 14, 0),
+        stadium: '잠실',
+        homeTeam: 'LG',
+        awayTeam: '두산',
+        homeTeamLogo: getTeamLogo('LG'),
+        awayTeamLogo: getTeamLogo('두산'),
+        status: GameStatus.finished,
+        homeScore: 5,
+        awayScore: 8,
+      ),
+      GameSchedule(
+        id: 59,
+        dateTime: DateTime(2025, 6, 15, 17, 0),
+        stadium: '문학',
+        homeTeam: 'SSG',
+        awayTeam: '키움',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('키움'),
+        status: GameStatus.finished,
+        homeScore: 4,
+        awayScore: 1,
+      ),
+      GameSchedule(
+        id: 60,
+        dateTime: DateTime(2025, 6, 15, 17, 0),
+        stadium: '사직',
+        homeTeam: '롯데',
+        awayTeam: 'KIA',
+        homeTeamLogo: getTeamLogo('롯데'),
+        awayTeamLogo: getTeamLogo('KIA'),
+        status: GameStatus.finished,
+        homeScore: 6,
+        awayScore: 9,
+      ),
+      GameSchedule(
+        id: 61,
+        dateTime: DateTime(2025, 6, 15, 17, 0),
+        stadium: '창원',
+        homeTeam: 'NC',
+        awayTeam: '한화',
+        homeTeamLogo: getTeamLogo('NC'),
+        awayTeamLogo: getTeamLogo('한화'),
+        status: GameStatus.finished,
+        homeScore: 8,
+        awayScore: 5,
+      ),
+      GameSchedule(
+        id: 62,
+        dateTime: DateTime(2025, 6, 15, 17, 0),
+        stadium: '수원',
+        homeTeam: 'KT',
+        awayTeam: '삼성',
+        homeTeamLogo: getTeamLogo('KT'),
+        awayTeamLogo: getTeamLogo('삼성'),
+        status: GameStatus.finished,
+        homeScore: 4,
+        awayScore: 2,
+      ),
+
+      // 6월 16일 경기들
+      GameSchedule(
+        id: 63,
+        dateTime: DateTime(2025, 6, 16, 18, 30),
+        stadium: '고척',
+        homeTeam: '키움',
+        awayTeam: 'LG',
+        homeTeamLogo: getTeamLogo('키움'),
+        awayTeamLogo: getTeamLogo('LG'),
+        status: GameStatus.finished,
+        homeScore: 3,
+        awayScore: 7,
+      ),
+      GameSchedule(
+        id: 64,
+        dateTime: DateTime(2025, 6, 16, 18, 30),
+        stadium: '문학',
+        homeTeam: 'SSG',
+        awayTeam: '두산',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('두산'),
+        status: GameStatus.finished,
+        homeScore: 2,
+        awayScore: 5,
+      ),
+      GameSchedule(
+        id: 65,
+        dateTime: DateTime(2025, 6, 16, 18, 30),
+        stadium: '대구',
+        homeTeam: '삼성',
+        awayTeam: 'KIA',
+        homeTeamLogo: getTeamLogo('삼성'),
+        awayTeamLogo: getTeamLogo('KIA'),
+        status: GameStatus.finished,
+        homeScore: 4,
+        awayScore: 6,
+      ),
+      GameSchedule(
+        id: 66,
+        dateTime: DateTime(2025, 6, 16, 18, 30),
+        stadium: '창원',
+        homeTeam: 'NC',
+        awayTeam: '롯데',
+        homeTeamLogo: getTeamLogo('NC'),
+        awayTeamLogo: getTeamLogo('롯데'),
+        status: GameStatus.finished,
+        homeScore: 7,
+        awayScore: 3,
+      ),
+      GameSchedule(
+        id: 67,
+        dateTime: DateTime(2025, 6, 16, 18, 30),
+        stadium: '대전(신)',
+        homeTeam: '한화',
+        awayTeam: 'KT',
+        homeTeamLogo: getTeamLogo('한화'),
+        awayTeamLogo: getTeamLogo('KT'),
+        status: GameStatus.finished,
+        homeScore: 1,
+        awayScore: 8,
+      ),
+
+      // 6월 17일 경기들
+      GameSchedule(
+        id: 68,
+        dateTime: DateTime(2025, 6, 17, 18, 30),
+        stadium: '고척',
+        homeTeam: '키움',
+        awayTeam: 'LG',
+        homeTeamLogo: getTeamLogo('키움'),
+        awayTeamLogo: getTeamLogo('LG'),
+        status: GameStatus.finished,
+        homeScore: 5,
+        awayScore: 4,
+      ),
+      GameSchedule(
+        id: 69,
+        dateTime: DateTime(2025, 6, 17, 18, 30),
+        stadium: '문학',
+        homeTeam: 'SSG',
+        awayTeam: '두산',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('두산'),
+        status: GameStatus.finished,
+        homeScore: 6,
+        awayScore: 2,
+      ),
+      GameSchedule(
+        id: 70,
+        dateTime: DateTime(2025, 6, 17, 18, 30),
+        stadium: '대구',
+        homeTeam: '삼성',
+        awayTeam: 'KIA',
+        homeTeamLogo: getTeamLogo('삼성'),
+        awayTeamLogo: getTeamLogo('KIA'),
+        status: GameStatus.finished,
+        homeScore: 3,
+        awayScore: 8,
+      ),
+      GameSchedule(
+        id: 71,
+        dateTime: DateTime(2025, 6, 17, 18, 30),
+        stadium: '창원',
+        homeTeam: 'NC',
+        awayTeam: '롯데',
+        homeTeamLogo: getTeamLogo('NC'),
+        awayTeamLogo: getTeamLogo('롯데'),
+        status: GameStatus.finished,
+        homeScore: 4,
+        awayScore: 7,
+      ),
+      GameSchedule(
+        id: 72,
+        dateTime: DateTime(2025, 6, 17, 18, 30),
+        stadium: '대전(신)',
+        homeTeam: '한화',
+        awayTeam: 'KT',
+        homeTeamLogo: getTeamLogo('한화'),
+        awayTeamLogo: getTeamLogo('KT'),
+        status: GameStatus.finished,
+        homeScore: 9,
+        awayScore: 6,
+      ),
+
+      // 6월 18일 경기들
+      GameSchedule(
+        id: 73,
+        dateTime: DateTime(2025, 6, 18, 18, 30),
+        stadium: '고척',
+        homeTeam: '키움',
+        awayTeam: 'LG',
+        homeTeamLogo: getTeamLogo('키움'),
+        awayTeamLogo: getTeamLogo('LG'),
+        status: GameStatus.finished,
+        homeScore: 2,
+        awayScore: 11,
+      ),
+      GameSchedule(
+        id: 74,
+        dateTime: DateTime(2025, 6, 18, 18, 30),
+        stadium: '문학',
+        homeTeam: 'SSG',
+        awayTeam: '두산',
+        homeTeamLogo: getTeamLogo('SSG'),
+        awayTeamLogo: getTeamLogo('두산'),
+        status: GameStatus.finished,
+        homeScore: 8,
+        awayScore: 3,
+      ),
+      GameSchedule(
+        id: 75,
+        dateTime: DateTime(2025, 6, 18, 18, 30),
+        stadium: '대구',
+        homeTeam: '삼성',
+        awayTeam: 'KIA',
+        homeTeamLogo: getTeamLogo('삼성'),
+        awayTeamLogo: getTeamLogo('KIA'),
+        status: GameStatus.finished,
+        homeScore: 5,
+        awayScore: 7,
+      ),
+
       // 오늘(6월 19일) 경기들 - scheduled 상태
       GameSchedule(
         id: 76,

@@ -38,8 +38,8 @@ class GameSectionWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildHeader(),
-          const SizedBox(height: 20),
+          // 제목이 비어있지 않을 때만 헤더 표시
+          if (title.isNotEmpty) ...[_buildHeader(), const SizedBox(height: 20)],
           GameListWidget(
             games: games,
             attendedRecords: attendedRecords,
@@ -57,21 +57,9 @@ class GameSectionWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          title,
-          style: AppTextStyles.subtitle1.copyWith(
-            color: AppColors.navy,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        Text(title, style: AppTextStyles.subtitle1.copyWith(color: AppColors.navy, fontWeight: FontWeight.w700)),
         if (subtitle != null)
-          Text(
-            subtitle!,
-            style: AppTextStyles.body2.copyWith(
-              color: AppColors.black,
-              fontWeight: FontWeight.w400,
-            ),
-          )
+          Text(subtitle!, style: AppTextStyles.body2.copyWith(color: AppColors.black, fontWeight: FontWeight.w400))
         else if (headerTrailing != null)
           headerTrailing!,
       ],

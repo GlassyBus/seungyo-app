@@ -11,12 +11,7 @@ class GameCard extends StatelessWidget {
   final GameRecord? attendedRecord; // 직관 기록 추가
   final VoidCallback? onEditTap;
 
-  const GameCard({
-    Key? key, 
-    required this.game, 
-    this.attendedRecord,
-    this.onEditTap,
-  }) : super(key: key);
+  const GameCard({Key? key, required this.game, this.attendedRecord, this.onEditTap}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +29,11 @@ class GameCard extends StatelessWidget {
   /// 직관 기록이 있는 경기 카드 (피그마 디자인)
   Widget _buildAttendedGameCard(String timeString) {
     final record = attendedRecord!;
-    
+
     // 승부 결과 판단
     String resultText = '';
     Color resultColor = AppColors.gray50;
-    
+
     if (record.canceled) {
       resultText = 'PPD';
       resultColor = AppColors.gray50;
@@ -56,10 +51,7 @@ class GameCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: AppColors.gray10,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: AppColors.gray10, borderRadius: BorderRadius.circular(12)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -72,10 +64,7 @@ class GameCard extends StatelessWidget {
                 // 결과 태그
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.navy,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.navy, borderRadius: BorderRadius.circular(6)),
                   child: Text(
                     resultText,
                     style: AppTextStyles.caption.copyWith(
@@ -86,17 +75,13 @@ class GameCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                
+
                 // 경기장과 시간
                 Text(
                   '${game.stadium}, $timeString',
-                  style: AppTextStyles.body2.copyWith(
-                    color: AppColors.navy,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                  ),
+                  style: AppTextStyles.body2.copyWith(color: AppColors.navy, fontWeight: FontWeight.w500, fontSize: 14),
                 ),
-                
+
                 // 팀 정보와 스코어
                 const SizedBox(height: 6),
                 Row(
@@ -108,7 +93,7 @@ class GameCard extends StatelessWidget {
                       record.homeScore?.toString() ?? '0',
                       isRight: false,
                     ),
-                    
+
                     // VS
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -121,8 +106,8 @@ class GameCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
-                    // 어웨이팀 (상대팀)  
+
+                    // 어웨이팀 (상대팀)
                     _buildTeamWithScore(
                       record.awayTeam.name,
                       record.awayTeam.logo,
@@ -134,7 +119,7 @@ class GameCard extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // 오른쪽: "직관 기록 보기" 버튼
           if (onEditTap != null)
             GestureDetector(
@@ -155,11 +140,7 @@ class GameCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Transform.rotate(
                       angle: 3.14159, // 180도 회전 (왼쪽 화살표를 오른쪽으로)
-                      child: const Icon(
-                        Icons.arrow_back_ios,
-                        size: 15,
-                        color: AppColors.gray70,
-                      ),
+                      child: const Icon(Icons.arrow_back_ios, size: 15, color: AppColors.gray70),
                     ),
                   ],
                 ),
@@ -172,13 +153,13 @@ class GameCard extends StatelessWidget {
 
   /// 직관 기록이 없는 일반 경기 카드
   Widget _buildRegularGameCard(String timeString) {
+    // 경기 취소 여부 확인
+    final isCanceled = game.status == GameStatus.canceled;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.gray10,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: AppColors.gray10, borderRadius: BorderRadius.circular(12)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -187,12 +168,25 @@ class GameCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // 경기 취소 태그 추가
+                if (isCanceled) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(color: AppColors.gray50, borderRadius: BorderRadius.circular(6)),
+                    child: Text(
+                      'PPD',
+                      style: AppTextStyles.caption.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                ],
                 Text(
                   '${game.stadium}, $timeString',
-                  style: AppTextStyles.body3.copyWith(
-                    color: AppColors.navy,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: AppTextStyles.body3.copyWith(color: AppColors.navy, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -214,25 +208,19 @@ class GameCard extends StatelessWidget {
               ],
             ),
           ),
-          if (onEditTap != null)
+          if (onEditTap != null && !isCanceled) // 취소된 경기는 편집 불가
             GestureDetector(
               onTap: onEditTap,
               child: Container(
                 width: 32,
                 height: 32,
                 padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                decoration: BoxDecoration(color: Colors.transparent, borderRadius: BorderRadius.circular(8)),
                 child: SvgPicture.asset(
                   'assets/icons/edit-20px.svg',
                   width: 20,
                   height: 20,
-                  colorFilter: ColorFilter.mode(
-                    AppColors.black,
-                    BlendMode.srcIn,
-                  ),
+                  colorFilter: ColorFilter.mode(AppColors.black, BlendMode.srcIn),
                 ),
               ),
             ),
@@ -244,7 +232,7 @@ class GameCard extends StatelessWidget {
   /// 팀 이름과 스코어를 함께 표시하는 위젯 (직관 기록용)
   Widget _buildTeamWithScore(String teamName, String? logoPath, String score, {required bool isRight}) {
     final shortName = _getShortTeamName(teamName);
-    
+
     if (isRight) {
       // 오른쪽 정렬 (점수 + 팀명 + 로고)
       return Row(
@@ -252,20 +240,12 @@ class GameCard extends StatelessWidget {
         children: [
           Text(
             score,
-            style: AppTextStyles.subtitle1.copyWith(
-              color: AppColors.navy,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
+            style: AppTextStyles.subtitle1.copyWith(color: AppColors.navy, fontWeight: FontWeight.w600, fontSize: 16),
           ),
           const SizedBox(width: 4),
           Text(
             shortName,
-            style: AppTextStyles.subtitle2.copyWith(
-              color: AppColors.black,
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-            ),
+            style: AppTextStyles.subtitle2.copyWith(color: AppColors.black, fontWeight: FontWeight.w500, fontSize: 16),
           ),
           const SizedBox(width: 4),
           _buildTeamLogo(shortName, logoPath),
@@ -280,20 +260,12 @@ class GameCard extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             shortName,
-            style: AppTextStyles.subtitle2.copyWith(
-              color: AppColors.black,
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-            ),
+            style: AppTextStyles.subtitle2.copyWith(color: AppColors.black, fontWeight: FontWeight.w500, fontSize: 16),
           ),
           const SizedBox(width: 4),
           Text(
             score,
-            style: AppTextStyles.subtitle1.copyWith(
-              color: AppColors.navy,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
+            style: AppTextStyles.subtitle1.copyWith(color: AppColors.navy, fontWeight: FontWeight.w600, fontSize: 16),
           ),
         ],
       );
@@ -315,7 +287,7 @@ class GameCard extends StatelessWidget {
       'NC 다이노스': 'NC',
       '롯데 자이언츠': '롯데',
     };
-    
+
     return shortNames[fullName] ?? fullName.split(' ')[0];
   }
 
@@ -333,13 +305,7 @@ class GameCard extends StatelessWidget {
       children: [
         _buildTeamLogo(teamName, logoPath),
         const SizedBox(width: 6),
-        Text(
-          teamName,
-          style: AppTextStyles.subtitle2.copyWith(
-            color: AppColors.black,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        Text(teamName, style: AppTextStyles.subtitle2.copyWith(color: AppColors.black, fontWeight: FontWeight.w500)),
       ],
     );
   }
@@ -358,25 +324,16 @@ class GameCard extends StatelessWidget {
                   height: 24,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
-                    print(
-                      'GameCard: Failed to load team logo: $logoPath for $teamName',
-                    );
+                    print('GameCard: Failed to load team logo: $logoPath for $teamName');
                     // 로고 로드 실패 시 기본 색상 원 표시
                     return Container(
                       width: 24,
                       height: 24,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _getTeamColor(teamName),
-                      ),
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: _getTeamColor(teamName)),
                       child: Center(
                         child: Text(
                           teamName.substring(0, 1),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ),
                     );
@@ -386,18 +343,11 @@ class GameCard extends StatelessWidget {
               : Container(
                 width: 24,
                 height: 24,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _getTeamColor(teamName),
-                ),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: _getTeamColor(teamName)),
                 child: Center(
                   child: Text(
                     teamName.substring(0, 1),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
