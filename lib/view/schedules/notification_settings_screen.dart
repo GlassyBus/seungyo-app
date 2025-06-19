@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../providers/notification_settings_provider.dart';
+import '../../services/notification_service.dart';
 
 /// 알림 설정 화면
 class NotificationSettingsScreen extends StatelessWidget {
@@ -86,23 +87,82 @@ class NotificationSettingsScreen extends StatelessWidget {
           const SizedBox(height: 25),
 
           // 경기 시작 알림
-          _buildNotificationItem(
-            title: '경기 시작 알림 (10분 전)',
-            isEnabled: provider.gameStartNotification,
-            onChanged: provider.setGameStartNotification,
+          Builder(
+            builder:
+                (context) => _buildNotificationItem(
+                  title: '경기 시작 알림 (10분 전)',
+                  isEnabled: provider.gameStartNotification,
+                  onChanged:
+                      (value) => _handleNotificationToggle(
+                        value,
+                        () => provider.setGameStartNotification(value),
+                        context,
+                      ),
+                ),
           ),
 
           const SizedBox(height: 20),
 
           // 경기 끝 알림
-          _buildNotificationItem(
-            title: '경기 끝 알림 (3시간 후)',
-            isEnabled: provider.gameEndNotification,
-            onChanged: provider.setGameEndNotification,
+          Builder(
+            builder:
+                (context) => _buildNotificationItem(
+                  title: '경기 끝 알림 (3시간 후)',
+                  isEnabled: provider.gameEndNotification,
+                  onChanged:
+                      (value) => _handleNotificationToggle(
+                        value,
+                        () => provider.setGameEndNotification(value),
+                        context,
+                      ),
+                ),
           ),
         ],
       ),
     );
+  }
+
+  /// 알림 토글 처리 (권한 확인 포함)
+  Future<void> _handleNotificationToggle(
+    bool value,
+    VoidCallback onSuccess,
+    BuildContext context,
+  ) async {
+    if (!value) {
+      // 알림을 끄는 경우는 바로 실행
+      onSuccess();
+      return;
+    }
+
+    // 알림을 켜는 경우 권한 확인
+    final notificationService = NotificationService();
+    final hasPermission =
+        await notificationService.requestNotificationPermission();
+
+    if (hasPermission) {
+      // 권한이 있으면 알림 설정 변경
+      onSuccess();
+    } else {
+      // 권한이 없으면 토글을 강제로 off로 설정
+      if (context.mounted) {
+        // 토글을 off로 설정 (onSuccess는 호출하지 않음)
+        Provider.of<NotificationSettingsProvider>(context, listen: false)
+          ..setGameStartNotification(false)
+          ..setGameEndNotification(false);
+
+        // 사용자에게 알림
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('알림 권한이 필요합니다. 설정에서 권한을 허용해주세요.'),
+            backgroundColor: AppColors.negative,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   /// 알림 설정 항목 (피그마 디자인 정확히 따름)

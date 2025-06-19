@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 import 'package:seungyo/routes.dart';
 import 'package:seungyo/view/auth/auth_screen.dart';
@@ -13,9 +14,16 @@ import 'package:seungyo/viewmodel/splash_vm.dart';
 import 'package:seungyo/providers/schedule_provider.dart';
 import 'package:seungyo/theme/theme.dart';
 import 'package:seungyo/services/database_service.dart';
+import 'package:seungyo/services/notification_service.dart';
+
+// 글로벌 네비게이터 키
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 타임존 데이터 초기화 (알림 스케줄링을 위해 필요)
+  tz.initializeTimeZones();
 
   // 한국어 locale 데이터 초기화
   await initializeDateFormatting('ko_KR', null);
@@ -28,12 +36,20 @@ void main() async {
   try {
     await dbService.initialize();
     print('DB 초기화 성공');
-    
+
     // 디버그: DB 상태 확인
     print('DB 초기화 완료. 상태 확인 중...');
     await dbService.printDatabaseStatus();
   } catch (e) {
     print('DB 초기화 실패: $e');
+  }
+
+  // 알림 서비스 초기화
+  try {
+    await NotificationService().initialize();
+    print('🔔 알림 서비스 초기화 성공');
+  } catch (e) {
+    print('❌ 알림 서비스 초기화 실패: $e');
   }
 
   SystemChrome.setSystemUIOverlayStyle(
@@ -64,6 +80,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ScheduleProvider()),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: '승요',
         theme: createLightTheme(),
         darkTheme: createDarkTheme(),

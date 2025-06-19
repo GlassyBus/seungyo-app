@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/notification_service.dart';
+import '../services/schedule_service.dart';
 
 /// 알림 설정 관리 Provider (개선된 버전)
 class NotificationSettingsProvider extends ChangeNotifier {
@@ -10,6 +12,9 @@ class NotificationSettingsProvider extends ChangeNotifier {
   bool _gameEndNotification = true;
   bool _isLoading = true;
   String? _lastError;
+
+  final NotificationService _notificationService = NotificationService();
+  final ScheduleService _scheduleService = ScheduleService();
 
   // Getters
   bool get gameStartNotification => _gameStartNotification;
@@ -27,15 +32,17 @@ class NotificationSettingsProvider extends ChangeNotifier {
     try {
       _setLoading(true);
       _clearError();
-      
+
       await loadSettings();
-      
+
       if (kDebugMode) {
-        print('🔔 NotificationSettings 초기화 완료: 시작 알림 = $_gameStartNotification, 종료 알림 = $_gameEndNotification');
+        print(
+          '🔔 NotificationSettings 초기화 완료: 시작 알림 = $_gameStartNotification, 종료 알림 = $_gameEndNotification',
+        );
       }
     } catch (error) {
       _setError('초기화 실패: $error');
-      
+
       if (kDebugMode) {
         print('❌ NotificationSettings 초기화 실패: $error');
       }
@@ -48,25 +55,27 @@ class NotificationSettingsProvider extends ChangeNotifier {
   Future<void> loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // 검증된 값으로 로드
       _gameStartNotification = _validateBooleanSetting(
         prefs.getBool(_gameStartKey),
         defaultValue: true,
         settingName: '게임 시작 알림',
       );
-      
+
       _gameEndNotification = _validateBooleanSetting(
         prefs.getBool(_gameEndKey),
         defaultValue: true,
         settingName: '게임 종료 알림',
       );
-      
+
       _clearError();
       notifyListeners();
-      
+
       if (kDebugMode) {
-        print('📱 알림 설정 로드됨: 시작=$_gameStartNotification, 종료=$_gameEndNotification');
+        print(
+          '📱 알림 설정 로드됨: 시작=$_gameStartNotification, 종료=$_gameEndNotification',
+        );
       }
     } catch (error) {
       _setError('설정 로드 실패: $error');
@@ -75,7 +84,11 @@ class NotificationSettingsProvider extends ChangeNotifier {
   }
 
   /// Boolean 설정 검증
-  bool _validateBooleanSetting(bool? value, {required bool defaultValue, required String settingName}) {
+  bool _validateBooleanSetting(
+    bool? value, {
+    required bool defaultValue,
+    required String settingName,
+  }) {
     if (value == null) {
       if (kDebugMode) {
         print('⚠️ $settingName 설정이 null입니다. 기본값($defaultValue)을 사용합니다.');
@@ -97,7 +110,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
 
       _gameStartNotification = value;
       notifyListeners();
-      
+
       if (kDebugMode) {
         print('🔔 경기 시작 알림 설정 변경: $value');
       }
@@ -119,7 +132,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
 
       _gameEndNotification = value;
       notifyListeners();
-      
+
       if (kDebugMode) {
         print('⚾ 경기 종료 알림 설정 변경: $value');
       }
@@ -129,53 +142,79 @@ class NotificationSettingsProvider extends ChangeNotifier {
     }
   }
 
-  /// 설정 저장 (원자적 저장 및 롤백 지원)
+  /// 설정 저장 (원자적 저장 및 롤백 지원 + 알림 업데이트)
   Future<void> saveSettings() async {
     try {
       _clearError();
-      
+
       final prefs = await SharedPreferences.getInstance();
-      
+
       // 현재 설정 백업 (롤백용)
       final backupGameStart = prefs.getBool(_gameStartKey);
       final backupGameEnd = prefs.getBool(_gameEndKey);
-      
+
       // 설정 저장 시도
       final results = await Future.wait([
         prefs.setBool(_gameStartKey, _gameStartNotification),
         prefs.setBool(_gameEndKey, _gameEndNotification),
       ]);
-      
+
       // 저장 결과 검증
       if (!results.every((result) => result)) {
         throw Exception('일부 설정 저장에 실패했습니다');
       }
-      
+
       // 저장된 값 재검증
       await _verifyStoredSettings();
-      
+
+      // 실제 푸시 알림 업데이트
+      await _updatePushNotifications();
+
       if (kDebugMode) {
-        print('💾 알림 설정 저장 완료: 시작=$_gameStartNotification, 종료=$_gameEndNotification');
+        print(
+          '💾 알림 설정 저장 완료: 시작=$_gameStartNotification, 종료=$_gameEndNotification',
+        );
       }
-      
     } catch (error) {
       _setError('설정 저장 실패: $error');
-      
+
       // 롤백 시도
       await _attemptRollback();
-      
+
       rethrow;
+    }
+  }
+
+  /// 실제 푸시 알림 업데이트
+  Future<void> _updatePushNotifications() async {
+    try {
+      // 현재 경기 일정 가져오기
+      final schedules = await _scheduleService.getAllSchedules();
+
+      // 설정에 따라 알림 재설정
+      await _notificationService.updateNotificationSettings(schedules);
+
+      if (kDebugMode) {
+        print('📱 푸시 알림 업데이트 완료: ${schedules.length}개 경기');
+        await _notificationService.printScheduledNotifications();
+      }
+    } catch (error) {
+      if (kDebugMode) {
+        print('❌ 푸시 알림 업데이트 실패: $error');
+      }
+      // 푸시 알림 실패는 설정 저장을 방해하지 않음
     }
   }
 
   /// 저장된 설정 검증
   Future<void> _verifyStoredSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     final storedGameStart = prefs.getBool(_gameStartKey);
     final storedGameEnd = prefs.getBool(_gameEndKey);
-    
-    if (storedGameStart != _gameStartNotification || storedGameEnd != _gameEndNotification) {
+
+    if (storedGameStart != _gameStartNotification ||
+        storedGameEnd != _gameEndNotification) {
       throw Exception('저장된 설정이 예상 값과 다릅니다');
     }
   }
@@ -186,9 +225,9 @@ class NotificationSettingsProvider extends ChangeNotifier {
       if (kDebugMode) {
         print('🔄 설정 롤백을 시도합니다...');
       }
-      
+
       await loadSettings();
-      
+
       if (kDebugMode) {
         print('✅ 설정이 롤백되었습니다.');
       }
@@ -199,25 +238,25 @@ class NotificationSettingsProvider extends ChangeNotifier {
     }
   }
 
-  /// 설정 리셋 (공장 초기화)
+  /// 기본값으로 재설정 (푸시 알림 업데이트 포함)
   Future<void> resetToDefaults() async {
     try {
-      _clearError();
-      
-      const defaultGameStart = true;
-      const defaultGameEnd = true;
-      
-      _gameStartNotification = defaultGameStart;
-      _gameEndNotification = defaultGameEnd;
-      
+      _gameStartNotification = true;
+      _gameEndNotification = true;
+
       await saveSettings();
-      
+      notifyListeners();
+
       if (kDebugMode) {
-        print('🔄 알림 설정이 기본값으로 리셋되었습니다');
+        print('🔄 알림 설정이 기본값으로 재설정되었습니다.');
       }
-      
     } catch (error) {
-      _setError('설정 리셋 실패: $error');
+      _setError('기본값 재설정 실패: $error');
+
+      if (kDebugMode) {
+        print('❌ 기본값 재설정 실패: $error');
+      }
+
       rethrow;
     }
   }
@@ -246,7 +285,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
   void _setError(String error) {
     _lastError = error;
     notifyListeners();
-    
+
     if (kDebugMode) {
       print('❌ NotificationSettings 에러: $error');
     }
@@ -267,4 +306,4 @@ class NotificationSettingsProvider extends ChangeNotifier {
     }
     super.dispose();
   }
-} 
+}
