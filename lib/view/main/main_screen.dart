@@ -4,6 +4,7 @@ import 'package:seungyo/view/record/create_record_screen.dart';
 import 'package:seungyo/view/record/record_detail_screen.dart';
 import 'package:seungyo/view/record/record_screen.dart';
 import 'package:seungyo/view/schedules/schedules_screen.dart';
+import 'package:seungyo/view/schedules/notification_settings_screen.dart';
 import 'package:seungyo/widgets/custom_app_bar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -262,7 +263,26 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           ],
         );
       case 2: // 일정 탭
-        return const CustomAppBar(title: '경기 일정');
+        return CustomAppBar(
+          title: '경기 일정',
+          actions: [
+            IconButton(
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: Color(0xFF09004C),
+                size: 24,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationSettingsScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
       default:
         return const CustomAppBar(title: '홈');
     }

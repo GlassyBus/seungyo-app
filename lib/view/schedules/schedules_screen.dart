@@ -113,30 +113,6 @@ class _SchedulePageState extends State<SchedulePage> {
         }
 
         return Scaffold(
-          appBar: AppBar(
-            title: Text(
-              '경기 일정',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: AppColors.navy,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            backgroundColor: Colors.white,
-            elevation: 0,
-            actions: [
-              IconButton(
-                icon: Icon(Icons.notifications_outlined, color: AppColors.navy),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationSettingsScreen(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
           backgroundColor: Colors.white,
           body: RefreshIndicator(
             onRefresh: () async {
