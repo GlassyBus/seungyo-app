@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
-import 'package:seungyo/constants/record_data.dart' as record_data;
 import 'package:seungyo/constants/stadium_data.dart' as stadium_data;
 import 'package:seungyo/constants/team_data.dart' as team_data;
 import 'package:seungyo/database/database.dart';
@@ -48,14 +47,14 @@ class DatabaseService {
         print('Stadium data inserted successfully');
       }
 
-      // 기록 데이터가 비어있으면 기본 데이터 삽입
+      // 기록 데이터는 목업을 넣지 않고 사용자가 직접 추가하도록 함
       final existingRecords = await _database.getAllRecords();
       print('Existing records count: ${existingRecords.length}');
-      if (existingRecords.isEmpty) {
-        print('Inserting record data...');
-        await _insertRecordData();
-        print('Record data inserted successfully');
-      }
+      // if (existingRecords.isEmpty) {
+      //   print('Inserting record data...');
+      //   await _insertRecordData();
+      //   print('Record data inserted successfully');
+      // }
 
       print('Database initialization completed successfully');
     } catch (e) {
@@ -108,30 +107,30 @@ class DatabaseService {
     }
   }
 
-  Future<void> _insertRecordData() async {
-    try {
-      final records = record_data.RecordData.records;
+  // Future<void> _insertRecordData() async {
+  //   try {
+  //     final records = record_data.RecordData.records;
 
-      for (final record in records) {
-        await _database.insertRecord(
-          RecordsCompanion.insert(
-            date: record.date,
-            stadiumId: record.stadiumId,
-            homeTeamId: record.homeTeamId,
-            awayTeamId: record.awayTeamId,
-            homeScore: record.homeScore,
-            awayScore: record.awayScore,
-            seat: Value(record.seat),
-            comment: Value(record.comment),
-            isFavorite: Value(record.isFavorite),
-            canceled: Value(record.canceled),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error inserting record data: $e');
-    }
-  }
+  //     for (final record in records) {
+  //       await _database.insertRecord(
+  //         RecordsCompanion.insert(
+  //           date: record.date,
+  //           stadiumId: record.stadiumId,
+  //           homeTeamId: record.homeTeamId,
+  //           awayTeamId: record.awayTeamId,
+  //           homeScore: record.homeScore,
+  //           awayScore: record.awayScore,
+  //           seat: Value(record.seat),
+  //           comment: Value(record.comment),
+  //           isFavorite: Value(record.isFavorite),
+  //           canceled: Value(record.canceled),
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print('Error inserting record data: $e');
+  //   }
+  // }
 
   // Database 모델을 앱 모델로 변환하는 유틸리티 메서드들
 
