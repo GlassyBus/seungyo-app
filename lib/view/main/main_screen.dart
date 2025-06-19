@@ -126,8 +126,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       // 오늘의 경기 데이터 로드
       print('MainScreen: Loading today\'s games...');
       final today = DateTime.now();
+      print('MainScreen: Today is ${today.year}-${today.month}-${today.day}');
       final todayGames = await _scheduleService.getSchedulesByDate(today);
       print('MainScreen: Loaded ${todayGames.length} today\'s games');
+      for (final game in todayGames) {
+        print(
+          'MainScreen: Game - ${game.homeTeam} vs ${game.awayTeam} at ${game.stadium}',
+        );
+      }
 
       // 통계 계산 (경기 취소나 동점 제외)
       print('MainScreen: Calculating statistics...');
@@ -341,6 +347,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 // 오늘의 경기 섹션
                 TodayGamesSection(
                   todayGames: _todayGames,
+                  attendedRecords: _allRecords, // 직관 기록 전달
                   onGameEditTap: _handleRecordButtonTap,
                 ),
                 // Divider
@@ -386,22 +393,42 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           return recordDate.year == gameDate.year &&
               recordDate.month == gameDate.month &&
               recordDate.day == gameDate.day &&
-              record.homeTeam == game.homeTeam &&
-              record.awayTeam == game.awayTeam;
+              record.homeTeam.name.contains(game.homeTeam) &&
+              record.awayTeam.name.contains(game.awayTeam);
         }).firstOrNull;
 
     if (existingRecord != null) {
-      Navigator.push(
+      // 기존 기록이 있으면 상세 화면으로 (수정이 아닌 조회)
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => RecordDetailPage(game: existingRecord),
         ),
       );
+
+      // 상세 화면에서 수정/삭제가 발생했으면 홈 데이터 새로고침
+      if (result == true) {
+        print(
+          'MainScreen: Record modified/deleted from detail view, refreshing home data...',
+        );
+        await _loadHomeData();
+      }
     } else {
-      Navigator.push(
+      // 기존 기록이 없으면 새 기록 작성 화면으로 (경기 정보 미리 설정)
+      final result = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
+        MaterialPageRoute(
+          builder: (context) => CreateRecordScreen(gameSchedule: game),
+        ),
       );
+
+      // 기록 추가 후 홈 데이터 새로고침
+      if (result == true) {
+        print(
+          'MainScreen: Record added from today\'s game, refreshing home data...',
+        );
+        await _loadHomeData();
+      }
     }
   }
 

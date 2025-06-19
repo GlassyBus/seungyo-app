@@ -1,22 +1,21 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
-import 'package:intl/intl.dart';
-import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../models/game_record.dart';
 import '../../models/team.dart' as app_models;
+import '../../services/database_service.dart';
+import '../../services/image_save_service.dart';
+import '../../services/record_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import '../../services/database_service.dart';
-import '../../services/record_service.dart';
-import '../../services/image_save_service.dart';
 import 'create_record_screen.dart';
 import 'widgets/action_modal.dart';
 
@@ -706,16 +705,6 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
             ),
           ),
           const SizedBox(height: 24),
-          // 캡처용 워터마크 추가
-          Center(
-            child: Text(
-              '승리요정으로 기록한 소중한 추억 ⚾',
-              style: textTheme.bodySmall?.copyWith(
-                color: AppColors.gray50,
-                fontSize: 12,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -829,35 +818,118 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   void _showDeleteConfirmDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder:
           (context) => AlertDialog(
-            title: Text(
-              '기록 삭제',
-              style: AppTextStyles.h2.copyWith(color: AppColors.black),
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
             ),
-            content: Text(
-              '이 기록을 삭제하시겠습니까?\n삭제된 기록은 복구할 수 없습니다.',
-              style: AppTextStyles.body2.copyWith(color: AppColors.gray80),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  '취소',
-                  style: AppTextStyles.body2.copyWith(color: AppColors.gray80),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // 다이얼로그 닫기
-                  _performDelete(); // 실제 삭제 수행
-                },
-                child: Text(
-                  '삭제',
-                  style: AppTextStyles.body2.copyWith(
-                    color: AppColors.negative,
+            contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 15),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 아이콘
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.error_outline,
+                    color: AppColors.black,
+                    size: 40,
                   ),
                 ),
+                const SizedBox(height: 5),
+                // 제목
+                Text(
+                  '기록을 삭제하시겠어요?',
+                  style: AppTextStyles.body1.copyWith(
+                    color: AppColors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 5),
+                // 설명
+                Text(
+                  '삭제된 기록은 복구할 수 없어요.',
+                  style: AppTextStyles.body3.copyWith(
+                    color: AppColors.gray80,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actionsPadding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+            actions: [
+              Row(
+                children: [
+                  // 취소 버튼
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: AppColors.navy,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          '취소',
+                          style: AppTextStyles.body3.copyWith(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // 삭제 버튼
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFE5E5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // 다이얼로그 닫기
+                          _performDelete(); // 실제 삭제 수행
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          '삭제하기',
+                          style: AppTextStyles.body3.copyWith(
+                            color: AppColors.negative,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1119,6 +1191,17 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
             _buildGameResultSection(colorScheme, textTheme),
             const SizedBox(height: 32),
             _buildCommentSection(colorScheme, textTheme),
+            const SizedBox(height: 24),
+            // 캡처용 워터마크 추가
+            Center(
+              child: Text(
+                '승리요정으로 기록한 소중한 추억 ⚾',
+                style: textTheme.bodySmall?.copyWith(
+                  color: AppColors.gray50,
+                  fontSize: 12,
+                ),
+              ),
+            ),
             const SizedBox(height: 40),
           ],
         ),

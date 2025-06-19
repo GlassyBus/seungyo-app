@@ -102,9 +102,8 @@ class _RecordListPageState extends State<RecordListPage>
   }
 
   List<GameRecord> get _filteredRecords {
-    // 먼저 취소되지 않은 기록만 필터링
-    final nonCanceledRecords =
-        _records.where((record) => !record.canceled).toList();
+    // 전체 기록
+    final nonCanceledRecords = _records.toList();
 
     // 그 다음 즐겨찾기 필터 적용
     final filtered =

@@ -4,8 +4,10 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:seungyo/models/game_record_form.dart';
+import 'package:seungyo/models/game_schedule.dart';
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/services/record_service.dart';
+import 'package:seungyo/utils/stadium_mapping.dart';
 
 import '../../models/game_record.dart';
 import '../../models/stadium.dart' as app_models;
@@ -13,15 +15,17 @@ import '../../models/team.dart' as app_models;
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'widgets/date_time_picker_modal.dart';
+import 'widgets/image_editor_screen.dart';
 import 'widgets/score_input_modal.dart';
 import 'widgets/stadium_picker_modal.dart';
 import 'widgets/team_picker_modal.dart';
-import 'widgets/image_editor_screen.dart';
 
 class CreateRecordScreen extends StatefulWidget {
   final GameRecord? gameRecord; // 수정할 기록 (null이면 새 기록)
+  final GameSchedule? gameSchedule; // 미리 설정할 경기 정보 (null이면 빈 폼)
 
-  const CreateRecordScreen({Key? key, this.gameRecord}) : super(key: key);
+  const CreateRecordScreen({Key? key, this.gameRecord, this.gameSchedule})
+    : super(key: key);
 
   @override
   State<CreateRecordScreen> createState() => _CreateRecordScreenState();
@@ -55,9 +59,70 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     if (widget.gameRecord != null) {
       _initializeWithExistingRecord();
     }
+    // 경기 일정 정보가 있는 경우 해당 정보로 초기화
+    else if (widget.gameSchedule != null) {
+      _initializeWithSchedule();
+    }
 
     // 디버그: DB 상태 확인
     _debugDatabaseStatus();
+  }
+
+  void _initializeWithSchedule() {
+    final schedule = widget.gameSchedule!;
+    print(
+      'CreateRecordScreen: Initializing with schedule - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}',
+    );
+
+    // 경기장 ID 매핑
+    String? stadiumId = StadiumMapping.getBestStadiumId(schedule.stadium, schedule.homeTeam);
+    
+    // 팀 ID 매핑
+    String? homeTeamId = _getTeamIdByName(schedule.homeTeam);
+    String? awayTeamId = _getTeamIdByName(schedule.awayTeam);
+
+    print('CreateRecordScreen: Mapped stadium "${schedule.stadium}" -> "$stadiumId"');
+    print('CreateRecordScreen: Mapped home team "${schedule.homeTeam}" -> "$homeTeamId"');
+    print('CreateRecordScreen: Mapped away team "${schedule.awayTeam}" -> "$awayTeamId"');
+
+    // 기본적으로 경기 시간, 경기장, 팀 정보 설정
+    setState(() {
+      _form = _form.copyWith(
+        gameDateTime: schedule.dateTime,
+        stadiumId: stadiumId,
+        homeTeamId: homeTeamId,
+        awayTeamId: awayTeamId,
+      );
+    });
+  }
+
+  /// 팀 이름으로 팀 ID 찾기
+  String? _getTeamIdByName(String teamName) {
+    // 팀 이름 매핑 (team_data.dart의 실제 코드에 맞춤)
+    const teamNameMapping = {
+      '두산': 'bears',   // code: "두산"
+      '키움': 'heroes',  // code: "키움"
+      'SSG': 'landers',  // code: "SSG"
+      'LG': 'twins',     // code: "LG"
+      '삼성': 'lions',   // code: "삼성"
+      '한화': 'eagles',  // code: "한화"
+      'NC': 'dinos',     // code: "NC"
+      '롯데': 'giants',  // code: "롯데"
+      'KIA': 'tigers',   // code: "KIA"
+      'KT': 'wiz',       // code: "KT"
+    };
+
+    String? teamId = teamNameMapping[teamName];
+    if (teamId != null) {
+      return teamId;
+    }
+
+    // 직접 매핑에서 찾을 수 없으면 로드된 팀 목록에서 찾기
+    final team = _teams.firstWhereOrNull(
+      (t) => t.name.contains(teamName) || t.shortName == teamName || teamName.contains(t.shortName),
+    );
+    
+    return team?.id;
   }
 
   void _initializeWithExistingRecord() {
@@ -755,7 +820,13 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             onTap: () {
               setState(() {
                 _isGameCanceled = !_isGameCanceled;
+                print(
+                  'CreateRecordScreen: Game canceled toggled to: $_isGameCanceled',
+                );
                 if (_isGameCanceled) {
+                  print(
+                    'CreateRecordScreen: Clearing scores due to cancellation',
+                  );
                   _form = _form.copyWith(homeScore: null, awayScore: null);
                 }
               });
@@ -1112,7 +1183,8 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       print('  - Seat: ${_form.seatInfo}');
       print('  - Comment: ${_form.comment}');
       print('  - Is Favorite: ${_form.isFavorite}');
-      print('  - Is Canceled: ${_form.canceled}');
+      print('  - Is Canceled: ${_form.canceled}'); // 이 부분이 중요!
+      print('  - UI _isGameCanceled: $_isGameCanceled');
 
       await _submitForm();
       print('CreateRecordScreen: Save completed successfully');
@@ -1205,7 +1277,128 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   void _handleBackPress() {
     if (_isSaving) return;
-    Navigator.of(context).pop();
+    _showExitConfirmDialog();
+  }
+
+  void _showExitConfirmDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 15),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 아이콘
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.error_outline,
+                    color: AppColors.black,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                // 제목
+                Text(
+                  '작성을 그만두시겠어요?',
+                  style: AppTextStyles.body1.copyWith(
+                    color: AppColors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 5),
+                // 설명
+                Text(
+                  '지금까지 작성된 내용은 저장되지 않아요.',
+                  style: AppTextStyles.body3.copyWith(
+                    color: AppColors.gray80,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actionsPadding: const EdgeInsets.fromLTRB(15, 0, 15, 15),
+            actions: [
+              Row(
+                children: [
+                  // 작성 계속하기 버튼
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: AppColors.navy,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          '작성 계속하기',
+                          style: AppTextStyles.body3.copyWith(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  // 삭제하고 나가기 버튼
+                  Expanded(
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFE5E5),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // 다이얼로그 닫기
+                          Navigator.pop(context); // 작성 화면 닫기
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          '삭제하고 나가기',
+                          style: AppTextStyles.body3.copyWith(
+                            color: AppColors.negative,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+    );
   }
 
   String _formatDateTime(DateTime dateTime) {

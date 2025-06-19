@@ -287,7 +287,7 @@ class GameRecordCard extends StatelessWidget {
       case GameResult.draw:
         return (const Color(0xFFE6EAF2), const Color(0xFF09004C), 'DRAW');
       case GameResult.cancel:
-        return (const Color(0xFFE6EAF2), const Color(0xFF8A94A8), 'CANCEL');
+        return (const Color(0xFFE6EAF2), const Color(0xFF8A94A8), 'PPD');
     }
   }
 }

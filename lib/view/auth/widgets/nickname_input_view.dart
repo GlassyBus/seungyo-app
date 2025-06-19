@@ -10,7 +10,11 @@ class NicknameInputView extends StatefulWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
 
-  const NicknameInputView({super.key, required this.onNext, required this.onBack});
+  const NicknameInputView({
+    super.key,
+    required this.onNext,
+    required this.onBack,
+  });
 
   @override
   State<NicknameInputView> createState() => _NicknameInputViewState();
@@ -59,7 +63,8 @@ class _NicknameInputViewState extends State<NicknameInputView> {
       // 선택된 팀 찾기
       final vm = context.read<AuthViewModel>();
       if (vm.team != null && _teams.isNotEmpty) {
-        final selectedTeam = _teams.where((team) => team.id == vm.team).firstOrNull;
+        final selectedTeam =
+            _teams.where((team) => team.id == vm.team).firstOrNull;
         setState(() {
           _selectedTeam = selectedTeam;
         });
@@ -105,7 +110,7 @@ class _NicknameInputViewState extends State<NicknameInputView> {
         }
       },
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true, // 키보드에 맞춰 화면 크기 조정
         backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('정보 입력', style: AppTextStyles.subtitle1),
@@ -124,9 +129,10 @@ class _NicknameInputViewState extends State<NicknameInputView> {
         body: SafeArea(
           child: Column(
             children: [
-              // 상단 컨텐츠 영역
+              // 상단 컨텐츠 영역 (스크롤 가능)
               Expanded(
-                child: Padding(
+                child: SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.all(40.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -139,10 +145,16 @@ class _NicknameInputViewState extends State<NicknameInputView> {
                           decoration: BoxDecoration(
                             color: AppColors.navy5,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.gray30, width: 1),
+                            border: Border.all(
+                              color: AppColors.gray30,
+                              width: 1,
+                            ),
                           ),
                           child: ClipOval(
-                            child: Padding(padding: const EdgeInsets.all(20.0), child: _buildTeamLogo(_selectedTeam!)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: _buildTeamLogo(_selectedTeam!),
+                            ),
                           ),
                         )
                       else if (_isLoadingTeams)
@@ -152,15 +164,25 @@ class _NicknameInputViewState extends State<NicknameInputView> {
                           decoration: BoxDecoration(
                             color: AppColors.navy5,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.gray30, width: 1),
+                            border: Border.all(
+                              color: AppColors.gray30,
+                              width: 1,
+                            ),
                           ),
-                          child: const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.navy)),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.navy,
+                            ),
+                          ),
                         ),
                       const SizedBox(height: 15),
 
                       // 타이틀 텍스트
                       Text(
-                        teamName.isNotEmpty ? '$teamName 승요의\n닉네임을 입력해주세요.' : '닉네임을 입력해주세요.',
+                        teamName.isNotEmpty
+                            ? '$teamName 승요의\n닉네임을 입력해주세요.'
+                            : '닉네임을 입력해주세요.',
                         textAlign: TextAlign.center,
                         style: AppTextStyles.h3.copyWith(color: AppColors.navy),
                       ),
@@ -172,7 +194,13 @@ class _NicknameInputViewState extends State<NicknameInputView> {
                         decoration: BoxDecoration(
                           color: AppColors.navy5,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isTextFieldFocused ? AppColors.navy : AppColors.gray30, width: 1),
+                          border: Border.all(
+                            color:
+                                isTextFieldFocused
+                                    ? AppColors.navy
+                                    : AppColors.gray30,
+                            width: 1,
+                          ),
                         ),
                         child: Center(
                           child: TextField(
@@ -181,25 +209,55 @@ class _NicknameInputViewState extends State<NicknameInputView> {
                             textAlign: TextAlign.center,
                             style: AppTextStyles.body2,
                             maxLength: _maxLength,
-                            buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                            buildCounter:
+                                (
+                                  context, {
+                                  required currentLength,
+                                  required isFocused,
+                                  maxLength,
+                                }) => null,
                             decoration: InputDecoration(
-                              hintText: _selectedTeam != null ? 'ex. ${_selectedTeam!.shortName}승리요정' : 'ex. 두산승리요정',
-                              hintStyle: AppTextStyles.body2.copyWith(color: AppColors.gray50),
+                              hintText:
+                                  _selectedTeam != null
+                                      ? 'ex. ${_selectedTeam!.shortName}승리요정'
+                                      : 'ex. 두산승리요정',
+                              hintStyle: AppTextStyles.body2.copyWith(
+                                color: AppColors.gray50,
+                              ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
                             ),
                           ),
                         ),
+                      ),
+                      // 키보드가 올라올 때 충분한 여백 제공
+                      SizedBox(
+                        height:
+                            MediaQuery.of(context).viewInsets.bottom > 0
+                                ? 40
+                                : 20,
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // 하단 버튼 영역
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              // 하단 버튼 영역 (고정 위치, 키보드 위에 표시)
+              Container(
+                color: Colors.white, // 배경색 설정으로 깔끔한 분리
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  16,
+                  20,
+                  MediaQuery.of(context).viewInsets.bottom > 0
+                      ? MediaQuery.of(context).viewInsets.bottom +
+                          10 // 키보드 위에 여백과 함께 표시
+                      : 20,
+                ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     // 등록 완료 버튼
                     Container(
@@ -207,7 +265,8 @@ class _NicknameInputViewState extends State<NicknameInputView> {
                       height: 56,
                       child: TextButton(
                         onPressed:
-                            _controller.text.trim().length >= _minLength && _controller.text.trim().length <= _maxLength
+                            _controller.text.trim().length >= _minLength &&
+                                    _controller.text.trim().length <= _maxLength
                                 ? () async {
                                   FocusScope.of(context).unfocus();
                                   vm.setNickname(_controller.text.trim());
@@ -216,22 +275,18 @@ class _NicknameInputViewState extends State<NicknameInputView> {
                                 }
                                 : null,
                         style: TextButton.styleFrom(
-                          backgroundColor: _isValid ? AppColors.navy : AppColors.navy5,
-                          foregroundColor: _isValid ? Colors.white : AppColors.navy30,
+                          backgroundColor:
+                              _isValid ? AppColors.navy : AppColors.navy5,
+                          foregroundColor:
+                              _isValid ? Colors.white : AppColors.navy30,
                           disabledForegroundColor: AppColors.navy30,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           padding: EdgeInsets.zero,
                         ),
                         child: Text('등록 완료', style: AppTextStyles.subtitle2),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // iOS 홈 인디케이터
-                    Container(
-                      width: 134,
-                      height: 5,
-                      decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(100)),
                     ),
                   ],
                 ),
@@ -255,7 +310,9 @@ class _NicknameInputViewState extends State<NicknameInputView> {
         );
       } else {
         // 이모지나 다른 텍스트
-        return Center(child: Text(team.logo!, style: const TextStyle(fontSize: 40)));
+        return Center(
+          child: Text(team.logo!, style: const TextStyle(fontSize: 40)),
+        );
       }
     } else {
       return _buildFallbackLogo(team);
@@ -266,7 +323,11 @@ class _NicknameInputViewState extends State<NicknameInputView> {
     return Center(
       child: Text(
         team.shortName.isNotEmpty ? team.shortName.substring(0, 1) : '⚾',
-        style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.navy),
+        style: const TextStyle(
+          fontSize: 40,
+          fontWeight: FontWeight.bold,
+          color: AppColors.navy,
+        ),
       ),
     );
   }

@@ -297,12 +297,6 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                       : Text('다음', style: AppTextStyles.subtitle2),
             ),
           ),
-          const SizedBox(height: 8),
-          Container(
-            width: 134,
-            height: 5,
-            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(100)),
-          ),
         ],
       ),
     );
