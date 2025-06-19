@@ -7,6 +7,7 @@ import 'package:seungyo/models/game_record_form.dart';
 import 'package:seungyo/models/game_schedule.dart';
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/services/record_service.dart';
+import 'package:seungyo/utils/stadium_mapping.dart';
 
 import '../../models/game_record.dart';
 import '../../models/stadium.dart' as app_models;
@@ -70,13 +71,58 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   void _initializeWithSchedule() {
     final schedule = widget.gameSchedule!;
     print(
-      'CreateRecordScreen: Initializing with schedule - ${schedule.homeTeam} vs ${schedule.awayTeam}',
+      'CreateRecordScreen: Initializing with schedule - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}',
     );
 
-    // 기본적으로 경기 시간만 설정
+    // 경기장 ID 매핑
+    String? stadiumId = StadiumMapping.getBestStadiumId(schedule.stadium, schedule.homeTeam);
+    
+    // 팀 ID 매핑
+    String? homeTeamId = _getTeamIdByName(schedule.homeTeam);
+    String? awayTeamId = _getTeamIdByName(schedule.awayTeam);
+
+    print('CreateRecordScreen: Mapped stadium "${schedule.stadium}" -> "$stadiumId"');
+    print('CreateRecordScreen: Mapped home team "${schedule.homeTeam}" -> "$homeTeamId"');
+    print('CreateRecordScreen: Mapped away team "${schedule.awayTeam}" -> "$awayTeamId"');
+
+    // 기본적으로 경기 시간, 경기장, 팀 정보 설정
     setState(() {
-      _form = _form.copyWith(gameDateTime: schedule.dateTime);
+      _form = _form.copyWith(
+        gameDateTime: schedule.dateTime,
+        stadiumId: stadiumId,
+        homeTeamId: homeTeamId,
+        awayTeamId: awayTeamId,
+      );
     });
+  }
+
+  /// 팀 이름으로 팀 ID 찾기
+  String? _getTeamIdByName(String teamName) {
+    // 팀 이름 매핑 (team_data.dart의 실제 코드에 맞춤)
+    const teamNameMapping = {
+      '두산': 'bears',   // code: "두산"
+      '키움': 'heroes',  // code: "키움"
+      'SSG': 'landers',  // code: "SSG"
+      'LG': 'twins',     // code: "LG"
+      '삼성': 'lions',   // code: "삼성"
+      '한화': 'eagles',  // code: "한화"
+      'NC': 'dinos',     // code: "NC"
+      '롯데': 'giants',  // code: "롯데"
+      'KIA': 'tigers',   // code: "KIA"
+      'KT': 'wiz',       // code: "KT"
+    };
+
+    String? teamId = teamNameMapping[teamName];
+    if (teamId != null) {
+      return teamId;
+    }
+
+    // 직접 매핑에서 찾을 수 없으면 로드된 팀 목록에서 찾기
+    final team = _teams.firstWhereOrNull(
+      (t) => t.name.contains(teamName) || t.shortName == teamName || teamName.contains(t.shortName),
+    );
+    
+    return team?.id;
   }
 
   void _initializeWithExistingRecord() {
