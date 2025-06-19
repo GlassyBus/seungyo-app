@@ -189,14 +189,6 @@ class _WelcomeViewState extends State<WelcomeView> {
                   ),
                 ),
               ),
-
-              // 하단 홈 인디케이터
-              Container(
-                width: 134,
-                height: 5,
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(100)),
-              ),
             ],
           ),
         ),

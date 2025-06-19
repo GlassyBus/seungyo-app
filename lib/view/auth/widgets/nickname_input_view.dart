@@ -288,19 +288,6 @@ class _NicknameInputViewState extends State<NicknameInputView> {
                         child: Text('등록 완료', style: AppTextStyles.subtitle2),
                       ),
                     ),
-
-                    // iOS 홈 인디케이터 (키보드가 올라올 때는 숨김)
-                    if (MediaQuery.of(context).viewInsets.bottom == 0) ...[
-                      const SizedBox(height: 8),
-                      Container(
-                        width: 134,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
