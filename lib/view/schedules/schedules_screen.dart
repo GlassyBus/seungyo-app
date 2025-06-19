@@ -16,6 +16,7 @@ import 'widgets/calendar_header.dart';
 import 'widgets/enhanced_calendar.dart';
 import 'widgets/no_schedule_view.dart';
 import 'widgets/record_item.dart';
+import 'notification_settings_screen.dart';
 
 /// 경기 일정 페이지
 class SchedulePage extends StatefulWidget {
@@ -68,7 +69,10 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   /// 직관 기록이 있는 경기를 우선으로 정렬
-  List<GameSchedule> _sortGamesByRecord(List<GameSchedule> games, DateTime date) {
+  List<GameSchedule> _sortGamesByRecord(
+    List<GameSchedule> games,
+    DateTime date,
+  ) {
     final provider = context.read<ScheduleProvider>();
     final dateKey = DateTime(date.year, date.month, date.day);
     final dayRecords = provider.scheduleMap[dateKey] ?? [];
@@ -78,7 +82,8 @@ class _SchedulePageState extends State<SchedulePage> {
 
     for (final game in games) {
       final hasRecord = dayRecords.any((record) {
-        return record.homeTeam.name.contains(game.homeTeam) && record.awayTeam.name.contains(game.awayTeam);
+        return record.homeTeam.name.contains(game.homeTeam) &&
+            record.awayTeam.name.contains(game.awayTeam);
       });
 
       if (hasRecord) {
@@ -101,20 +106,36 @@ class _SchedulePageState extends State<SchedulePage> {
         }
 
         if (provider.hasError) {
-          return ErrorView(message: provider.errorMessage, onRetry: provider.loadSchedules);
+          return ErrorView(
+            message: provider.errorMessage,
+            onRetry: provider.loadSchedules,
+          );
         }
 
         return Scaffold(
           appBar: AppBar(
             title: Text(
               '경기 일정',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(color: AppColors.navy, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: AppColors.navy,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             backgroundColor: Colors.white,
             elevation: 0,
-            actions: [IconButton(icon: Icon(Icons.notifications_outlined, color: AppColors.navy), onPressed: () {})],
+            actions: [
+              IconButton(
+                icon: Icon(Icons.notifications_outlined, color: AppColors.navy),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationSettingsScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
           backgroundColor: Colors.white,
           body: RefreshIndicator(
@@ -190,7 +211,9 @@ class _SchedulePageState extends State<SchedulePage> {
       // 기존 기록이 있으면 상세 화면으로
       final result = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => RecordDetailPage(game: existingRecord)),
+        MaterialPageRoute(
+          builder: (context) => RecordDetailPage(game: existingRecord),
+        ),
       );
 
       if (result == true) {
@@ -200,7 +223,9 @@ class _SchedulePageState extends State<SchedulePage> {
       // 기존 기록이 없으면 새 기록 작성 화면으로
       final result = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => CreateRecordScreen(gameSchedule: game)),
+        MaterialPageRoute(
+          builder: (context) => CreateRecordScreen(gameSchedule: game),
+        ),
       );
 
       if (result == true) {
@@ -218,16 +243,25 @@ class _SchedulePageState extends State<SchedulePage> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(color: AppColors.navy, borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        color: AppColors.navy,
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Text(
         formattedDate,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w600),
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
 
   /// 선택된 날짜의 직관 기록 위젯 생성
-  Widget _buildSelectedDateRecords(BuildContext context, ScheduleProvider provider) {
+  Widget _buildSelectedDateRecords(
+    BuildContext context,
+    ScheduleProvider provider,
+  ) {
     final selectedRecords = provider.daySchedules;
 
     if (selectedRecords.isEmpty && _selectedDateGames.isEmpty) {
@@ -252,15 +286,19 @@ class _SchedulePageState extends State<SchedulePage> {
           padding: const EdgeInsets.fromLTRB(32, 20, 32, 0),
           child: Text(
             '직관 기록',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: AppColors.navy, fontWeight: FontWeight.w700),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppColors.navy,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         const SizedBox(height: 10),
         // 직관 기록 목록
         ...selectedRecords.map((record) {
-          return RecordItem(record: record, onTap: () => _navigateToRecordDetail(context, record));
+          return RecordItem(
+            record: record,
+            onTap: () => _navigateToRecordDetail(context, record),
+          );
         }).toList(),
       ],
     );
@@ -281,7 +319,9 @@ class _SchedulePageState extends State<SchedulePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('오류가 발생했습니다: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('오류가 발생했습니다: $e')));
       }
     }
   }

@@ -2,24 +2,24 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter/foundation.dart';
 
 import '../constants/team_data.dart';
 import '../models/game_schedule.dart';
 import '../services/record_service.dart';
 
+/// 경기 일정 관리 서비스
 class ScheduleService {
   static const String _fileName = 'game_schedules.json';
 
   // 싱글톤 패턴 구현
   static final ScheduleService _instance = ScheduleService._internal();
 
-  factory ScheduleService() {
-    return _instance;
-  }
+  factory ScheduleService() => _instance;
 
   ScheduleService._internal();
 
-  // 모든 경기 일정 가져오기
+  /// 모든 경기 일정 가져오기
   Future<List<GameSchedule>> getAllSchedules() async {
     try {
       final file = await _getLocalFile();
@@ -34,30 +34,47 @@ class ScheduleService {
       final List<dynamic> jsonList = json.decode(contents);
       return jsonList.map((json) => GameSchedule.fromJson(json)).toList();
     } catch (e) {
-      print('Error loading schedules: $e');
-      return _generateSampleData();
-    }
-  }
-
-  // 특정 월의 경기 일정 가져오기
-  Future<List<GameSchedule>> getSchedulesByMonth(int year, int month) async {
-    try {
-      final allSchedules = await getAllSchedules();
-      return allSchedules
-          .where((schedule) => schedule.dateTime.year == year && schedule.dateTime.month == month)
-          .toList();
-    } catch (e) {
-      print('Error getting schedules by month: $e');
+      if (kDebugMode) {
+        print('❌ 경기 일정 로드 실패: $e');
+      }
+      // 에러 발생 시 빈 배열 반환
       return [];
     }
   }
 
-  // 특정 날짜의 경기 일정 가져오기
+  /// 특정 월의 경기 일정 가져오기
+  Future<List<GameSchedule>> getSchedulesByMonth(int year, int month) async {
+    try {
+      final allSchedules = await getAllSchedules();
+      return allSchedules
+          .where(
+            (schedule) =>
+                schedule.dateTime.year == year &&
+                schedule.dateTime.month == month,
+          )
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ 월별 경기 일정 가져오기 실패: $e');
+      }
+      return [];
+    }
+  }
+
+  /// 특정 날짜의 경기 일정 가져오기 (기존 메서드 이름 유지)
   Future<List<GameSchedule>> getSchedulesByDate(DateTime date) async {
     try {
-      print('ScheduleService: Getting schedules for ${date.year}-${date.month}-${date.day}');
+      if (kDebugMode) {
+        print(
+          'ScheduleService: Getting schedules for ${date.year}-${date.month}-${date.day}',
+        );
+      }
       final allSchedules = await getAllSchedules();
-      print('ScheduleService: Total schedules loaded: ${allSchedules.length}');
+      if (kDebugMode) {
+        print(
+          'ScheduleService: Total schedules loaded: ${allSchedules.length}',
+        );
+      }
 
       final filteredSchedules =
           allSchedules
@@ -69,14 +86,45 @@ class ScheduleService {
               )
               .toList();
 
-      print('ScheduleService: Found ${filteredSchedules.length} schedules for ${date.year}-${date.month}-${date.day}');
-      for (final schedule in filteredSchedules) {
-        print('ScheduleService: - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}');
+      if (kDebugMode) {
+        print(
+          'ScheduleService: Found ${filteredSchedules.length} schedules for ${date.year}-${date.month}-${date.day}',
+        );
+        for (final schedule in filteredSchedules) {
+          print(
+            'ScheduleService: - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}',
+          );
+        }
       }
 
       return filteredSchedules;
     } catch (e) {
-      print('Error getting schedules by date: $e');
+      if (kDebugMode) {
+        print('❌ 특정 날짜 경기 일정 가져오기 실패: $e');
+      }
+      return [];
+    }
+  }
+
+  /// 특정 날짜의 경기 일정 가져오기 (NotificationService 호환성을 위한 별칭)
+  Future<List<GameSchedule>> getSchedulesForDate(DateTime date) async {
+    return getSchedulesByDate(date);
+  }
+
+  /// 앞으로 예정된 경기 일정 가져오기
+  Future<List<GameSchedule>> getUpcomingSchedules() async {
+    try {
+      final allSchedules = await getAllSchedules();
+      final now = DateTime.now();
+
+      return allSchedules.where((schedule) {
+        return schedule.dateTime.isAfter(now) &&
+            schedule.status == GameStatus.scheduled;
+      }).toList();
+    } catch (error) {
+      if (kDebugMode) {
+        print('❌ 예정된 경기 일정 가져오기 실패: $error');
+      }
       return [];
     }
   }
@@ -99,8 +147,10 @@ class ScheduleService {
               return record.gameDate.year == schedule.dateTime.year &&
                   record.gameDate.month == schedule.dateTime.month &&
                   record.gameDate.day == schedule.dateTime.day &&
-                  ((record.homeTeam.name == schedule.homeTeam && record.awayTeam.name == schedule.awayTeam) ||
-                      (record.homeTeam.name == schedule.awayTeam && record.awayTeam.name == schedule.homeTeam));
+                  ((record.homeTeam.name == schedule.homeTeam &&
+                          record.awayTeam.name == schedule.awayTeam) ||
+                      (record.homeTeam.name == schedule.awayTeam &&
+                          record.awayTeam.name == schedule.homeTeam));
             }).toList();
 
         if (matchingRecords.isNotEmpty) {
