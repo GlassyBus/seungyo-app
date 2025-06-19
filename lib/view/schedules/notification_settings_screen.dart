@@ -29,7 +29,7 @@ class NotificationSettingsScreen extends StatelessWidget {
                   _buildHeader(context),
 
                   // 알림 설정 리스트
-                  Expanded(child: _buildNotificationList(provider)),
+                  Expanded(child: _buildNotificationList(provider, context)),
 
                   // 하단 완료 버튼
                   _buildBottomButton(context, provider),
@@ -79,7 +79,10 @@ class NotificationSettingsScreen extends StatelessWidget {
   }
 
   /// 알림 설정 리스트
-  Widget _buildNotificationList(NotificationSettingsProvider provider) {
+  Widget _buildNotificationList(
+    NotificationSettingsProvider provider,
+    BuildContext context,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -87,85 +90,28 @@ class NotificationSettingsScreen extends StatelessWidget {
           const SizedBox(height: 25),
 
           // 경기 시작 알림
-          Builder(
-            builder:
-                (context) => _buildNotificationItem(
-                  title: '경기 시작 알림 (10분 전)',
-                  isEnabled: provider.gameStartNotification,
-                  onChanged:
-                      (value) => _handleNotificationToggle(
-                        value,
-                        () => provider.setGameStartNotification(value),
-                        context,
-                      ),
+          _buildNotificationItem(
+            title: '경기 시작 알림 (10분 전)',
+            isEnabled: provider.gameStartNotification,
+            onChanged:
+                (value) => _handleNotificationToggle(
+                  value,
+                  () => provider.setGameStartNotification(value),
+                  context,
                 ),
           ),
 
           const SizedBox(height: 20),
 
           // 경기 끝 알림
-          Builder(
-            builder:
-                (context) => _buildNotificationItem(
-                  title: '경기 끝 알림 (3시간 후)',
-                  isEnabled: provider.gameEndNotification,
-                  onChanged:
-                      (value) => _handleNotificationToggle(
-                        value,
-                        () => provider.setGameEndNotification(value),
-                        context,
-                      ),
-                ),
-          ),
-
-          const SizedBox(height: 30),
-
-          // 즉시 테스트 버튼
-          Builder(
-            builder:
-                (context) => ElevatedButton(
-                  onPressed: () => _sendImmediateTestNotification(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.navy,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: Text(
-                    '즉시 테스트 알림 보내기',
-                    style: AppTextStyles.button2.copyWith(color: Colors.white),
-                  ),
-                ),
-          ),
-
-          const SizedBox(height: 15),
-
-          // 지연 테스트 버튼
-          Builder(
-            builder:
-                (context) => OutlinedButton(
-                  onPressed: () => _testNotification(context),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: AppColors.navy),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  child: Text(
-                    '5초 후 테스트 알림 보내기',
-                    style: AppTextStyles.button2.copyWith(
-                      color: AppColors.navy,
-                    ),
-                  ),
+          _buildNotificationItem(
+            title: '경기 끝 알림 (3시간 후)',
+            isEnabled: provider.gameEndNotification,
+            onChanged:
+                (value) => _handleNotificationToggle(
+                  value,
+                  () => provider.setGameEndNotification(value),
+                  context,
                 ),
           ),
         ],
@@ -317,95 +263,6 @@ class NotificationSettingsScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('설정 저장에 실패했습니다: $error'),
-          backgroundColor: AppColors.negative,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
-  /// 테스트 알림 보내기
-  Future<void> _testNotification(BuildContext context) async {
-    final notificationService = NotificationService();
-
-    try {
-      // 권한 확인 및 요청
-      final hasPermission =
-          await notificationService.requestNotificationPermission();
-      if (!hasPermission) {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('알림 권한이 필요합니다'),
-            backgroundColor: AppColors.negative,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return;
-      }
-
-      // 5초 후 테스트 알림 전송
-      await notificationService.sendDelayedTestNotification(
-        delaySeconds: 5,
-        type: 'game_start',
-      );
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('5초 후에 테스트 알림이 발송됩니다'),
-          backgroundColor: AppColors.navy,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('알림 전송에 실패했습니다: $error'),
-          backgroundColor: AppColors.negative,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
-  /// 즉시 테스트 알림 보내기
-  Future<void> _sendImmediateTestNotification(BuildContext context) async {
-    final notificationService = NotificationService();
-
-    try {
-      // 권한 확인 및 요청
-      final hasPermission =
-          await notificationService.requestNotificationPermission();
-      if (!hasPermission) {
-        if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('알림 권한이 필요합니다'),
-            backgroundColor: AppColors.negative,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        return;
-      }
-
-      // 즉시 테스트 알림 전송
-      await notificationService.sendImmediateTestNotification();
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('즉시 테스트 알림이 발송됩니다'),
-          backgroundColor: AppColors.navy,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } catch (error) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('알림 전송에 실패했습니다: $error'),
           backgroundColor: AppColors.negative,
           behavior: SnackBarBehavior.floating,
         ),
