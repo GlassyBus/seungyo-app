@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:seungyo/models/game_record_form.dart';
+import 'package:seungyo/models/game_schedule.dart';
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/services/record_service.dart';
 
@@ -20,8 +21,10 @@ import 'widgets/team_picker_modal.dart';
 
 class CreateRecordScreen extends StatefulWidget {
   final GameRecord? gameRecord; // 수정할 기록 (null이면 새 기록)
+  final GameSchedule? gameSchedule; // 미리 설정할 경기 정보 (null이면 빈 폼)
 
-  const CreateRecordScreen({Key? key, this.gameRecord}) : super(key: key);
+  const CreateRecordScreen({Key? key, this.gameRecord, this.gameSchedule})
+    : super(key: key);
 
   @override
   State<CreateRecordScreen> createState() => _CreateRecordScreenState();
@@ -55,9 +58,25 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     if (widget.gameRecord != null) {
       _initializeWithExistingRecord();
     }
+    // 경기 일정 정보가 있는 경우 해당 정보로 초기화
+    else if (widget.gameSchedule != null) {
+      _initializeWithSchedule();
+    }
 
     // 디버그: DB 상태 확인
     _debugDatabaseStatus();
+  }
+
+  void _initializeWithSchedule() {
+    final schedule = widget.gameSchedule!;
+    print(
+      'CreateRecordScreen: Initializing with schedule - ${schedule.homeTeam} vs ${schedule.awayTeam}',
+    );
+
+    // 기본적으로 경기 시간만 설정
+    setState(() {
+      _form = _form.copyWith(gameDateTime: schedule.dateTime);
+    });
   }
 
   void _initializeWithExistingRecord() {

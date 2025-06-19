@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
+import '../../../models/game_schedule.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
-import '../../../models/game_schedule.dart';
 
 class GameCard extends StatelessWidget {
   final GameSchedule game;
@@ -86,17 +87,18 @@ class GameCard extends StatelessWidget {
   }
 
   Widget _buildTeamInfo(String teamName) {
+    // GameSchedule에서 해당 팀의 로고 경로 가져오기
+    String? logoPath;
+    if (teamName == game.homeTeam) {
+      logoPath = game.homeTeamLogo;
+    } else if (teamName == game.awayTeam) {
+      logoPath = game.awayTeamLogo;
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _getTeamColor(teamName),
-          ),
-        ),
+        _buildTeamLogo(teamName, logoPath),
         const SizedBox(width: 6),
         Text(
           teamName,
@@ -106,6 +108,66 @@ class GameCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTeamLogo(String teamName, String? logoPath) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: const BoxDecoration(shape: BoxShape.circle),
+      child:
+          logoPath != null && logoPath.isNotEmpty
+              ? ClipOval(
+                child: Image.asset(
+                  logoPath,
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    print(
+                      'GameCard: Failed to load team logo: $logoPath for $teamName',
+                    );
+                    // 로고 로드 실패 시 기본 색상 원 표시
+                    return Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _getTeamColor(teamName),
+                      ),
+                      child: Center(
+                        child: Text(
+                          teamName.substring(0, 1),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+              : Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _getTeamColor(teamName),
+                ),
+                child: Center(
+                  child: Text(
+                    teamName.substring(0, 1),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
     );
   }
 

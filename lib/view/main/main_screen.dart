@@ -126,8 +126,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       // 오늘의 경기 데이터 로드
       print('MainScreen: Loading today\'s games...');
       final today = DateTime.now();
+      print('MainScreen: Today is ${today.year}-${today.month}-${today.day}');
       final todayGames = await _scheduleService.getSchedulesByDate(today);
       print('MainScreen: Loaded ${todayGames.length} today\'s games');
+      for (final game in todayGames) {
+        print(
+          'MainScreen: Game - ${game.homeTeam} vs ${game.awayTeam} at ${game.stadium}',
+        );
+      }
 
       // 통계 계산 (경기 취소나 동점 제외)
       print('MainScreen: Calculating statistics...');
@@ -391,6 +397,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         }).firstOrNull;
 
     if (existingRecord != null) {
+      // 기존 기록이 있으면 수정 화면으로
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -398,10 +405,21 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         ),
       );
     } else {
-      Navigator.push(
+      // 기존 기록이 없으면 새 기록 작성 화면으로 (경기 정보 미리 설정)
+      final result = await Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
+        MaterialPageRoute(
+          builder: (context) => CreateRecordScreen(gameSchedule: game),
+        ),
       );
+
+      // 기록 추가 후 홈 데이터 새로고침
+      if (result == true) {
+        print(
+          'MainScreen: Record added from today\'s game, refreshing home data...',
+        );
+        await _loadHomeData();
+      }
     }
   }
 

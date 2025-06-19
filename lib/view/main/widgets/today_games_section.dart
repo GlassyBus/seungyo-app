@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../../../models/game_schedule.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
-import '../../../models/game_schedule.dart';
 import 'game_card.dart';
 
 class TodayGamesSection extends StatelessWidget {
@@ -16,6 +17,14 @@ class TodayGamesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('TodayGamesSection: Building with ${todayGames.length} games');
+    for (int i = 0; i < todayGames.length; i++) {
+      final game = todayGames[i];
+      print(
+        'TodayGamesSection: Game $i - ${game.homeTeam} vs ${game.awayTeam} at ${game.stadium}',
+      );
+    }
+
     final now = DateTime.now();
     final weekdays = ['일', '월', '화', '수', '목', '금', '토'];
     final weekday = weekdays[(now.weekday) % 7];
@@ -55,8 +64,13 @@ class TodayGamesSection extends StatelessWidget {
   }
 
   Widget _buildGamesList() {
+    print(
+      'TodayGamesSection: _buildGamesList called with ${todayGames.length} games',
+    );
+
     // 1. 경기가 아예 없는 경우
     if (todayGames.isEmpty) {
+      print('TodayGamesSection: No games today');
       return _buildNoGameToday();
     }
 
@@ -65,10 +79,12 @@ class TodayGamesSection extends StatelessWidget {
       (game) => game.status == GameStatus.canceled,
     );
     if (allGamesCanceled) {
+      print('TodayGamesSection: All games canceled');
       return _buildCanceledGames();
     }
 
     // 3. 정상적인 경기가 있는 경우
+    print('TodayGamesSection: Building ${todayGames.length} game cards');
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
