@@ -1137,25 +1137,88 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     if (Platform.isAndroid) {
       // Android 13 (API 33) 이상에서는 READ_MEDIA_IMAGES 권한 필요
       final androidInfo = await _getAndroidVersion();
+      PermissionStatus permission;
+      
       if (androidInfo >= 33) {
         // Android 13+ : READ_MEDIA_IMAGES 권한 확인
-        final permission = await Permission.photos.request();
-        if (!permission.isGranted) {
-          throw Exception('사진 접근 권한이 필요합니다.');
-        }
+        permission = await Permission.photos.request();
       } else {
         // Android 12 이하에서는 WRITE_EXTERNAL_STORAGE 권한 필요
-        final permission = await Permission.storage.request();
-        if (!permission.isGranted) {
-          throw Exception('저장소 권한이 필요합니다.');
-        }
+        permission = await Permission.storage.request();
       }
+      
+      if (permission.isDenied) {
+        throw Exception('저장소 접근 권한이 필요합니다.');
+      }
+      
+      if (permission.isPermanentlyDenied) {
+        await _showPermissionDialog();
+        throw Exception('설정에서 권한을 허용해주세요.');
+      }
+      
     } else if (Platform.isIOS) {
       final permission = await Permission.photos.request();
-      if (!permission.isGranted) {
+      
+      if (permission.isDenied) {
         throw Exception('사진 접근 권한이 필요합니다.');
       }
+      
+      if (permission.isPermanentlyDenied) {
+        await _showPermissionDialog();
+        throw Exception('설정에서 권한을 허용해주세요.');
+      }
     }
+  }
+
+  Future<void> _showPermissionDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Text(
+            '권한 필요',
+            style: AppTextStyles.subtitle1.copyWith(
+              color: AppColors.black,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          content: Text(
+            '이미지를 저장하려면 저장소 접근 권한이 필요합니다.\n설정에서 권한을 허용해주세요.',
+            style: AppTextStyles.body3.copyWith(
+              color: AppColors.gray80,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                '취소',
+                style: AppTextStyles.button2.copyWith(
+                  color: AppColors.gray70,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                openAppSettings();
+              },
+              child: Text(
+                '설정으로 이동',
+                style: AppTextStyles.button2.copyWith(
+                  color: AppColors.navy,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<int> _getAndroidVersion() async {
