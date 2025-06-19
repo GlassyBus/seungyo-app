@@ -121,7 +121,16 @@ class ScheduleProvider extends ChangeNotifier {
 
   /// 월 변경
   void changeMonth(int delta) {
-    _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + delta);
+    final newMonth = DateTime(_currentMonth.year, _currentMonth.month + delta);
+
+    // 같은 월이면 로드하지 않음
+    if (newMonth.year == _currentMonth.year &&
+        newMonth.month == _currentMonth.month) {
+      return;
+    }
+
+    _currentMonth = newMonth;
+
     // 월이 변경될 때만 데이터 로드
     loadSchedules();
   }

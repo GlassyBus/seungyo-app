@@ -1076,48 +1076,22 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   Future<void> _showDateTimePicker() async {
-    try {
-      final gameSchedules = await _scheduleService.getAllSchedules();
-
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder:
-              (context) => DateTimePickerModal(
-                initialDateTime: _form.gameDateTime,
-                onDateTimeSelected: (dateTime) {
-                  setState(() {
-                    _form = _form.copyWith(gameDateTime: dateTime);
-                  });
-                },
-                gameSchedules: gameSchedules,
-              ),
-        );
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('경기 일정 로드 실패: $e');
-      }
-      // 에러가 발생해도 모달은 표시 (gameSchedules는 null로 전달하여 모든 날짜 비활성화)
-      if (mounted) {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder:
-              (context) => DateTimePickerModal(
-                initialDateTime: _form.gameDateTime,
-                onDateTimeSelected: (dateTime) {
-                  setState(() {
-                    _form = _form.copyWith(gameDateTime: dateTime);
-                  });
-                },
-                gameSchedules: null, // 에러 시 null 전달
-              ),
-        );
-      }
+    if (mounted) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder:
+            (context) => DateTimePickerModal(
+              initialDateTime: _form.gameDateTime,
+              onDateTimeSelected: (dateTime) {
+                setState(() {
+                  _form = _form.copyWith(gameDateTime: dateTime);
+                });
+              },
+              gameSchedules: null, // 모달에서 직접 로드하므로 null 전달
+            ),
+      );
     }
   }
 

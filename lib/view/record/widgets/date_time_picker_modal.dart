@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:seungyo/theme/theme.dart';
 import 'package:seungyo/models/game_schedule.dart';
+import 'package:seungyo/services/schedule_service.dart';
 
 class DateTimePickerModal extends StatefulWidget {
   final DateTime? initialDateTime;
   final Function(DateTime) onDateTimeSelected;
-  final List<GameSchedule>? gameSchedules; // 경기 일정 데이터
+  final List<GameSchedule>? gameSchedules; // 초기 경기 일정 데이터 (더 이상 필수 아님)
 
   const DateTimePickerModal({
     Key? key,
@@ -23,6 +25,10 @@ class _DateTimePickerModalState extends State<DateTimePickerModal> {
   late DateTime _currentMonth;
   String _selectedTimeSlot = '14:00';
 
+  final ScheduleService _scheduleService = ScheduleService();
+  List<GameSchedule> _currentMonthSchedules = [];
+  bool _isLoadingSchedules = false;
+
   final List<String> _timeSlots = ['14:00', '17:00', '18:30'];
 
   @override
@@ -32,10 +38,67 @@ class _DateTimePickerModalState extends State<DateTimePickerModal> {
     _selectedDate = DateTime(now.year, now.month, now.day);
     _currentMonth = DateTime(now.year, now.month);
 
+    // 초기 경기 일정이 있으면 사용, 없으면 로드
+    if (widget.gameSchedules != null &&
+        widget.gameSchedules!.isNotEmpty &&
+        _isCurrentMonth(widget.gameSchedules!.first.dateTime)) {
+      _currentMonthSchedules = widget.gameSchedules!;
+    } else {
+      _loadSchedulesForCurrentMonth();
+    }
+
     // 초기화 후 사용 가능한 시간으로 설정
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateSelectedTimeSlot();
     });
+  }
+
+  /// 주어진 날짜가 현재 표시 중인 월인지 확인
+  bool _isCurrentMonth(DateTime date) {
+    return date.year == _currentMonth.year && date.month == _currentMonth.month;
+  }
+
+  /// 현재 월의 경기 일정 로드
+  Future<void> _loadSchedulesForCurrentMonth() async {
+    if (_isLoadingSchedules) return;
+
+    setState(() {
+      _isLoadingSchedules = true;
+    });
+
+    try {
+      final schedules = await _scheduleService.getSchedulesByMonth(
+        _currentMonth.year,
+        _currentMonth.month,
+      );
+
+      if (mounted) {
+        setState(() {
+          _currentMonthSchedules = schedules;
+          _isLoadingSchedules = false;
+        });
+
+        // 월이 바뀌면서 선택된 날짜의 시간 슬롯도 업데이트
+        _updateSelectedTimeSlot();
+
+        if (kDebugMode) {
+          print(
+            '📅 ${_currentMonth.year}년 ${_currentMonth.month}월 경기 일정 로드: ${schedules.length}개',
+          );
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ 경기 일정 로드 실패: $e');
+      }
+
+      if (mounted) {
+        setState(() {
+          _currentMonthSchedules = [];
+          _isLoadingSchedules = false;
+        });
+      }
+    }
   }
 
   /// 선택된 날짜에 사용 가능한 첫 번째 시간으로 업데이트
@@ -52,11 +115,11 @@ class _DateTimePickerModalState extends State<DateTimePickerModal> {
 
   /// 해당 날짜에 경기가 있는지 확인
   bool _hasGameOnDate(DateTime date) {
-    if (widget.gameSchedules == null || widget.gameSchedules!.isEmpty) {
+    if (_currentMonthSchedules.isEmpty) {
       return false; // 경기 데이터가 없으면 모든 날짜 비활성화
     }
 
-    return widget.gameSchedules!.any((game) {
+    return _currentMonthSchedules.any((game) {
       final gameDate = game.dateTime;
       return gameDate.year == date.year &&
           gameDate.month == date.month &&
@@ -66,11 +129,11 @@ class _DateTimePickerModalState extends State<DateTimePickerModal> {
 
   /// 현재 월에서 특정 요일에 경기가 있는지 확인
   bool _hasGameOnWeekdayInMonth(int weekday) {
-    if (widget.gameSchedules == null || widget.gameSchedules!.isEmpty) {
+    if (_currentMonthSchedules.isEmpty) {
       return false; // 경기 데이터가 없으면 모든 요일 비활성화
     }
 
-    return widget.gameSchedules!.any((game) {
+    return _currentMonthSchedules.any((game) {
       final gameDate = game.dateTime;
       return gameDate.year == _currentMonth.year &&
           gameDate.month == _currentMonth.month &&
@@ -80,12 +143,12 @@ class _DateTimePickerModalState extends State<DateTimePickerModal> {
 
   /// 특정 날짜에 사용 가능한 시간 슬롯들 반환
   List<String> _getAvailableTimesForDate(DateTime date) {
-    if (widget.gameSchedules == null || widget.gameSchedules!.isEmpty) {
+    if (_currentMonthSchedules.isEmpty) {
       return []; // 경기 데이터가 없으면 모든 시간 비활성화
     }
 
     final gamesOnDate =
-        widget.gameSchedules!.where((game) {
+        _currentMonthSchedules.where((game) {
           final gameDate = game.dateTime;
           return gameDate.year == date.year &&
               gameDate.month == date.month &&
@@ -186,22 +249,48 @@ class _DateTimePickerModalState extends State<DateTimePickerModal> {
             color: AppColors.gray50,
             size: 20,
           ),
-          onPressed: () {
-            setState(() {
-              _currentMonth = DateTime(
-                _currentMonth.year,
-                _currentMonth.month - 1,
-              );
-            });
-          },
+          onPressed:
+              _isLoadingSchedules
+                  ? null
+                  : () {
+                    setState(() {
+                      _currentMonth = DateTime(
+                        _currentMonth.year,
+                        _currentMonth.month - 1,
+                      );
+                    });
+                    _loadSchedulesForCurrentMonth();
+                  },
         ),
-        Text(
-          '${_currentMonth.year}년 ${_currentMonth.month}월',
-          style: AppTextStyles.body1.copyWith(
-            color: AppColors.black,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        _isLoadingSchedules
+            ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.navy,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${_currentMonth.year}년 ${_currentMonth.month}월',
+                  style: AppTextStyles.body1.copyWith(
+                    color: AppColors.gray50,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            )
+            : Text(
+              '${_currentMonth.year}년 ${_currentMonth.month}월',
+              style: AppTextStyles.body1.copyWith(
+                color: AppColors.black,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
         IconButton(
           icon: Transform.rotate(
             angle: 3.14159,
@@ -211,14 +300,18 @@ class _DateTimePickerModalState extends State<DateTimePickerModal> {
               size: 20,
             ),
           ),
-          onPressed: () {
-            setState(() {
-              _currentMonth = DateTime(
-                _currentMonth.year,
-                _currentMonth.month + 1,
-              );
-            });
-          },
+          onPressed:
+              _isLoadingSchedules
+                  ? null
+                  : () {
+                    setState(() {
+                      _currentMonth = DateTime(
+                        _currentMonth.year,
+                        _currentMonth.month + 1,
+                      );
+                    });
+                    _loadSchedulesForCurrentMonth();
+                  },
         ),
       ],
     );

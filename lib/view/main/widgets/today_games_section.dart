@@ -21,7 +21,9 @@ class TodayGamesSection extends StatelessWidget {
     print('TodayGamesSection: Building with ${todayGames.length} games');
     for (int i = 0; i < todayGames.length; i++) {
       final game = todayGames[i];
-      print('TodayGamesSection: Game $i - ${game.homeTeam} vs ${game.awayTeam} at ${game.stadium}');
+      print(
+        'TodayGamesSection: Game $i - ${game.homeTeam} vs ${game.awayTeam} at ${game.stadium}',
+      );
     }
 
     final now = DateTime.now();
