@@ -167,7 +167,7 @@ class ScheduleService {
         if (kDebugMode) {
           print('⚠️ API 호출 실패, 샘플 데이터 사용');
         }
-        schedules = _generateSampleDataForMonth(year, month);
+        // schedules = _generateSampleDataForMonth(year, month);
       }
 
       if (kDebugMode) {
