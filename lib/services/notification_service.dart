@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../models/game_schedule.dart';
 import '../providers/notification_settings_provider.dart';
 import 'schedule_service.dart';
+import 'user_service.dart';
 import '../view/record/create_record_screen.dart';
 import '../main.dart' show navigatorKey;
 
@@ -43,6 +44,9 @@ class NotificationService {
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
+      // Android 알림 채널 생성
+      await _createNotificationChannel();
+
       // 알림 권한 요청
       await _requestPermissions();
 
@@ -57,24 +61,56 @@ class NotificationService {
     }
   }
 
+  /// Android 알림 채널 생성
+  Future<void> _createNotificationChannel() async {
+    const androidNotificationChannel = AndroidNotificationChannel(
+      'seungyo_game_channel', // 채널 ID
+      '승요 경기 알림', // 채널 이름
+      description: '승요 앱 경기 일정 관련 알림',
+      importance: Importance.high,
+      enableVibration: true,
+      playSound: true,
+    );
+
+    final androidImplementation =
+        _flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
+
+    if (androidImplementation != null) {
+      await androidImplementation.createNotificationChannel(
+        androidNotificationChannel,
+      );
+
+      if (kDebugMode) {
+        print('📱 Android 알림 채널 생성 완료: seungyo_game_channel');
+      }
+    }
+  }
+
   /// 알림 권한 확인
   Future<bool> checkNotificationPermission() async {
     try {
       // Android의 경우
-      if (Theme.of(navigatorKey.currentContext!).platform == TargetPlatform.android) {
+      if (Theme.of(navigatorKey.currentContext!).platform ==
+          TargetPlatform.android) {
         final status = await Permission.notification.status;
         return status.isGranted;
       }
-      
+
       // iOS의 경우
-      final iosImpl = _flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
-      
+      final iosImpl =
+          _flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin
+              >();
+
       if (iosImpl != null) {
         final result = await iosImpl.checkPermissions();
         return (result?.isEnabled ?? false);
       }
-      
+
       return false;
     } catch (error) {
       if (kDebugMode) {
@@ -85,44 +121,50 @@ class NotificationService {
   }
 
   /// 알림 권한 요청 및 설정 화면 이동
-  Future<bool> requestNotificationPermission({bool showSettingsIfDenied = true}) async {
+  Future<bool> requestNotificationPermission({
+    bool showSettingsIfDenied = true,
+  }) async {
     try {
       // 현재 권한 상태 확인
       bool hasPermission = await checkNotificationPermission();
-      
+
       if (hasPermission) {
         return true;
       }
 
       // Android의 경우
-      if (Theme.of(navigatorKey.currentContext!).platform == TargetPlatform.android) {
+      if (Theme.of(navigatorKey.currentContext!).platform ==
+          TargetPlatform.android) {
         final status = await Permission.notification.request();
-        
+
         if (status.isGranted) {
           return true;
         } else if (status.isPermanentlyDenied && showSettingsIfDenied) {
           return await _showPermissionSettingsDialog();
         }
       }
-      
+
       // iOS의 경우
-      final iosImpl = _flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
-      
+      final iosImpl =
+          _flutterLocalNotificationsPlugin
+              .resolvePlatformSpecificImplementation<
+                IOSFlutterLocalNotificationsPlugin
+              >();
+
       if (iosImpl != null) {
         final result = await iosImpl.requestPermissions(
           alert: true,
           badge: true,
           sound: true,
         );
-        
+
         if (result == true) {
           return true;
         } else if (showSettingsIfDenied) {
           return await _showPermissionSettingsDialog();
         }
       }
-      
+
       return false;
     } catch (error) {
       if (kDebugMode) {
@@ -382,6 +424,43 @@ class NotificationService {
     }
   }
 
+  /// 팀 이름으로 팀 ID 찾기 (CreateRecordScreen에서 가져온 로직)
+  String? _getTeamIdByName(String teamName) {
+    // 팀 이름 매핑 (team_data.dart의 실제 코드에 맞춤)
+    const teamNameMapping = {
+      '두산': 'bears', // code: "두산"
+      '키움': 'heroes', // code: "키움"
+      'SSG': 'landers', // code: "SSG"
+      'LG': 'twins', // code: "LG"
+      '삼성': 'lions', // code: "삼성"
+      '한화': 'eagles', // code: "한화"
+      'NC': 'dinos', // code: "NC"
+      '롯데': 'giants', // code: "롯데"
+      'KIA': 'tigers', // code: "KIA"
+      'KT': 'wiz', // code: "KT"
+    };
+
+    return teamNameMapping[teamName];
+  }
+
+  /// 사용자의 응원팀인지 확인 (팀 ID 매칭 개선)
+  bool _isUserFavoriteTeamGame(GameSchedule schedule, String favoriteTeamId) {
+    // 1. 직접 팀 ID 비교 (favoriteTeamId와 일치)
+    final homeTeamId = _getTeamIdByName(schedule.homeTeam);
+    final awayTeamId = _getTeamIdByName(schedule.awayTeam);
+
+    if (homeTeamId == favoriteTeamId || awayTeamId == favoriteTeamId) {
+      return true;
+    }
+
+    // 2. 팀 이름 직접 비교 (fallback)
+    if (schedule.homeTeam.contains('LG') || schedule.awayTeam.contains('LG')) {
+      return favoriteTeamId == 'twins'; // LG 트윈스
+    }
+
+    return false;
+  }
+
   /// 알림 설정에 따라 모든 알림 업데이트
   Future<void> updateNotificationSettings(List<GameSchedule> schedules) async {
     try {
@@ -391,13 +470,39 @@ class NotificationService {
       // 기존 알림 모두 취소
       await cancelAllNotifications();
 
+      // 사용자의 응원팀 확인
+      final userService = UserService();
+      final favoriteTeam = await userService.getUserFavoriteTeam();
+
+      if (favoriteTeam == null) {
+        if (kDebugMode) {
+          print('⚠️ 사용자 응원팀 정보를 찾을 수 없어 알림 설정을 건너뜁니다.');
+        }
+        return;
+      }
+
+      // 개선된 응원팀 경기 필터링
+      final favoriteTeamSchedules =
+          schedules.where((schedule) {
+            return _isUserFavoriteTeamGame(schedule, favoriteTeam.id);
+          }).toList();
+
       if (kDebugMode) {
-        print('📱 총 ${schedules.length}개 경기 중 알림 설정 가능한 경기 확인 중...');
+        print(
+          '📱 전체 ${schedules.length}개 경기 중 응원팀(${favoriteTeam.name}, ID: ${favoriteTeam.id}) 경기: ${favoriteTeamSchedules.length}개',
+        );
+
+        // 필터링된 경기들 상세 로그
+        for (final schedule in favoriteTeamSchedules) {
+          print(
+            '   ✅ ${schedule.homeTeam} vs ${schedule.awayTeam} (홈: ${_getTeamIdByName(schedule.homeTeam)}, 원정: ${_getTeamIdByName(schedule.awayTeam)})',
+          );
+        }
       }
 
       int scheduledCount = 0;
       // 설정에 따라 새로운 알림 스케줄링
-      for (final schedule in schedules) {
+      for (final schedule in favoriteTeamSchedules) {
         final wasScheduled = await scheduleGameNotifications(
           schedule,
           enableStartNotification: settingsProvider.gameStartNotification,
@@ -408,7 +513,7 @@ class NotificationService {
 
       if (kDebugMode) {
         print(
-          '📱 ${schedules.length}개 경기 중 ${scheduledCount}개 경기에 대한 알림 설정 완료',
+          '📱 응원팀 ${favoriteTeamSchedules.length}개 경기 중 ${scheduledCount}개 경기에 대한 알림 설정 완료',
         );
         print(
           '  - 경기 시작 알림: ${settingsProvider.gameStartNotification ? '활성화' : '비활성화'}',
@@ -425,7 +530,7 @@ class NotificationService {
     }
   }
 
-  /// 경기별 알림 스케줄링
+  /// 경기별 알림 스케줄링 - 응원팀 경기만
   Future<bool> scheduleGameNotifications(
     GameSchedule schedule, {
     required bool enableStartNotification,
@@ -433,7 +538,6 @@ class NotificationService {
   }) async {
     try {
       final now = DateTime.now();
-      bool wasScheduled = false;
 
       // 과거 경기나 진행중/완료된 경기는 스케줄링하지 않음
       if (schedule.dateTime.isBefore(now) ||
@@ -445,6 +549,34 @@ class NotificationService {
         }
         return false;
       }
+
+      // 사용자의 응원팀 확인
+      final userService = UserService();
+      final favoriteTeam = await userService.getUserFavoriteTeam();
+
+      if (favoriteTeam == null) {
+        if (kDebugMode) {
+          print('⚠️ 사용자 응원팀 정보를 찾을 수 없어 알림을 스케줄링하지 않습니다.');
+        }
+        return false;
+      }
+
+      // 개선된 응원팀 매칭 확인
+      final isUserTeamGame = _isUserFavoriteTeamGame(schedule, favoriteTeam.id);
+
+      if (!isUserTeamGame) {
+        if (kDebugMode) {
+          print(
+            '🚫 응원팀(${favoriteTeam.name}, ID: ${favoriteTeam.id}) 경기가 아님: ${schedule.homeTeam} vs ${schedule.awayTeam}',
+          );
+          print(
+            '   홈팀 ID: ${_getTeamIdByName(schedule.homeTeam)}, 원정팀 ID: ${_getTeamIdByName(schedule.awayTeam)}',
+          );
+        }
+        return false;
+      }
+
+      bool wasScheduled = false;
 
       // 경기 시작 10분 전 알림 (Figma 디자인에 맞게 수정)
       if (enableStartNotification) {
@@ -466,7 +598,7 @@ class NotificationService {
 
           if (kDebugMode) {
             print(
-              '🔔 경기 시작 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} (${startNotificationTime})',
+              '🔔 응원팀 경기 시작 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} (${startNotificationTime})',
             );
           }
         }
@@ -491,7 +623,7 @@ class NotificationService {
 
           if (kDebugMode) {
             print(
-              '📝 경기 종료 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} (${endNotificationTime})',
+              '📝 응원팀 경기 종료 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} (${endNotificationTime})',
             );
           }
         }
@@ -522,6 +654,60 @@ class NotificationService {
       if (kDebugMode) {
         print('❌ 예약된 알림 목록 조회 실패: $error');
       }
+    }
+  }
+
+  /// 알림 예약
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledTime,
+    String? payload,
+  }) async {
+    try {
+      const notificationDetails = NotificationDetails(
+        android: AndroidNotificationDetails(
+          'seungyo_game_channel', // 채널 ID
+          '승요 경기 알림', // 채널 이름
+          channelDescription: '승요 앱 경기 일정 관련 알림',
+          importance: Importance.high,
+          priority: Priority.high,
+          enableVibration: true,
+          playSound: true,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      );
+
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        tz.TZDateTime.from(scheduledTime, tz.local),
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: payload,
+      );
+
+      if (kDebugMode) {
+        print('✅ 알림 예약 성공: ID $id');
+        print('   제목: $title');
+        print('   내용: $body');
+        print('   예약 시간: $scheduledTime');
+        print('   현재 시간: ${DateTime.now()}');
+      }
+    } catch (error) {
+      if (kDebugMode) {
+        print('❌ 알림 예약 실패: $error');
+      }
+      rethrow;
     }
   }
 
@@ -581,17 +767,10 @@ class NotificationService {
     String type = 'game_start', // 'game_start' 또는 'game_end'
   }) async {
     try {
-      final now = DateTime.now();
-      
-      String title;
-      String body;
-      
-      if (type == 'game_start') {
-        title = '곧 시작! ⚾️';
-        body = 'LG vs KIA 경기 시작까지 10분 남았습니다.';
-      } else {
-        title = '경기 종료! ✍️';
-        body = '오늘 경기, 어떠셨나요?\n당신의 직관 후기를 남겨주세요!';
+      // 먼저 권한 상태 확인
+      final hasPermission = await checkNotificationPermission();
+      if (kDebugMode) {
+        print('🔍 현재 알림 권한 상태: $hasPermission');
       }
 
       const notificationDetails = NotificationDetails(
@@ -599,11 +778,14 @@ class NotificationService {
           'seungyo_game_channel',
           '승요 경기 알림',
           channelDescription: '승요 앱 경기 일정 관련 알림',
-          importance: Importance.high,
-          priority: Priority.high,
+          importance: Importance.max,
+          priority: Priority.max,
+          enableVibration: true,
+          playSound: true,
           showWhen: true,
+          ongoing: true,
+          autoCancel: false,
           icon: '@mipmap/ic_launcher',
-          styleInformation: BigTextStyleInformation(''),
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
@@ -613,27 +795,28 @@ class NotificationService {
         ),
       );
 
-      final payload = 'gameId:999,type:$type'; // 테스트용 가짜 게임 ID
-
       await _flutterLocalNotificationsPlugin.show(
         9999, // 테스트 알림 ID
-        title,
-        body,
+        '🔥 지속 테스트 알림 ⚾',
+        '이 알림이 보인다면 성공! (직접 닫아야 사라집니다)',
         notificationDetails,
-        payload: payload,
+        payload: 'gameId:999,type:$type',
       );
 
       if (kDebugMode) {
-        print('🧪 테스트 알림 전송 완료: $type');
-        print('   제목: $title');
-        print('   내용: $body');
+        print('🧪 지속 테스트 알림 전송 완료 (ongoing=true)');
       }
     } catch (error) {
       if (kDebugMode) {
-        print('❌ 테스트 알림 전송 실패: $error');
+        print('❌ 지속 테스트 알림 전송 실패: $error');
       }
       rethrow;
     }
+  }
+
+  /// 즉시 테스트 알림 (별칭 메서드)
+  Future<void> sendImmediateTestNotification() async {
+    await sendTestNotification();
   }
 
   /// 5초 후 테스트 알림 (지연 테스트용)
@@ -642,36 +825,74 @@ class NotificationService {
     String type = 'game_start',
   }) async {
     try {
-      final scheduledTime = DateTime.now().add(Duration(seconds: delaySeconds));
-      
-      String title;
-      String body;
-      
-      if (type == 'game_start') {
-        title = '곧 시작! ⚾️';
-        body = 'LG vs KIA 경기 시작까지 10분 남았습니다.';
-      } else {
-        title = '경기 종료! ✍️';
-        body = '오늘 경기, 어떠셨나요?\n당신의 직관 후기를 남겨주세요!';
-      }
+      // 먼저 모든 예약된 알림 취소
+      await _flutterLocalNotificationsPlugin.cancelAll();
 
-      await _scheduleNotification(
-        id: 9998, // 테스트 알림 ID
-        title: title,
-        body: body,
-        scheduledTime: scheduledTime,
-        gameId: 999, // 테스트용 가짜 게임 ID
-        notificationType: type,
+      final now = DateTime.now();
+      final scheduledTime = now.add(Duration(seconds: delaySeconds));
+
+      // 한국 시간대로 강제 설정
+      final location = tz.getLocation('Asia/Seoul');
+      final seoulNow = tz.TZDateTime.from(now, location);
+      final seoulScheduledTime = tz.TZDateTime.from(scheduledTime, location);
+
+      const notificationDetails = NotificationDetails(
+        android: AndroidNotificationDetails(
+          'seungyo_game_channel',
+          '승요 경기 알림',
+          channelDescription: '승요 앱 경기 일정 관련 알림',
+          importance: Importance.max,
+          priority: Priority.max,
+          enableVibration: true,
+          playSound: true,
+          icon: '@mipmap/ic_launcher',
+          fullScreenIntent: true,
+          category: AndroidNotificationCategory.alarm,
+          visibility: NotificationVisibility.public,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
       );
 
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        9998, // 테스트 알림 ID
+        '⏰ ${delaySeconds}초 후 테스트 알림',
+        '정확히 ${delaySeconds}초 후에 이 알림이 와야 합니다! 🎯',
+        seoulScheduledTime,
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: 'gameId:999,type:$type',
+      );
+
+      // 예약 확인
+      final pendingNotifications =
+          await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
+      final testNotification =
+          pendingNotifications.where((n) => n.id == 9998).firstOrNull;
+
       if (kDebugMode) {
-        print('⏱️ ${delaySeconds}초 후 테스트 알림 예약 완료: $type');
-        print('   예약 시간: $scheduledTime');
-        print('   제목: $title');
+        print('⏰ ${delaySeconds}초 후 테스트 알림 예약 완료');
+        print('   현재 시간 (로컬): $now');
+        print('   현재 시간 (서울): $seoulNow');
+        print('   예약 시간 (로컬): $scheduledTime');
+        print('   예약 시간 (서울): $seoulScheduledTime');
+        print('   타임존: ${location.name}');
+        print('   예약된 알림 존재: ${testNotification != null}');
+        print('   전체 예약된 알림 수: ${pendingNotifications.length}');
+
+        if (testNotification != null) {
+          print('   예약된 알림 제목: ${testNotification.title}');
+        }
       }
     } catch (error) {
       if (kDebugMode) {
         print('❌ 지연 테스트 알림 예약 실패: $error');
+        print('   에러 스택: ${StackTrace.current}');
       }
       rethrow;
     }
