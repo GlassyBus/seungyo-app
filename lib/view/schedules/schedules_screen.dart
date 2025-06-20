@@ -55,11 +55,11 @@ class _SchedulePageState extends State<SchedulePage> {
       // 🚀 빠른 로딩: 먼저 캐시에서 확인하고 없으면 API 호출
       final games = await _scheduleService.getSchedulesByDate(date);
 
-      // 직관 기록이 있는 경기를 우선으로 정렬
-      final sortedGames = _sortGamesByRecord(games, date);
+      // 직관 기록이 있는 경기는 제외하고 표시
+      final filteredGames = _filterGamesWithoutRecord(games, date);
 
       setState(() {
-        _selectedDateGames = sortedGames;
+        _selectedDateGames = filteredGames;
         _isLoadingGames = false;
       });
     } catch (e) {
@@ -70,8 +70,8 @@ class _SchedulePageState extends State<SchedulePage> {
     }
   }
 
-  /// 직관 기록이 있는 경기를 우선으로 정렬
-  List<GameSchedule> _sortGamesByRecord(
+  /// 직관 기록이 없는 경기만 필터링
+  List<GameSchedule> _filterGamesWithoutRecord(
     List<GameSchedule> games,
     DateTime date,
   ) {
@@ -79,7 +79,7 @@ class _SchedulePageState extends State<SchedulePage> {
     final dateKey = DateTime(date.year, date.month, date.day);
     final dayRecords = provider.scheduleMap[dateKey] ?? [];
 
-    final gamesWithRecord = <GameSchedule>[];
+    // 직관 기록이 없는 경기만 반환
     final gamesWithoutRecord = <GameSchedule>[];
 
     for (final game in games) {
@@ -90,19 +90,18 @@ class _SchedulePageState extends State<SchedulePage> {
         final gameHomeTeam = _normalizeTeamName(game.homeTeam);
         final gameAwayTeam = _normalizeTeamName(game.awayTeam);
 
-        return (recordHomeTeam == gameHomeTeam && recordAwayTeam == gameAwayTeam) ||
+        return (recordHomeTeam == gameHomeTeam &&
+                recordAwayTeam == gameAwayTeam) ||
             (recordHomeTeam == gameAwayTeam && recordAwayTeam == gameHomeTeam);
       });
 
-      if (hasRecord) {
-        gamesWithRecord.add(game);
-      } else {
+      // 직관 기록이 없는 경기만 추가
+      if (!hasRecord) {
         gamesWithoutRecord.add(game);
       }
     }
 
-    // 직관 기록이 있는 경기를 먼저, 그 다음에 없는 경기
-    return [...gamesWithRecord, ...gamesWithoutRecord];
+    return gamesWithoutRecord;
   }
 
   /// 팀 이름 정규화 (매칭 정확도 향상)
@@ -119,7 +118,7 @@ class _SchedulePageState extends State<SchedulePage> {
       'KT 위즈': 'KT',
       'NC 다이노스': 'NC',
       '롯데 자이언츠': '롯데',
-      
+
       // 이미 짧은 이름인 경우
       'SSG': 'SSG',
       '키움': '키움',
@@ -216,7 +215,8 @@ class _SchedulePageState extends State<SchedulePage> {
           final gameDate = game.dateTime;
 
           // 같은 날짜인지 확인
-          final isSameDate = recordDate.year == gameDate.year &&
+          final isSameDate =
+              recordDate.year == gameDate.year &&
               recordDate.month == gameDate.month &&
               recordDate.day == gameDate.day;
 
@@ -228,8 +228,10 @@ class _SchedulePageState extends State<SchedulePage> {
           final gameHomeTeam = _normalizeTeamName(game.homeTeam);
           final gameAwayTeam = _normalizeTeamName(game.awayTeam);
 
-          return (recordHomeTeam == gameHomeTeam && recordAwayTeam == gameAwayTeam) ||
-              (recordHomeTeam == gameAwayTeam && recordAwayTeam == gameHomeTeam);
+          return (recordHomeTeam == gameHomeTeam &&
+                  recordAwayTeam == gameAwayTeam) ||
+              (recordHomeTeam == gameAwayTeam &&
+                  recordAwayTeam == gameHomeTeam);
         }).firstOrNull;
 
     if (existingRecord != null) {
