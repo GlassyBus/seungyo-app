@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:seungyo/view/record/create_record_screen.dart';
 import 'package:seungyo/view/record/record_detail_screen.dart';
 import 'package:seungyo/view/record/record_screen.dart';
@@ -171,6 +172,20 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         limit: 4,
       );
       print('MainScreen: Loaded ${newsItems.length} news items');
+
+      // 백그라운드에서 여러 달 데이터 미리 로드 (UI 블로킹 없이)
+      _scheduleService
+          .preloadSchedules()
+          .then((_) {
+            if (kDebugMode) {
+              print('MainScreen: 백그라운드 데이터 미리 로드 완료');
+            }
+          })
+          .catchError((e) {
+            if (kDebugMode) {
+              print('MainScreen: 백그라운드 데이터 미리 로드 실패: $e');
+            }
+          });
 
       setState(() {
         _allRecords = allRecords;

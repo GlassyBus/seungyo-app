@@ -1,12 +1,15 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:seungyo/models/game_record_form.dart';
 import 'package:seungyo/models/game_schedule.dart';
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/services/record_service.dart';
+import 'package:seungyo/services/schedule_service.dart';
 import 'package:seungyo/utils/stadium_mapping.dart';
 
 import '../../models/game_record.dart';
@@ -34,6 +37,7 @@ class CreateRecordScreen extends StatefulWidget {
 class _CreateRecordScreenState extends State<CreateRecordScreen> {
   final _formKey = GlobalKey<FormState>();
   late RecordService _recordService;
+  late ScheduleService _scheduleService;
   late GameRecordForm _form;
   final TextEditingController _seatController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
@@ -51,6 +55,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   void initState() {
     super.initState();
     _recordService = RecordService();
+    _scheduleService = ScheduleService();
     _form = GameRecordForm();
     _loadStadiums();
     _loadTeams();
@@ -75,15 +80,24 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     );
 
     // 경기장 ID 매핑
-    String? stadiumId = StadiumMapping.getBestStadiumId(schedule.stadium, schedule.homeTeam);
-    
+    String? stadiumId = StadiumMapping.getBestStadiumId(
+      schedule.stadium,
+      schedule.homeTeam,
+    );
+
     // 팀 ID 매핑
     String? homeTeamId = _getTeamIdByName(schedule.homeTeam);
     String? awayTeamId = _getTeamIdByName(schedule.awayTeam);
 
-    print('CreateRecordScreen: Mapped stadium "${schedule.stadium}" -> "$stadiumId"');
-    print('CreateRecordScreen: Mapped home team "${schedule.homeTeam}" -> "$homeTeamId"');
-    print('CreateRecordScreen: Mapped away team "${schedule.awayTeam}" -> "$awayTeamId"');
+    print(
+      'CreateRecordScreen: Mapped stadium "${schedule.stadium}" -> "$stadiumId"',
+    );
+    print(
+      'CreateRecordScreen: Mapped home team "${schedule.homeTeam}" -> "$homeTeamId"',
+    );
+    print(
+      'CreateRecordScreen: Mapped away team "${schedule.awayTeam}" -> "$awayTeamId"',
+    );
 
     // 기본적으로 경기 시간, 경기장, 팀 정보 설정
     setState(() {
@@ -100,16 +114,16 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   String? _getTeamIdByName(String teamName) {
     // 팀 이름 매핑 (team_data.dart의 실제 코드에 맞춤)
     const teamNameMapping = {
-      '두산': 'bears',   // code: "두산"
-      '키움': 'heroes',  // code: "키움"
-      'SSG': 'landers',  // code: "SSG"
-      'LG': 'twins',     // code: "LG"
-      '삼성': 'lions',   // code: "삼성"
-      '한화': 'eagles',  // code: "한화"
-      'NC': 'dinos',     // code: "NC"
-      '롯데': 'giants',  // code: "롯데"
-      'KIA': 'tigers',   // code: "KIA"
-      'KT': 'wiz',       // code: "KT"
+      '두산': 'bears', // code: "두산"
+      '키움': 'heroes', // code: "키움"
+      'SSG': 'landers', // code: "SSG"
+      'LG': 'twins', // code: "LG"
+      '삼성': 'lions', // code: "삼성"
+      '한화': 'eagles', // code: "한화"
+      'NC': 'dinos', // code: "NC"
+      '롯데': 'giants', // code: "롯데"
+      'KIA': 'tigers', // code: "KIA"
+      'KT': 'wiz', // code: "KT"
     };
 
     String? teamId = teamNameMapping[teamName];
@@ -119,9 +133,12 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
     // 직접 매핑에서 찾을 수 없으면 로드된 팀 목록에서 찾기
     final team = _teams.firstWhereOrNull(
-      (t) => t.name.contains(teamName) || t.shortName == teamName || teamName.contains(t.shortName),
+      (t) =>
+          t.name.contains(teamName) ||
+          t.shortName == teamName ||
+          teamName.contains(t.shortName),
     );
-    
+
     return team?.id;
   }
 
@@ -1058,21 +1075,24 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     }
   }
 
-  void _showDateTimePicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder:
-          (context) => DateTimePickerModal(
-            initialDateTime: _form.gameDateTime,
-            onDateTimeSelected: (dateTime) {
-              setState(() {
-                _form = _form.copyWith(gameDateTime: dateTime);
-              });
-            },
-          ),
-    );
+  Future<void> _showDateTimePicker() async {
+    if (mounted) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder:
+            (context) => DateTimePickerModal(
+              initialDateTime: _form.gameDateTime,
+              onDateTimeSelected: (dateTime) {
+                setState(() {
+                  _form = _form.copyWith(gameDateTime: dateTime);
+                });
+              },
+              gameSchedules: null, // 모달에서 직접 로드하므로 null 전달
+            ),
+      );
+    }
   }
 
   void _showStadiumPicker() {

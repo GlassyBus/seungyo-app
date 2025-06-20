@@ -16,7 +16,6 @@ import 'widgets/calendar_header.dart';
 import 'widgets/enhanced_calendar.dart';
 import 'widgets/no_schedule_view.dart';
 import 'widgets/record_item.dart';
-import 'notification_settings_screen.dart';
 
 /// 경기 일정 페이지
 class SchedulePage extends StatefulWidget {
