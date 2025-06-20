@@ -141,7 +141,7 @@ class _SchedulePageState extends State<SchedulePage> {
                   _buildSelectedDateHeader(provider.selectedDate),
 
                   // 경기 일정 섹션 (메인과 동일한 컴포넌트 사용)
-                  if (!_isLoadingGames && _selectedDateGames.isNotEmpty)
+                  if (!_isLoadingGames)
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 16),
                       child: GameSectionWidget(
