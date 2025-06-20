@@ -6,11 +6,13 @@ import 'news_item.dart';
 class NewsSection extends StatelessWidget {
   final List<Map<String, dynamic>> newsItems;
   final Function(String?) onNewsUrlTap;
+  final bool isLoading; // 로딩 상태 추가
 
   const NewsSection({
     Key? key,
     required this.newsItems,
     required this.onNewsUrlTap,
+    this.isLoading = false, // 기본값 false
   }) : super(key: key);
 
   @override
@@ -35,6 +37,11 @@ class NewsSection extends StatelessWidget {
   }
 
   Widget _buildNewsList() {
+    // 🔄 로딩 중일 때
+    if (isLoading) {
+      return _buildLoadingWidget();
+    }
+
     if (newsItems.isEmpty) {
       return _buildNoNews();
     }
@@ -49,6 +56,40 @@ class NewsSection extends StatelessWidget {
                 ),
               )
               .toList(),
+    );
+  }
+
+  Widget _buildLoadingWidget() {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: AppColors.gray5,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xFF09004C),
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              '최근 소식을 불러오는 중...',
+              style: TextStyle(
+                color: Color(0xFF7E8695),
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -8,29 +8,36 @@ class TodayGamesSection extends StatelessWidget {
   final List<GameSchedule> todayGames;
   final List<GameRecord> attendedRecords; // 직관 기록 리스트
   final Function(GameSchedule) onGameEditTap;
+  final bool isLoading; // 로딩 상태 추가
 
   const TodayGamesSection({
     Key? key,
     required this.todayGames,
     required this.attendedRecords,
     required this.onGameEditTap,
+    this.isLoading = false, // 기본값 false
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    print('TodayGamesSection: Building with ${todayGames.length} games');
-    for (int i = 0; i < todayGames.length; i++) {
-      final game = todayGames[i];
-      print(
-        'TodayGamesSection: Game $i - ${game.homeTeam} vs ${game.awayTeam} at ${game.stadium}',
-      );
-    }
-
     final now = DateTime.now();
     final weekdays = ['일', '월', '화', '수', '목', '금', '토'];
     final weekday = weekdays[(now.weekday) % 7];
     final dateString =
         '${now.year}. ${now.month.toString().padLeft(2, '0')}. ${now.day.toString().padLeft(2, '0')}($weekday)';
+
+    // 🔄 로딩 중일 때
+    if (isLoading || (todayGames.isEmpty && isLoading)) {
+      return GameSectionWidget(
+        title: '오늘의 경기는',
+        subtitle: dateString,
+        games: [],
+        attendedRecords: attendedRecords,
+        onGameTap: onGameEditTap,
+        emptyMessage: null, // 로딩 중에는 빈 메시지 숨김
+        isLoading: true, // 로딩 표시
+      );
+    }
 
     // 직관 기록이 있는 경기를 우선으로 정렬
     final sortedGames = _sortGamesByRecord(todayGames);
@@ -42,6 +49,7 @@ class TodayGamesSection extends StatelessWidget {
       attendedRecords: attendedRecords,
       onGameTap: onGameEditTap,
       emptyMessage: '경기가 없는 날이에요.',
+      isLoading: false,
     );
   }
 

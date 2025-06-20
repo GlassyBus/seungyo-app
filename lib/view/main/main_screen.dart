@@ -44,6 +44,8 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   List<GameSchedule> _todayGames = [];
   List<Map<String, dynamic>> _newsItems = [];
   bool _isLoading = true;
+  bool _isTodayGamesLoading = true; // 오늘 경기 로딩 상태 추가
+  bool _isNewsLoading = true; // 뉴스 로딩 상태 추가
   int _currentTabIndex = 0; // 현재 선택된 탭 인덱스
 
   // 통계 데이터 (경기 취소나 동점 제외)
@@ -113,97 +115,64 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     });
 
     try {
-      print('MainScreen: Loading records from database...');
+      // 🚀 1단계: 기본 데이터 먼저 로드 (빠른 표시)
+      print('MainScreen: Loading basic data first...');
+      
       final recordService = RecordService();
-      final allRecords = await recordService.getAllRecords();
-      print('MainScreen: Loaded ${allRecords.length} records');
-
-      print('MainScreen: Loading user profile...');
       final userProfile = await _userService.getUserProfile();
       final favoriteTeam = await _userService.getUserFavoriteTeam();
-      print(
-        'MainScreen: User profile loaded - Nickname: ${userProfile.nickname}, Favorite team: ${favoriteTeam?.name}',
-      );
-
-      // 오늘의 경기 데이터 로드
-      print('MainScreen: Loading today\'s games...');
-      final today = DateTime.now();
-      print('MainScreen: Today is ${today.year}-${today.month}-${today.day}');
-      final todayGames = await _scheduleService.getSchedulesByDate(today);
-      print('MainScreen: Loaded ${todayGames.length} today\'s games');
-      for (final game in todayGames) {
-        print(
-          'MainScreen: Game - ${game.homeTeam} vs ${game.awayTeam} at ${game.stadium}',
-        );
-      }
-
-      // 통계 계산 (경기 취소나 동점 제외)
-      print('MainScreen: Calculating statistics...');
-      final validRecords =
-          allRecords.where((record) {
-            return record.result == GameResult.win ||
-                record.result == GameResult.lose ||
-                record.result == GameResult.draw;
-          }).toList();
+      
+      // 기본 통계 계산
+      final allRecords = await recordService.getAllRecords();
+      final validRecords = allRecords.where((record) {
+        return record.result == GameResult.win ||
+            record.result == GameResult.lose ||
+            record.result == GameResult.draw;
+      }).toList();
 
       final totalGames = validRecords.length;
-      final winCount =
-          validRecords
-              .where((record) => record.result == GameResult.win)
-              .length;
-      final drawCount =
-          validRecords
-              .where((record) => record.result == GameResult.draw)
-              .length;
-      final loseCount =
-          validRecords
-              .where((record) => record.result == GameResult.lose)
-              .length;
+      final winCount = validRecords.where((record) => record.result == GameResult.win).length;
+      final drawCount = validRecords.where((record) => record.result == GameResult.draw).length;
+      final loseCount = validRecords.where((record) => record.result == GameResult.lose).length;
 
-      print(
-        'MainScreen: Statistics - Total: $totalGames, Win: $winCount, Draw: $drawCount, Lose: $loseCount',
-      );
-
-      // 뉴스 데이터 로드 (응원 구단 키워드 포함)
-      print('MainScreen: Loading news...');
-      final teamKeyword = favoriteTeam?.name ?? '두산';
-      final newsItems = await _newsService.getNewsByKeyword(
-        teamKeyword,
-        limit: 4,
-      );
-      print('MainScreen: Loaded ${newsItems.length} news items');
-
-      // 백그라운드에서 여러 달 데이터 미리 로드 (UI 블로킹 없이)
-      _scheduleService
-          .preloadSchedules()
-          .then((_) {
-            if (kDebugMode) {
-              print('MainScreen: 백그라운드 데이터 미리 로드 완료');
-            }
-          })
-          .catchError((e) {
-            if (kDebugMode) {
-              print('MainScreen: 백그라운드 데이터 미리 로드 실패: $e');
-            }
-          });
-
+      // 🎯 기본 화면 먼저 표시 (오늘 경기는 로딩 중)
       setState(() {
         _allRecords = allRecords;
-        _todayGames = todayGames;
+        _todayGames = []; // 일단 빈 리스트
         _totalGames = totalGames;
         _winCount = winCount;
         _drawCount = drawCount;
         _loseCount = loseCount;
         _userProfile = userProfile;
         _favoriteTeam = favoriteTeam;
-        _newsItems = newsItems;
+        _newsItems = [];
+        _isLoading = false; // 🚀 메인 로딩 완료
+        _isTodayGamesLoading = true; // 오늘 경기는 여전히 로딩 중
+        _isNewsLoading = true; // 뉴스도 여전히 로딩 중
       });
 
-      print('MainScreen: Home data loaded successfully');
-    } catch (e) {
-      print('MainScreen: Error loading home data: $e');
-      print('MainScreen: Error stack trace: ${StackTrace.current}');
+      print('MainScreen: Basic data loaded, now loading today games and news...');
 
+      // 🚀 2단계: 오늘 경기 빠르게 로드 (별도로)
+      _loadTodayGamesAsync();
+
+      // 🚀 3단계: 뉴스 데이터 백그라운드 로드
+      _loadNewsAsync(favoriteTeam);
+
+      // 🚀 4단계: 백그라운드에서 여러 달 데이터 미리 로드
+      _scheduleService.preloadSchedules().then((_) {
+        if (kDebugMode) {
+          print('MainScreen: 백그라운드 데이터 미리 로드 완료');
+        }
+      }).catchError((e) {
+        if (kDebugMode) {
+          print('MainScreen: 백그라운드 데이터 미리 로드 실패: $e');
+        }
+      });
+
+    } catch (e) {
+      print('MainScreen: Error loading basic data: $e');
+      
       // 오류 발생 시에도 기본값으로라도 UI 표시
       setState(() {
         _allRecords = [];
@@ -213,10 +182,54 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _drawCount = 0;
         _loseCount = 0;
         _newsItems = [];
-      });
-    } finally {
-      setState(() {
         _isLoading = false;
+        _isTodayGamesLoading = false;
+        _isNewsLoading = false;
+      });
+    }
+  }
+
+  /// 오늘 경기 비동기 로드
+  Future<void> _loadTodayGamesAsync() async {
+    try {
+      print('MainScreen: Loading today\'s games asynchronously...');
+      
+      final todayGames = await _scheduleService.getTodayGamesQuick();
+      
+      setState(() {
+        _todayGames = todayGames;
+        _isTodayGamesLoading = false; // 로딩 완료
+      });
+      
+      print('MainScreen: Today games loaded - ${todayGames.length} games');
+    } catch (e) {
+      print('MainScreen: Error loading today games: $e');
+      setState(() {
+        _todayGames = [];
+        _isTodayGamesLoading = false; // 로딩 완료 (실패해도)
+      });
+    }
+  }
+
+  /// 뉴스 데이터 비동기 로드  
+  Future<void> _loadNewsAsync(Team? favoriteTeam) async {
+    try {
+      print('MainScreen: Loading news asynchronously...');
+      
+      final teamKeyword = favoriteTeam?.name ?? '두산';
+      final newsItems = await _newsService.getNewsByKeyword(teamKeyword, limit: 4);
+      
+      setState(() {
+        _newsItems = newsItems;
+        _isNewsLoading = false; // 로딩 완료
+      });
+      
+      print('MainScreen: News loaded - ${newsItems.length} items');
+    } catch (e) {
+      print('MainScreen: Error loading news: $e');
+      setState(() {
+        _newsItems = [];
+        _isNewsLoading = false; // 로딩 완료 (실패해도)
       });
     }
   }
@@ -384,11 +397,16 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                   todayGames: _todayGames,
                   attendedRecords: _allRecords, // 직관 기록 전달
                   onGameEditTap: _handleRecordButtonTap,
+                  isLoading: _isTodayGamesLoading, // 로딩 상태 전달
                 ),
                 // Divider
                 Container(height: 8, color: AppColors.gray10),
                 // 최근 소식 섹션
-                NewsSection(newsItems: _newsItems, onNewsUrlTap: _openNewsUrl),
+                NewsSection(
+                  newsItems: _newsItems, 
+                  onNewsUrlTap: _openNewsUrl,
+                  isLoading: _isNewsLoading, // 로딩 상태 전달
+                ),
                 const SizedBox(height: 100),
               ],
             ),

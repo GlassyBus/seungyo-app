@@ -45,16 +45,20 @@ class _SchedulePageState extends State<SchedulePage> {
     super.dispose();
   }
 
-  /// 선택된 날짜의 경기 일정 로드
+  /// 선택된 날짜의 경기 일정 로드 (부분 로딩)
   Future<void> _loadSelectedDateGames(DateTime date) async {
     setState(() {
       _isLoadingGames = true;
+      _selectedDateGames = []; // 기존 데이터 클리어
     });
 
     try {
+      // 🚀 빠른 로딩: 먼저 캐시에서 확인하고 없으면 API 호출
       final games = await _scheduleService.getSchedulesByDate(date);
+      
       // 직관 기록이 있는 경기를 우선으로 정렬
       final sortedGames = _sortGamesByRecord(games, date);
+      
       setState(() {
         _selectedDateGames = sortedGames;
         _isLoadingGames = false;
@@ -140,20 +144,19 @@ class _SchedulePageState extends State<SchedulePage> {
                   const SizedBox(height: 16),
                   _buildSelectedDateHeader(provider.selectedDate),
 
-                  // 경기 일정 섹션 (메인과 동일한 컴포넌트 사용)
-                  if (!_isLoadingGames)
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      child: GameSectionWidget(
-                        title: '',
-                        // 제목 제거
-                        games: _selectedDateGames,
-                        attendedRecords: provider.daySchedules,
-                        onGameTap: _handleGameTap,
-                        emptyMessage: '경기가 없는 날이에요.',
-                        padding: const EdgeInsets.all(0),
-                      ),
+                  // 경기 일정 섹션 (로딩 상태 표시)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    child: GameSectionWidget(
+                      title: '', // 제목 제거
+                      games: _selectedDateGames,
+                      attendedRecords: provider.daySchedules,
+                      onGameTap: _handleGameTap,
+                      emptyMessage: _isLoadingGames ? null : '경기가 없는 날이에요.',
+                      padding: const EdgeInsets.all(0),
+                      isLoading: _isLoadingGames, // 로딩 상태 전달
                     ),
+                  ),
 
                   // 직관 기록 섹션
                   // _buildSelectedDateRecords(context, provider),
