@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart';
 
 import '../constants/team_data.dart';
 import '../models/game_schedule.dart';
@@ -1041,11 +1041,11 @@ class ScheduleService {
       case 'KT':
         return 'KT';
       case 'SK':
-        return 'SK';
+        return 'SSG';
       case 'LT':
         return '롯데';
       case 'SS':
-        return 'SSG';
+        return '삼성';
       case 'LG':
         return 'LG';
       case 'OB':
