@@ -190,7 +190,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         border: Border(top: BorderSide(color: AppColors.gray20, width: 1)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -327,7 +327,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                   controller: _cropController,
                   onCropped: _handleCropCompleted,
                   aspectRatio: _selectedAspectRatio,
-                  maskColor: AppColors.black.withOpacity(0.5),
+                  maskColor: AppColors.black.withValues(alpha: 0.5),
                   withCircleUi: false,
                   cornerDotBuilder:
                       (size, edgeAlignment) => Container(
@@ -575,8 +575,8 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: AppColors.black.withOpacity(
-                                              0.1,
+                                            color: AppColors.black.withValues(
+                                              alpha: 0.1,
                                             ),
                                             blurRadius: 4,
                                             offset: const Offset(0, 2),

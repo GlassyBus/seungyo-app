@@ -38,7 +38,7 @@ class GameRecordCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(cardBorderRadius),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFD3D9E9).withOpacity(0.5),
+            color: const Color(0xFFD3D9E9).withValues(alpha: 0.5),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -100,7 +100,7 @@ class GameRecordCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 1),
                           ),

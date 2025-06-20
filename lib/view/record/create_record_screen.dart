@@ -239,10 +239,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
         _handleBackPress();
-        return false;
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -372,7 +373,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.7),
+                              color: Colors.black.withValues(alpha: 0.7),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: const Icon(
@@ -393,7 +394,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.7),
+                              color: Colors.black.withValues(alpha: 0.7),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -730,7 +731,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),

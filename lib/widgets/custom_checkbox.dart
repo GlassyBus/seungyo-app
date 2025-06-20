@@ -27,8 +27,8 @@ class CustomCheckbox extends StatelessWidget {
       onTap: () {
         onChanged(!value);
       },
-      splashColor: activeColor.withOpacity(0.1),
-      highlightColor: activeColor.withOpacity(0.05),
+      splashColor: activeColor.withValues(alpha: 0.1),
+      highlightColor: activeColor.withValues(alpha: 0.05),
       borderRadius: BorderRadius.circular(4),
       child: Padding(
         // Added padding for better touch area and visual spacing

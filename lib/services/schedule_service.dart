@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart';
 
 import '../constants/team_data.dart';
 import '../models/game_schedule.dart';
@@ -124,10 +124,8 @@ class ScheduleService {
     try {
       final file = await _getLocalFile();
       if (!await file.exists()) {
-        // 파일이 없으면 현재 달 샘플 데이터 생성 후 저장
-        final sampleData = _generateCurrentMonthSampleData();
-        await _saveSchedules(sampleData);
-        return sampleData;
+        // 파일이 없으면 빈 리스트 반환
+        return [];
       }
 
       final contents = await file.readAsString();
@@ -137,8 +135,8 @@ class ScheduleService {
       if (kDebugMode) {
         print('❌ 경기 일정 로드 실패: $e');
       }
-      // 에러 발생 시 현재 달 샘플 데이터 반환
-      return _generateCurrentMonthSampleData();
+      // 에러 발생 시 빈 리스트 반환
+      return [];
     }
   }
 
@@ -161,14 +159,6 @@ class ScheduleService {
 
       // 2. 캐시에 없으면 실제 API에서 데이터 가져오기 시도
       List<GameSchedule> schedules = await _fetchFromRealKBOAPI(year, month);
-
-      // 3. API 호출 실패 시 샘플 데이터 사용
-      if (schedules.isEmpty) {
-        if (kDebugMode) {
-          print('⚠️ API 호출 실패, 샘플 데이터 사용');
-        }
-        // schedules = _generateSampleDataForMonth(year, month);
-      }
 
       if (kDebugMode) {
         print('✅ ${schedules.length}개 경기 일정 로드 성공');
@@ -339,96 +329,6 @@ class ScheduleService {
     return schedules;
   }
 
-  /// Sports Open 데이터 파싱
-  List<GameSchedule> _parseSportsOpenData(
-    Map<String, dynamic> data,
-    int year,
-    int month,
-  ) {
-    final schedules = <GameSchedule>[];
-
-    try {
-      final games = data['games'] as List?;
-      if (games == null) return schedules;
-
-      int gameId = 1;
-
-      for (final game in games) {
-        final gameData = game as Map<String, dynamic>;
-
-        // 날짜 파싱
-        final schedule = gameData['schedule'] as Map<String, dynamic>?;
-        final startTime = schedule?['startTime'] as String?;
-
-        if (startTime == null) continue;
-
-        final gameDateTime = DateTime.parse(startTime);
-
-        // 해당 월의 경기만 필터링
-        if (gameDateTime.year != year || gameDateTime.month != month) {
-          continue;
-        }
-
-        // 팀 정보
-        final awayTeam = gameData['awayTeam'] as Map<String, dynamic>?;
-        final homeTeam = gameData['homeTeam'] as Map<String, dynamic>?;
-
-        final awayTeamName = _normalizeKBOTeamName(
-          awayTeam?['abbreviation'] as String? ?? '',
-        );
-        final homeTeamName = _normalizeKBOTeamName(
-          homeTeam?['abbreviation'] as String? ?? '',
-        );
-
-        if (homeTeamName.isEmpty || awayTeamName.isEmpty) continue;
-
-        // 경기장 정보
-        final venue = gameData['venue'] as Map<String, dynamic>?;
-        final stadium = _normalizeStadiumName(venue?['name'] as String? ?? '');
-
-        // 경기 상태
-        final playedStatus = gameData['playedStatus'] as String?;
-        final gameStatus = _parseSportsOpenGameStatus(playedStatus);
-
-        // 점수 정보
-        int? homeScore;
-        int? awayScore;
-
-        if (gameStatus == GameStatus.finished ||
-            gameStatus == GameStatus.inProgress) {
-          final score = gameData['score'] as Map<String, dynamic>?;
-          homeScore = score?['homeScoreTotal'] as int?;
-          awayScore = score?['awayScoreTotal'] as int?;
-        }
-
-        schedules.add(
-          GameSchedule(
-            id: gameId++,
-            dateTime: gameDateTime.toLocal(),
-            stadium: stadium,
-            homeTeam: homeTeamName,
-            awayTeam: awayTeamName,
-            homeTeamLogo: getTeamLogo(homeTeamName),
-            awayTeamLogo: getTeamLogo(awayTeamName),
-            status: gameStatus,
-            homeScore: homeScore,
-            awayScore: awayScore,
-          ),
-        );
-      }
-
-      if (kDebugMode) {
-        print('✅ Sports Open에서 ${schedules.length}개 경기 파싱 완료');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Sports Open 데이터 파싱 에러: $e');
-      }
-    }
-
-    return schedules;
-  }
-
   /// KBO 날짜/시간 파싱
   DateTime? _parseKBODateTime(String dateStr, String timeStr) {
     try {
@@ -571,31 +471,6 @@ class ScheduleService {
     }
   }
 
-  /// Sports Open 경기 상태 파싱
-  GameStatus _parseSportsOpenGameStatus(String? playedStatus) {
-    if (playedStatus == null) return GameStatus.scheduled;
-
-    switch (playedStatus.toUpperCase()) {
-      case 'UNPLAYED':
-        return GameStatus.scheduled;
-      case 'LIVE':
-        return GameStatus.inProgress;
-      case 'COMPLETED':
-        return GameStatus.finished;
-      case 'CANCELED':
-        return GameStatus.canceled;
-      case 'POSTPONED':
-        return GameStatus.postponed;
-      default:
-        return GameStatus.scheduled;
-    }
-  }
-
-  /// 날짜 포맷팅 (YYYY-MM-DD)
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
-
   /// 로컬 캐시에서 경기 일정 가져오기
   Future<List<GameSchedule>> _getSchedulesFromCache(int year, int month) async {
     try {
@@ -611,105 +486,9 @@ class ScheduleService {
       if (kDebugMode) {
         print('❌ 캐시에서 경기 일정 가져오기 실패: $e');
       }
-      // 최후의 수단으로 샘플 데이터 반환
-      return _generateSampleDataForMonth(year, month);
+      // 실패 시 빈 리스트 반환
+      return [];
     }
-  }
-
-  /// 현재 달 샘플 데이터 생성
-  List<GameSchedule> _generateCurrentMonthSampleData() {
-    final now = DateTime.now();
-    return _generateSampleDataForMonth(now.year, now.month);
-  }
-
-  /// 특정 월의 샘플 데이터 생성
-  List<GameSchedule> _generateSampleDataForMonth(int year, int month) {
-    final schedules = <GameSchedule>[];
-    final now = DateTime.now();
-
-    // 해당 월의 첫 날과 마지막 날 계산
-    final firstDay = DateTime(year, month, 1);
-    final lastDay = DateTime(year, month + 1, 0);
-
-    // 팀 리스트
-    final teams = [
-      '두산',
-      'LG',
-      'SSG',
-      '키움',
-      'KIA',
-      '롯데',
-      'NC',
-      '삼성',
-      '한화',
-      'KT',
-    ];
-    final stadiums = ['잠실', '고척', '문학', '사직', '대구', '광주', '창원', '대전', '수원'];
-
-    int gameId = 1;
-
-    // 매일 2-3경기씩 생성 (주말에는 더 많이)
-    for (int day = 1; day <= lastDay.day; day++) {
-      final gameDate = DateTime(year, month, day);
-      final isWeekend =
-          gameDate.weekday == DateTime.saturday ||
-          gameDate.weekday == DateTime.sunday;
-      final gamesPerDay = isWeekend ? 5 : 3; // 주말에는 5경기, 평일에는 3경기
-
-      for (int gameIndex = 0; gameIndex < gamesPerDay; gameIndex++) {
-        // 팀 매칭 (중복 방지)
-        final homeTeamIndex = (gameIndex * 2) % teams.length;
-        final awayTeamIndex = (gameIndex * 2 + 1) % teams.length;
-        final homeTeam = teams[homeTeamIndex];
-        final awayTeam = teams[awayTeamIndex];
-
-        // 경기 시간 설정
-        final gameTime =
-            gameIndex == 0 && isWeekend
-                ? DateTime(year, month, day, 14, 0) // 주말 첫 경기는 14:00
-                : DateTime(year, month, day, 18, 30); // 나머지는 18:30
-
-        // 경기 상태 결정
-        GameStatus status;
-        int? homeScore;
-        int? awayScore;
-
-        if (gameTime.isBefore(now)) {
-          // 과거 경기는 종료
-          status = GameStatus.finished;
-          homeScore = (gameIndex * 3 + day) % 10;
-          awayScore = (gameIndex * 2 + day) % 8;
-        } else if (gameTime.day == now.day &&
-            gameTime.month == now.month &&
-            gameTime.year == now.year) {
-          // 오늘 경기는 예정 또는 진행 중
-          status =
-              gameTime.hour < now.hour
-                  ? GameStatus.inProgress
-                  : GameStatus.scheduled;
-        } else {
-          // 미래 경기는 예정
-          status = GameStatus.scheduled;
-        }
-
-        schedules.add(
-          GameSchedule(
-            id: gameId++,
-            dateTime: gameTime,
-            stadium: stadiums[gameIndex % stadiums.length],
-            homeTeam: homeTeam,
-            awayTeam: awayTeam,
-            homeTeamLogo: getTeamLogo(homeTeam),
-            awayTeamLogo: getTeamLogo(awayTeam),
-            status: status,
-            homeScore: homeScore,
-            awayScore: awayScore,
-          ),
-        );
-      }
-    }
-
-    return schedules;
   }
 
   /// 캐시에 경기 일정 저장
@@ -786,9 +565,71 @@ class ScheduleService {
     }
   }
 
-  /// 특정 날짜의 경기 일정 가져오기 (NotificationService 호환성을 위한 별칭)
-  Future<List<GameSchedule>> getSchedulesForDate(DateTime date) async {
-    return getSchedulesByDate(date);
+  /// 오늘의 경기 일정 빠르게 가져오기 (기본 시간으로 우선 표시)
+  Future<List<GameSchedule>> getTodayGamesQuick() async {
+    try {
+      final today = DateTime.now();
+
+      if (kDebugMode) {
+        print('🚀 오늘의 경기 빠른 로딩: ${today.year}-${today.month}-${today.day}');
+      }
+
+      // 1. 캐시에서 먼저 확인
+      final cachedData = _getFromCache(today.year, today.month);
+      if (cachedData != null) {
+        final todayGames =
+            cachedData
+                .where(
+                  (schedule) =>
+                      schedule.dateTime.year == today.year &&
+                      schedule.dateTime.month == today.month &&
+                      schedule.dateTime.day == today.day,
+                )
+                .toList();
+
+        if (todayGames.isNotEmpty) {
+          if (kDebugMode) {
+            print('✅ 캐시에서 오늘 경기 ${todayGames.length}개 반환');
+          }
+          return todayGames;
+        }
+      }
+
+      // 2. 캐시에 없으면 네이버 API로 빠르게 가져오기
+      final monthlySchedules = await _fetchNaverSchedules(
+        today.year,
+        today.month,
+      );
+
+      // 3. 오늘 경기만 필터링
+      final todayGames =
+          monthlySchedules
+              .where(
+                (schedule) =>
+                    schedule.dateTime.year == today.year &&
+                    schedule.dateTime.month == today.month &&
+                    schedule.dateTime.day == today.day,
+              )
+              .toList();
+
+      if (kDebugMode) {
+        print('✅ 네이버 API에서 오늘 경기 ${todayGames.length}개 로드');
+      }
+
+      // 4. 캐시에 저장
+      if (monthlySchedules.isNotEmpty) {
+        _saveToCache(today.year, today.month, monthlySchedules);
+      }
+
+      return todayGames;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ 오늘 경기 빠른 로딩 실패: $e');
+      }
+
+      // 실패 시 기본 데이터 반환
+      return [];
+    }
   }
 
   /// 앞으로 예정된 경기 일정 가져오기
@@ -876,7 +717,7 @@ class ScheduleService {
     }
   }
 
-  /// 네이버 스포츠에서 경기 일정 가져오기 (HTML 파싱 대신 API 사용)
+  /// 네이버 스포츠에서 경기 일정 가져오기 (빠른 버전 - 기본 시간 사용)
   Future<List<GameSchedule>> _fetchNaverSchedules(int year, int month) async {
     try {
       // 해당 월의 첫 번째 날짜로 API 호출
@@ -886,35 +727,44 @@ class ScheduleService {
       final url =
           'https://api-gw.sports.naver.com/schedule/calendar?upperCategoryId=kbaseball&categoryIds=kbo&date=$dateString';
 
-      print('네이버 캘린더 API 호출: $url');
+      if (kDebugMode) {
+        print('네이버 캘린더 API 호출: $url');
+      }
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'application/json',
-        },
-      );
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 10)); // 타임아웃 추가
 
       if (response.statusCode != 200) {
-        print('네이버 캘린더 API 호출 실패: ${response.statusCode}');
+        if (kDebugMode) {
+          print('네이버 캘린더 API 호출 실패: ${response.statusCode}');
+        }
         return [];
       }
 
       final data = json.decode(response.body);
 
       if (data['success'] != true || data['result'] == null) {
-        print('네이버 캘린더 API 응답 오류: ${data['code']}');
+        if (kDebugMode) {
+          print('네이버 캘린더 API 응답 오류: ${data['code']}');
+        }
         return [];
       }
 
       final result = data['result'];
       final dates = result['dates'] as List<dynamic>?;
 
-      print('datadatadatadatadatadata ${dates}');
       if (dates == null) {
-        print('네이버 캘린더 API: 날짜 데이터가 없습니다');
+        if (kDebugMode) {
+          print('네이버 캘린더 API: 날짜 데이터가 없습니다');
+        }
         return [];
       }
 
@@ -942,13 +792,12 @@ class ScheduleService {
             final awayTeamCode = gameInfo['awayTeamCode'] as String?;
             final statusCode = gameInfo['statusCode'] as String?;
             final winner = gameInfo['winner'] as String?;
+            // 🚀 시간 정보도 캘린더 API에서 직접 추출 시도
+            final startTimeStr = gameInfo['startTime'] as String?;
 
             if (gameId == null ||
                 homeTeamCode == null ||
                 awayTeamCode == null) {
-              print(
-                '네이버 캘린더: 필수 정보 누락 - gameId: $gameId, home: $homeTeamCode, away: $awayTeamCode',
-              );
               continue;
             }
 
@@ -989,14 +838,29 @@ class ScheduleService {
             // 경기장 정보
             final stadium = _getDefaultStadium(homeTeam);
 
-            // 기본 시간을 14:00으로 설정 (오후 2시)
-            final gameDateTime = DateTime(
-              gameDate.year,
-              gameDate.month,
-              gameDate.day,
-              14,
-              0,
-            );
+            // 🚀 시간 설정 개선: API에서 시간 정보가 있으면 사용, 없으면 기본값
+            DateTime gameDateTime;
+            if (startTimeStr != null && startTimeStr.isNotEmpty) {
+              final parsedTime = _parseGameTimeFromString(startTimeStr);
+              if (parsedTime != null) {
+                gameDateTime = DateTime(
+                  gameDate.year,
+                  gameDate.month,
+                  gameDate.day,
+                  parsedTime.hour,
+                  parsedTime.minute,
+                );
+                if (kDebugMode) {
+                  print(
+                    '✅ 네이버 API에서 시간 정보 사용: $startTimeStr → ${parsedTime.hour}:${parsedTime.minute.toString().padLeft(2, '0')}',
+                  );
+                }
+              } else {
+                gameDateTime = _getDefaultGameTime(gameDate);
+              }
+            } else {
+              gameDateTime = _getDefaultGameTime(gameDate);
+            }
 
             final schedule = GameSchedule(
               id: gameIdCounter++,
@@ -1012,22 +876,91 @@ class ScheduleService {
             );
 
             schedules.add(schedule);
-            print(
-              '네이버 캘린더: 경기 추가 - ${awayTeam} vs ${homeTeam} ($ymd, $statusCode)',
-            );
+
+            // ❌ 개별 API 호출 제거 (속도 개선)
+            // _updateGameTimeInBackground(gameId, schedule, gameDate);
           } catch (e) {
-            print('네이버 캘린더: 경기 정보 파싱 오류 - $e');
+            if (kDebugMode) {
+              print('네이버 캘린더: 경기 정보 파싱 오류 - $e');
+            }
             continue;
           }
         }
       }
 
-      print('네이버 캘린더: 총 ${schedules.length}개 경기 파싱 완료');
+      if (kDebugMode) {
+        print('네이버 캘린더: 총 ${schedules.length}개 경기 파싱 완료 (기본 시간)');
+      }
       return schedules;
     } catch (e) {
-      print('네이버 캘린더 API 오류: $e');
+      if (kDebugMode) {
+        print('네이버 캘린더 API 오류: $e');
+      }
       return [];
     }
+  }
+
+  /// 기본 경기 시간 설정 (더 정확한 시간)
+  DateTime _getDefaultGameTime(DateTime gameDate) {
+    final isWeekend =
+        gameDate.weekday == DateTime.saturday ||
+        gameDate.weekday == DateTime.sunday;
+
+    // 더 정확한 기본 시간 설정
+    int defaultHour;
+    int defaultMinute;
+
+    if (isWeekend) {
+      // 주말: 오후 2시 또는 6시 30분 (더블헤더 고려)
+      defaultHour = 14;
+      defaultMinute = 0;
+    } else {
+      // 평일: 오후 6시 30분
+      defaultHour = 18;
+      defaultMinute = 30;
+    }
+
+    return DateTime(
+      gameDate.year,
+      gameDate.month,
+      gameDate.day,
+      defaultHour,
+      defaultMinute,
+    );
+  }
+
+  /// 경기 시간 문자열 파싱 (빠른 버전)
+  DateTime? _parseGameTimeFromString(String timeStr) {
+    try {
+      // "18:30", "1830", "14:00" 등의 형식 지원
+      final timeRegex = RegExp(r'(\d{1,2}):?(\d{2})');
+      final match = timeRegex.firstMatch(timeStr);
+
+      if (match != null) {
+        final hour = int.parse(match.group(1)!);
+        final minute = int.parse(match.group(2)!);
+
+        if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+          return DateTime(2025, 1, 1, hour, minute); // 임시 날짜, 시간만 필요
+        }
+      }
+
+      // "14시", "18시" 형식
+      final hourOnlyRegex = RegExp(r'(\d{1,2})시');
+      final hourMatch = hourOnlyRegex.firstMatch(timeStr);
+      if (hourMatch != null) {
+        final hour = int.parse(hourMatch.group(1)!);
+        if (hour >= 0 && hour <= 23) {
+          return DateTime(2025, 1, 1, hour, 0);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ 시간 파싱 오류: $e');
+      }
+    }
+
+    return null;
   }
 
   String _mapNaverTeamCode(String teamCode) {
@@ -1041,11 +974,11 @@ class ScheduleService {
       case 'KT':
         return 'KT';
       case 'SK':
-        return 'SK';
+        return 'SSG';
       case 'LT':
         return '롯데';
       case 'SS':
-        return 'SSG';
+        return '삼성';
       case 'LG':
         return 'LG';
       case 'OB':
@@ -1075,7 +1008,114 @@ class ScheduleService {
     return stadiumMap[homeTeam] ?? '미정';
   }
 
-  /// 여러 달의 경기 일정을 미리 로드 (백그라운드에서 실행)
+  /// 게임 ID로 상세 정보를 가져와서 경기 시간 확인
+  Future<DateTime> _getGameDetailTime(String gameId, DateTime gameDate) async {
+    try {
+      // 네이버 스포츠 경기 상세 정보 API
+      final url =
+          'https://api-gw.sports.naver.com/gameCenter/kbo/v1/games/$gameId/preview';
+
+      print('네이버 경기 상세 정보 API 호출: $url');
+
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data['success'] == true && data['result'] != null) {
+          final result = data['result'];
+          final gameInfo = result['gameInfo'];
+
+          if (gameInfo != null) {
+            // startTime이나 gameTime 필드에서 시간 정보 추출
+            final startTime = gameInfo['startTime'] as String?;
+            final gameTime = gameInfo['gameTime'] as String?;
+            final time = startTime ?? gameTime;
+
+            if (time != null) {
+              print('네이버 API에서 경기 시간 발견: $time');
+
+              // 시간 파싱 (다양한 형식 지원)
+              final parsedTime = _parseGameTime(time);
+              if (parsedTime != null) {
+                return DateTime(
+                  gameDate.year,
+                  gameDate.month,
+                  gameDate.day,
+                  parsedTime.hour,
+                  parsedTime.minute,
+                );
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('네이버 경기 상세 정보 API 오류: $e');
+    }
+
+    // API 호출 실패 시 기본 시간 반환 (주말은 14:00, 평일은 18:30)
+    final isWeekend =
+        gameDate.weekday == DateTime.saturday ||
+        gameDate.weekday == DateTime.sunday;
+    final defaultHour = isWeekend ? 14 : 18;
+    final defaultMinute = isWeekend ? 0 : 30;
+
+    return DateTime(
+      gameDate.year,
+      gameDate.month,
+      gameDate.day,
+      defaultHour,
+      defaultMinute,
+    );
+  }
+
+  /// 경기 시간 문자열 파싱
+  DateTime? _parseGameTime(String timeStr) {
+    try {
+      // 시간 형식들: "18:30", "1830", "오후 6시 30분", "18시 30분" 등
+      final timeRegex = RegExp(r'(\d{1,2}):?(\d{2})');
+      final match = timeRegex.firstMatch(timeStr);
+
+      if (match != null) {
+        final hour = int.parse(match.group(1)!);
+        final minute = int.parse(match.group(2)!);
+
+        if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+          return DateTime(2025, 1, 1, hour, minute); // 임시 날짜, 시간만 필요
+        }
+      }
+
+      // "14시", "18시" 형식
+      final hourOnlyRegex = RegExp(r'(\d{1,2})시');
+      final hourMatch = hourOnlyRegex.firstMatch(timeStr);
+      if (hourMatch != null) {
+        final hour = int.parse(hourMatch.group(1)!);
+        if (hour >= 0 && hour <= 23) {
+          return DateTime(2025, 1, 1, hour, 0);
+        }
+      }
+    } catch (e) {
+      print('시간 파싱 오류: $e');
+    }
+
+    return null;
+  }
+
+  /// 특정 날짜의 경기 일정 가져오기 (NotificationService 호환성을 위한 별칭)
+  Future<List<GameSchedule>> getSchedulesForDate(DateTime date) async {
+    return getSchedulesByDate(date);
+  }
+
   Future<void> preloadSchedules({
     int monthsAhead = 2,
     int monthsBehind = 1,

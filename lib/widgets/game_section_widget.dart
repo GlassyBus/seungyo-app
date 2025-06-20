@@ -17,6 +17,7 @@ class GameSectionWidget extends StatelessWidget {
   final Widget? emptyWidget;
   final EdgeInsetsGeometry? padding;
   final Widget? headerTrailing;
+  final bool isLoading; // 로딩 상태 추가
 
   const GameSectionWidget({
     Key? key,
@@ -29,6 +30,7 @@ class GameSectionWidget extends StatelessWidget {
     this.emptyWidget,
     this.padding,
     this.headerTrailing,
+    this.isLoading = false, // 기본값 false
   }) : super(key: key);
 
   @override
@@ -40,14 +42,53 @@ class GameSectionWidget extends StatelessWidget {
         children: [
           // 제목이 비어있지 않을 때만 헤더 표시
           if (title.isNotEmpty) ...[_buildHeader(), const SizedBox(height: 20)],
-          GameListWidget(
-            games: games,
-            attendedRecords: attendedRecords,
-            onGameTap: onGameTap,
-            emptyMessage: emptyMessage,
-            emptyWidget: emptyWidget,
-          ),
+          
+          // 🔄 로딩 중일 때
+          if (isLoading)
+            _buildLoadingWidget()
+          else
+            GameListWidget(
+              games: games,
+              attendedRecords: attendedRecords,
+              onGameTap: onGameTap,
+              emptyMessage: emptyMessage,
+              emptyWidget: emptyWidget,
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingWidget() {
+    return Container(
+      height: 120,
+      decoration: BoxDecoration(
+        color: AppColors.gray5,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Color(0xFF09004C),
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              '경기 일정을 불러오는 중...',
+              style: TextStyle(
+                color: Color(0xFF7E8695),
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
