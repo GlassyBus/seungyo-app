@@ -14,8 +14,6 @@ import '../record/create_record_screen.dart';
 import '../record/record_detail_screen.dart';
 import 'widgets/calendar_header.dart';
 import 'widgets/enhanced_calendar.dart';
-import 'widgets/no_schedule_view.dart';
-import 'widgets/record_item.dart';
 
 /// 경기 일정 페이지
 class SchedulePage extends StatefulWidget {
@@ -55,10 +53,10 @@ class _SchedulePageState extends State<SchedulePage> {
     try {
       // 🚀 빠른 로딩: 먼저 캐시에서 확인하고 없으면 API 호출
       final games = await _scheduleService.getSchedulesByDate(date);
-      
+
       // 직관 기록이 있는 경기를 우선으로 정렬
       final sortedGames = _sortGamesByRecord(games, date);
-      
+
       setState(() {
         _selectedDateGames = sortedGames;
         _isLoadingGames = false;
@@ -148,7 +146,8 @@ class _SchedulePageState extends State<SchedulePage> {
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     child: GameSectionWidget(
-                      title: '', // 제목 제거
+                      title: '',
+                      // 제목 제거
                       games: _selectedDateGames,
                       attendedRecords: provider.daySchedules,
                       onGameTap: _handleGameTap,
@@ -233,74 +232,5 @@ class _SchedulePageState extends State<SchedulePage> {
         ),
       ),
     );
-  }
-
-  /// 선택된 날짜의 직관 기록 위젯 생성
-  Widget _buildSelectedDateRecords(
-    BuildContext context,
-    ScheduleProvider provider,
-  ) {
-    final selectedRecords = provider.daySchedules;
-
-    if (selectedRecords.isEmpty && _selectedDateGames.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: NoScheduleView(
-          isAllGamesCanceled: provider.isAllGamesCanceledOnSelectedDate,
-          hasNoSchedule: !provider.isAllGamesCanceledOnSelectedDate,
-        ),
-      );
-    }
-
-    if (selectedRecords.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 직관 기록 제목
-        Container(
-          padding: const EdgeInsets.fromLTRB(32, 20, 32, 0),
-          child: Text(
-            '직관 기록',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppColors.navy,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        // 직관 기록 목록
-        ...selectedRecords.map((record) {
-          return RecordItem(
-            record: record,
-            onTap: () => _navigateToRecordDetail(context, record),
-          );
-        }).toList(),
-      ],
-    );
-  }
-
-  /// 직관 기록 상세 화면으로 이동
-  void _navigateToRecordDetail(BuildContext context, dynamic record) async {
-    try {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)),
-      );
-
-      // 상세 화면에서 변경이 있었다면 목록 새로고침
-      if (result == true && mounted) {
-        final provider = context.read<ScheduleProvider>();
-        provider.loadSchedules();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('오류가 발생했습니다: $e')));
-      }
-    }
   }
 }
