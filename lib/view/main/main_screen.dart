@@ -48,6 +48,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   bool _isNewsLoading = true; // 뉴스 로딩 상태 추가
   int _currentTabIndex = 0; // 현재 선택된 탭 인덱스
 
+  // 일정 탭 새로고침을 위한 키
+  Key _schedulePageKey = const ValueKey('schedule_initial');
+
   // 통계 데이터 (경기 취소나 동점 제외)
   int _totalGames = 0; // 총 직관 기록
   int _winCount = 0; // 승리 기록
@@ -429,15 +432,17 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _currentTabIndex == 1 ? DateTime.now().millisecondsSinceEpoch : 0,
       ),
       onRecordChanged: () {
-        // 기록이 변경되었을 때 홈 데이터 새로고침
-        print('MainScreen: Record changed, refreshing home data...');
+        // 기록이 변경되었을 때 홈 데이터와 일정 탭 새로고침
+        print('MainScreen: Record changed, refreshing all data...');
         _loadHomeData();
+        _refreshSchedulePage();
       },
     );
   }
 
   Widget _buildScheduleContent() {
-    return const SchedulePage();
+    // 기록 변경이 있을 때마다 SchedulePage를 새로 생성하여 최신 데이터를 반영
+    return SchedulePage(key: _schedulePageKey);
   }
 
   // 직관 기록 버튼 탭 처리
@@ -466,12 +471,13 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         ),
       );
 
-      // 상세 화면에서 수정/삭제가 발생했으면 홈 데이터 새로고침
+      // 상세 화면에서 수정/삭제가 발생했으면 홈 데이터와 일정 탭 새로고침
       if (result == true) {
         print(
-          'MainScreen: Record modified/deleted from detail view, refreshing home data...',
+          'MainScreen: Record modified/deleted from detail view, refreshing all data...',
         );
         await _loadHomeData();
+        _refreshSchedulePage();
       }
     } else {
       // 기존 기록이 없으면 새 기록 작성 화면으로 (경기 정보 미리 설정)
@@ -482,12 +488,13 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         ),
       );
 
-      // 기록 추가 후 홈 데이터 새로고침
+      // 기록 추가 후 홈 데이터와 일정 탭 새로고침
       if (result == true) {
         print(
-          'MainScreen: Record added from today\'s game, refreshing home data...',
+          'MainScreen: Record added from today\'s game, refreshing all data...',
         );
         await _loadHomeData();
+        _refreshSchedulePage();
       }
     }
   }
@@ -516,10 +523,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
     );
 
-    // 기록 추가 후 홈 데이터 새로고침
+    // 기록 추가 후 홈 데이터와 일정 탭 새로고침
     if (result == true) {
-      print('MainScreen: Record added successfully, refreshing home data...');
+      print('MainScreen: Record added successfully, refreshing all data...');
       await _loadHomeData();
+      _refreshSchedulePage();
 
       // 기록 탭이 현재 탭이면 해당 데이터도 새로고침
       if (_currentTabIndex == 1) {
@@ -529,6 +537,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         });
       }
     }
+  }
+
+  /// 일정 탭 새로고침
+  void _refreshSchedulePage() {
+    setState(() {
+      _schedulePageKey = ValueKey('schedule_${DateTime.now().millisecondsSinceEpoch}');
+    });
+    print('MainScreen: Schedule page refreshed with new key');
   }
 
   void _navigateToUserProfile() {
