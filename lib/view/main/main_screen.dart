@@ -236,8 +236,15 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _handleDoubleBackPress,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldExit = await _handleDoubleBackPress();
+        if (shouldExit) {
+          SystemNavigator.pop();
+        }
+      },
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: _buildCurrentAppBar(),

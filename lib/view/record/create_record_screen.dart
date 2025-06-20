@@ -239,10 +239,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
         _handleBackPress();
-        return false;
       },
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,

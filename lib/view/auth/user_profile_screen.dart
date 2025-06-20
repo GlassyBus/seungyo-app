@@ -166,10 +166,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
         Navigator.of(context).pop(_hasChanges);
-        return false; // 기본 pop 동작 방지
       },
       child: Scaffold(
         backgroundColor: colorScheme.surface,
