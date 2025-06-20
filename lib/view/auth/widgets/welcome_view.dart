@@ -152,7 +152,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                                 padding: const EdgeInsets.symmetric(horizontal: 4),
                                 decoration: BoxDecoration(
                                   boxShadow: [
-                                    BoxShadow(color: AppColors.mint.withOpacity(0.3), blurRadius: 10, spreadRadius: 1),
+                                    BoxShadow(color: AppColors.mint.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 1),
                                   ],
                                 ),
                                 child: Text(

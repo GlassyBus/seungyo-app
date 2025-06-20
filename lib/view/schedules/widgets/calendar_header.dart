@@ -137,7 +137,7 @@ class _CalendarHeaderState extends State<CalendarHeader>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: AppColors.mint.withOpacity(0.2),
+          color: AppColors.mint.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
@@ -184,7 +184,7 @@ class _CalendarHeaderState extends State<CalendarHeader>
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
