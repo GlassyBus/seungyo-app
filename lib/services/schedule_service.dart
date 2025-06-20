@@ -569,7 +569,7 @@ class ScheduleService {
   Future<List<GameSchedule>> getTodayGamesQuick() async {
     try {
       final today = DateTime.now();
-      
+
       if (kDebugMode) {
         print('🚀 오늘의 경기 빠른 로딩: ${today.year}-${today.month}-${today.day}');
       }
@@ -577,11 +577,16 @@ class ScheduleService {
       // 1. 캐시에서 먼저 확인
       final cachedData = _getFromCache(today.year, today.month);
       if (cachedData != null) {
-        final todayGames = cachedData.where((schedule) =>
-            schedule.dateTime.year == today.year &&
-            schedule.dateTime.month == today.month &&
-            schedule.dateTime.day == today.day).toList();
-        
+        final todayGames =
+            cachedData
+                .where(
+                  (schedule) =>
+                      schedule.dateTime.year == today.year &&
+                      schedule.dateTime.month == today.month &&
+                      schedule.dateTime.day == today.day,
+                )
+                .toList();
+
         if (todayGames.isNotEmpty) {
           if (kDebugMode) {
             print('✅ 캐시에서 오늘 경기 ${todayGames.length}개 반환');
@@ -591,13 +596,21 @@ class ScheduleService {
       }
 
       // 2. 캐시에 없으면 네이버 API로 빠르게 가져오기
-      final monthlySchedules = await _fetchNaverSchedules(today.year, today.month);
-      
+      final monthlySchedules = await _fetchNaverSchedules(
+        today.year,
+        today.month,
+      );
+
       // 3. 오늘 경기만 필터링
-      final todayGames = monthlySchedules.where((schedule) =>
-          schedule.dateTime.year == today.year &&
-          schedule.dateTime.month == today.month &&
-          schedule.dateTime.day == today.day).toList();
+      final todayGames =
+          monthlySchedules
+              .where(
+                (schedule) =>
+                    schedule.dateTime.year == today.year &&
+                    schedule.dateTime.month == today.month &&
+                    schedule.dateTime.day == today.day,
+              )
+              .toList();
 
       if (kDebugMode) {
         print('✅ 네이버 API에서 오늘 경기 ${todayGames.length}개 로드');
@@ -613,7 +626,7 @@ class ScheduleService {
       if (kDebugMode) {
         print('❌ 오늘 경기 빠른 로딩 실패: $e');
       }
-      
+
       // 실패 시 기본 데이터 반환
       return [];
     }
@@ -718,14 +731,16 @@ class ScheduleService {
         print('네이버 캘린더 API 호출: $url');
       }
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'User-Agent':
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          'Accept': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 10)); // 타임아웃 추가
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 10)); // 타임아웃 추가
 
       if (response.statusCode != 200) {
         if (kDebugMode) {
@@ -777,6 +792,8 @@ class ScheduleService {
             final awayTeamCode = gameInfo['awayTeamCode'] as String?;
             final statusCode = gameInfo['statusCode'] as String?;
             final winner = gameInfo['winner'] as String?;
+            // 🚀 시간 정보도 캘린더 API에서 직접 추출 시도
+            final startTimeStr = gameInfo['startTime'] as String?;
 
             if (gameId == null ||
                 homeTeamCode == null ||
@@ -821,8 +838,29 @@ class ScheduleService {
             // 경기장 정보
             final stadium = _getDefaultStadium(homeTeam);
 
-            // 🚀 기본 시간 사용 (상세 시간은 백그라운드에서 업데이트)
-            final gameDateTime = _getDefaultGameTime(gameDate);
+            // 🚀 시간 설정 개선: API에서 시간 정보가 있으면 사용, 없으면 기본값
+            DateTime gameDateTime;
+            if (startTimeStr != null && startTimeStr.isNotEmpty) {
+              final parsedTime = _parseGameTimeFromString(startTimeStr);
+              if (parsedTime != null) {
+                gameDateTime = DateTime(
+                  gameDate.year,
+                  gameDate.month,
+                  gameDate.day,
+                  parsedTime.hour,
+                  parsedTime.minute,
+                );
+                if (kDebugMode) {
+                  print(
+                    '✅ 네이버 API에서 시간 정보 사용: $startTimeStr → ${parsedTime.hour}:${parsedTime.minute.toString().padLeft(2, '0')}',
+                  );
+                }
+              } else {
+                gameDateTime = _getDefaultGameTime(gameDate);
+              }
+            } else {
+              gameDateTime = _getDefaultGameTime(gameDate);
+            }
 
             final schedule = GameSchedule(
               id: gameIdCounter++,
@@ -839,9 +877,8 @@ class ScheduleService {
 
             schedules.add(schedule);
 
-            // 🔄 백그라운드에서 실제 시간 업데이트 (UI 블로킹 없이)
-            _updateGameTimeInBackground(gameId, schedule, gameDate);
-
+            // ❌ 개별 API 호출 제거 (속도 개선)
+            // _updateGameTimeInBackground(gameId, schedule, gameDate);
           } catch (e) {
             if (kDebugMode) {
               print('네이버 캘린더: 경기 정보 파싱 오류 - $e');
@@ -863,12 +900,25 @@ class ScheduleService {
     }
   }
 
-  /// 기본 경기 시간 설정 (주말 14:00, 평일 18:30)
+  /// 기본 경기 시간 설정 (더 정확한 시간)
   DateTime _getDefaultGameTime(DateTime gameDate) {
-    final isWeekend = gameDate.weekday == DateTime.saturday ||
+    final isWeekend =
+        gameDate.weekday == DateTime.saturday ||
         gameDate.weekday == DateTime.sunday;
-    final defaultHour = isWeekend ? 14 : 18;
-    final defaultMinute = isWeekend ? 0 : 30;
+
+    // 더 정확한 기본 시간 설정
+    int defaultHour;
+    int defaultMinute;
+
+    if (isWeekend) {
+      // 주말: 오후 2시 또는 6시 30분 (더블헤더 고려)
+      defaultHour = 14;
+      defaultMinute = 0;
+    } else {
+      // 평일: 오후 6시 30분
+      defaultHour = 18;
+      defaultMinute = 30;
+    }
 
     return DateTime(
       gameDate.year,
@@ -879,41 +929,38 @@ class ScheduleService {
     );
   }
 
-  /// 백그라운드에서 실제 경기 시간 업데이트
-  Future<void> _updateGameTimeInBackground(
-    String gameId,
-    GameSchedule schedule,
-    DateTime gameDate,
-  ) async {
+  /// 경기 시간 문자열 파싱 (빠른 버전)
+  DateTime? _parseGameTimeFromString(String timeStr) {
     try {
-      // 백그라운드에서 실행 (UI 블로킹 없음)
-      final actualDateTime = await _getGameDetailTime(gameId, gameDate);
-      
-      // 실제 시간이 기본 시간과 다르면 업데이트
-      if (actualDateTime.hour != schedule.dateTime.hour ||
-          actualDateTime.minute != schedule.dateTime.minute) {
-        
-        // 캐시된 스케줄 업데이트
-        final cacheKey = _getCacheKey(gameDate.year, gameDate.month);
-        final cachedSchedules = _monthlyCache[cacheKey];
-        
-        if (cachedSchedules != null) {
-          final index = cachedSchedules.indexWhere((s) => s.id == schedule.id);
-          if (index >= 0) {
-            cachedSchedules[index] = schedule.copyWith(dateTime: actualDateTime);
-            
-            if (kDebugMode) {
-              print('✅ 경기 시간 업데이트: ${schedule.homeTeam} vs ${schedule.awayTeam} → ${actualDateTime.hour}:${actualDateTime.minute.toString().padLeft(2, '0')}');
-            }
-          }
+      // "18:30", "1830", "14:00" 등의 형식 지원
+      final timeRegex = RegExp(r'(\d{1,2}):?(\d{2})');
+      final match = timeRegex.firstMatch(timeStr);
+
+      if (match != null) {
+        final hour = int.parse(match.group(1)!);
+        final minute = int.parse(match.group(2)!);
+
+        if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+          return DateTime(2025, 1, 1, hour, minute); // 임시 날짜, 시간만 필요
+        }
+      }
+
+      // "14시", "18시" 형식
+      final hourOnlyRegex = RegExp(r'(\d{1,2})시');
+      final hourMatch = hourOnlyRegex.firstMatch(timeStr);
+      if (hourMatch != null) {
+        final hour = int.parse(hourMatch.group(1)!);
+        if (hour >= 0 && hour <= 23) {
+          return DateTime(2025, 1, 1, hour, 0);
         }
       }
     } catch (e) {
-      // 백그라운드 업데이트 실패는 무시 (기본 시간 유지)
       if (kDebugMode) {
-        print('⚠️ 백그라운드 시간 업데이트 실패: $e');
+        print('⚠️ 시간 파싱 오류: $e');
       }
     }
+
+    return null;
   }
 
   String _mapNaverTeamCode(String teamCode) {
@@ -1068,6 +1115,7 @@ class ScheduleService {
   Future<List<GameSchedule>> getSchedulesForDate(DateTime date) async {
     return getSchedulesByDate(date);
   }
+
   Future<void> preloadSchedules({
     int monthsAhead = 2,
     int monthsBehind = 1,
