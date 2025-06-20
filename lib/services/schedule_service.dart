@@ -124,10 +124,8 @@ class ScheduleService {
     try {
       final file = await _getLocalFile();
       if (!await file.exists()) {
-        // 파일이 없으면 현재 달 샘플 데이터 생성 후 저장
-        final sampleData = _generateCurrentMonthSampleData();
-        await _saveSchedules(sampleData);
-        return sampleData;
+        // 파일이 없으면 빈 리스트 반환
+        return [];
       }
 
       final contents = await file.readAsString();
@@ -137,8 +135,8 @@ class ScheduleService {
       if (kDebugMode) {
         print('❌ 경기 일정 로드 실패: $e');
       }
-      // 에러 발생 시 현재 달 샘플 데이터 반환
-      return _generateCurrentMonthSampleData();
+      // 에러 발생 시 빈 리스트 반환
+      return [];
     }
   }
 
@@ -161,14 +159,6 @@ class ScheduleService {
 
       // 2. 캐시에 없으면 실제 API에서 데이터 가져오기 시도
       List<GameSchedule> schedules = await _fetchFromRealKBOAPI(year, month);
-
-      // 3. API 호출 실패 시 샘플 데이터 사용
-      if (schedules.isEmpty) {
-        if (kDebugMode) {
-          print('⚠️ API 호출 실패, 샘플 데이터 사용');
-        }
-        // schedules = _generateSampleDataForMonth(year, month);
-      }
 
       if (kDebugMode) {
         print('✅ ${schedules.length}개 경기 일정 로드 성공');
@@ -339,96 +329,6 @@ class ScheduleService {
     return schedules;
   }
 
-  /// Sports Open 데이터 파싱
-  List<GameSchedule> _parseSportsOpenData(
-    Map<String, dynamic> data,
-    int year,
-    int month,
-  ) {
-    final schedules = <GameSchedule>[];
-
-    try {
-      final games = data['games'] as List?;
-      if (games == null) return schedules;
-
-      int gameId = 1;
-
-      for (final game in games) {
-        final gameData = game as Map<String, dynamic>;
-
-        // 날짜 파싱
-        final schedule = gameData['schedule'] as Map<String, dynamic>?;
-        final startTime = schedule?['startTime'] as String?;
-
-        if (startTime == null) continue;
-
-        final gameDateTime = DateTime.parse(startTime);
-
-        // 해당 월의 경기만 필터링
-        if (gameDateTime.year != year || gameDateTime.month != month) {
-          continue;
-        }
-
-        // 팀 정보
-        final awayTeam = gameData['awayTeam'] as Map<String, dynamic>?;
-        final homeTeam = gameData['homeTeam'] as Map<String, dynamic>?;
-
-        final awayTeamName = _normalizeKBOTeamName(
-          awayTeam?['abbreviation'] as String? ?? '',
-        );
-        final homeTeamName = _normalizeKBOTeamName(
-          homeTeam?['abbreviation'] as String? ?? '',
-        );
-
-        if (homeTeamName.isEmpty || awayTeamName.isEmpty) continue;
-
-        // 경기장 정보
-        final venue = gameData['venue'] as Map<String, dynamic>?;
-        final stadium = _normalizeStadiumName(venue?['name'] as String? ?? '');
-
-        // 경기 상태
-        final playedStatus = gameData['playedStatus'] as String?;
-        final gameStatus = _parseSportsOpenGameStatus(playedStatus);
-
-        // 점수 정보
-        int? homeScore;
-        int? awayScore;
-
-        if (gameStatus == GameStatus.finished ||
-            gameStatus == GameStatus.inProgress) {
-          final score = gameData['score'] as Map<String, dynamic>?;
-          homeScore = score?['homeScoreTotal'] as int?;
-          awayScore = score?['awayScoreTotal'] as int?;
-        }
-
-        schedules.add(
-          GameSchedule(
-            id: gameId++,
-            dateTime: gameDateTime.toLocal(),
-            stadium: stadium,
-            homeTeam: homeTeamName,
-            awayTeam: awayTeamName,
-            homeTeamLogo: getTeamLogo(homeTeamName),
-            awayTeamLogo: getTeamLogo(awayTeamName),
-            status: gameStatus,
-            homeScore: homeScore,
-            awayScore: awayScore,
-          ),
-        );
-      }
-
-      if (kDebugMode) {
-        print('✅ Sports Open에서 ${schedules.length}개 경기 파싱 완료');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Sports Open 데이터 파싱 에러: $e');
-      }
-    }
-
-    return schedules;
-  }
-
   /// KBO 날짜/시간 파싱
   DateTime? _parseKBODateTime(String dateStr, String timeStr) {
     try {
@@ -571,31 +471,6 @@ class ScheduleService {
     }
   }
 
-  /// Sports Open 경기 상태 파싱
-  GameStatus _parseSportsOpenGameStatus(String? playedStatus) {
-    if (playedStatus == null) return GameStatus.scheduled;
-
-    switch (playedStatus.toUpperCase()) {
-      case 'UNPLAYED':
-        return GameStatus.scheduled;
-      case 'LIVE':
-        return GameStatus.inProgress;
-      case 'COMPLETED':
-        return GameStatus.finished;
-      case 'CANCELED':
-        return GameStatus.canceled;
-      case 'POSTPONED':
-        return GameStatus.postponed;
-      default:
-        return GameStatus.scheduled;
-    }
-  }
-
-  /// 날짜 포맷팅 (YYYY-MM-DD)
-  String _formatDate(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-  }
-
   /// 로컬 캐시에서 경기 일정 가져오기
   Future<List<GameSchedule>> _getSchedulesFromCache(int year, int month) async {
     try {
@@ -611,105 +486,9 @@ class ScheduleService {
       if (kDebugMode) {
         print('❌ 캐시에서 경기 일정 가져오기 실패: $e');
       }
-      // 최후의 수단으로 샘플 데이터 반환
-      return _generateSampleDataForMonth(year, month);
+      // 실패 시 빈 리스트 반환
+      return [];
     }
-  }
-
-  /// 현재 달 샘플 데이터 생성
-  List<GameSchedule> _generateCurrentMonthSampleData() {
-    final now = DateTime.now();
-    return _generateSampleDataForMonth(now.year, now.month);
-  }
-
-  /// 특정 월의 샘플 데이터 생성
-  List<GameSchedule> _generateSampleDataForMonth(int year, int month) {
-    final schedules = <GameSchedule>[];
-    final now = DateTime.now();
-
-    // 해당 월의 첫 날과 마지막 날 계산
-    final firstDay = DateTime(year, month, 1);
-    final lastDay = DateTime(year, month + 1, 0);
-
-    // 팀 리스트
-    final teams = [
-      '두산',
-      'LG',
-      'SSG',
-      '키움',
-      'KIA',
-      '롯데',
-      'NC',
-      '삼성',
-      '한화',
-      'KT',
-    ];
-    final stadiums = ['잠실', '고척', '문학', '사직', '대구', '광주', '창원', '대전', '수원'];
-
-    int gameId = 1;
-
-    // 매일 2-3경기씩 생성 (주말에는 더 많이)
-    for (int day = 1; day <= lastDay.day; day++) {
-      final gameDate = DateTime(year, month, day);
-      final isWeekend =
-          gameDate.weekday == DateTime.saturday ||
-          gameDate.weekday == DateTime.sunday;
-      final gamesPerDay = isWeekend ? 5 : 3; // 주말에는 5경기, 평일에는 3경기
-
-      for (int gameIndex = 0; gameIndex < gamesPerDay; gameIndex++) {
-        // 팀 매칭 (중복 방지)
-        final homeTeamIndex = (gameIndex * 2) % teams.length;
-        final awayTeamIndex = (gameIndex * 2 + 1) % teams.length;
-        final homeTeam = teams[homeTeamIndex];
-        final awayTeam = teams[awayTeamIndex];
-
-        // 경기 시간 설정
-        final gameTime =
-            gameIndex == 0 && isWeekend
-                ? DateTime(year, month, day, 14, 0) // 주말 첫 경기는 14:00
-                : DateTime(year, month, day, 18, 30); // 나머지는 18:30
-
-        // 경기 상태 결정
-        GameStatus status;
-        int? homeScore;
-        int? awayScore;
-
-        if (gameTime.isBefore(now)) {
-          // 과거 경기는 종료
-          status = GameStatus.finished;
-          homeScore = (gameIndex * 3 + day) % 10;
-          awayScore = (gameIndex * 2 + day) % 8;
-        } else if (gameTime.day == now.day &&
-            gameTime.month == now.month &&
-            gameTime.year == now.year) {
-          // 오늘 경기는 예정 또는 진행 중
-          status =
-              gameTime.hour < now.hour
-                  ? GameStatus.inProgress
-                  : GameStatus.scheduled;
-        } else {
-          // 미래 경기는 예정
-          status = GameStatus.scheduled;
-        }
-
-        schedules.add(
-          GameSchedule(
-            id: gameId++,
-            dateTime: gameTime,
-            stadium: stadiums[gameIndex % stadiums.length],
-            homeTeam: homeTeam,
-            awayTeam: awayTeam,
-            homeTeamLogo: getTeamLogo(homeTeam),
-            awayTeamLogo: getTeamLogo(awayTeam),
-            status: status,
-            homeScore: homeScore,
-            awayScore: awayScore,
-          ),
-        );
-      }
-    }
-
-    return schedules;
   }
 
   /// 캐시에 경기 일정 저장
