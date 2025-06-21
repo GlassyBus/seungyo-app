@@ -47,9 +47,10 @@ class ScheduleService {
 
     if (_isCacheValid(cacheKey)) {
       if (kDebugMode) {
-        print(
-          '✅ 캐시에서 ${year}년 ${month}월 데이터 반환 (${_monthlyCache[cacheKey]?.length ?? 0}개)',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            '✅ 캐시에서 ${year}년 ${month}월 데이터 반환 (${_monthlyCache[cacheKey]?.length ?? 0}개)',
+          );
       }
       return _monthlyCache[cacheKey];
     }
@@ -67,7 +68,8 @@ class ScheduleService {
     _cacheTimestamps[cacheKey] = DateTime.now();
 
     if (kDebugMode) {
-      print('💾 ${year}년 ${month}월 데이터 캐시 저장 (${schedules.length}개)');
+      if (kDebugMode)
+        if (kDebugMode) print('💾 ${year}년 ${month}월 데이터 캐시 저장 (${schedules.length}개)');
     }
   }
 
@@ -76,7 +78,7 @@ class ScheduleService {
     _monthlyCache.clear();
     _cacheTimestamps.clear();
     if (kDebugMode) {
-      print('🗑️ 경기 일정 캐시 초기화');
+      if (kDebugMode) if (kDebugMode) print('🗑️ 경기 일정 캐시 초기화');
     }
   }
 
@@ -133,7 +135,7 @@ class ScheduleService {
       return jsonList.map((json) => GameSchedule.fromJson(json)).toList();
     } catch (e) {
       if (kDebugMode) {
-        print('❌ 경기 일정 로드 실패: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ 경기 일정 로드 실패: $e');
       }
       // 에러 발생 시 빈 리스트 반환
       return [];
@@ -144,7 +146,7 @@ class ScheduleService {
   Future<List<GameSchedule>> getSchedulesByMonth(int year, int month) async {
     try {
       if (kDebugMode) {
-        print('🔄 ${year}년 ${month}월 경기 일정 요청...');
+        if (kDebugMode) if (kDebugMode) print('🔄 ${year}년 ${month}월 경기 일정 요청...');
       }
 
       // 1. 먼저 캐시에서 확인
@@ -154,14 +156,14 @@ class ScheduleService {
       }
 
       if (kDebugMode) {
-        print('🌐 ${year}년 ${month}월 경기 일정 API 호출 중...');
+        if (kDebugMode) if (kDebugMode) print('🌐 ${year}년 ${month}월 경기 일정 API 호출 중...');
       }
 
       // 2. 캐시에 없으면 실제 API에서 데이터 가져오기 시도
       List<GameSchedule> schedules = await _fetchFromRealKBOAPI(year, month);
 
       if (kDebugMode) {
-        print('✅ ${schedules.length}개 경기 일정 로드 성공');
+        if (kDebugMode) if (kDebugMode) print('✅ ${schedules.length}개 경기 일정 로드 성공');
       }
 
       // 4. 캐시에 저장
@@ -173,7 +175,7 @@ class ScheduleService {
       return schedules;
     } catch (e) {
       if (kDebugMode) {
-        print('❌ 경기 일정 가져오기 실패: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ 경기 일정 가져오기 실패: $e');
       }
       // 에러 발생 시 로컬 캐시 또는 샘플 데이터 반환
       return await _getSchedulesFromCache(year, month);
@@ -199,7 +201,7 @@ class ScheduleService {
       return [];
     } catch (e) {
       if (kDebugMode) {
-        print('❌ 실제 API 호출 실패: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ 실제 API 호출 실패: $e');
       }
       return [];
     }
@@ -216,7 +218,7 @@ class ScheduleService {
           '&season=$year';
 
       if (kDebugMode) {
-        print('🌐 KBO Stats API 호출: $url');
+        if (kDebugMode) if (kDebugMode) print('🌐 KBO Stats API 호출: $url');
       }
 
       final response = await http
@@ -236,13 +238,14 @@ class ScheduleService {
         return _parseKBOStatsData(data, year, month);
       } else {
         if (kDebugMode) {
-          print('❌ KBO Stats API 응답 실패: ${response.statusCode}');
+          if (kDebugMode)
+            if (kDebugMode) print('❌ KBO Stats API 응답 실패: ${response.statusCode}');
         }
         return [];
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ KBO Stats API 호출 에러: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ KBO Stats API 호출 에러: $e');
       }
       return [];
     }
@@ -318,11 +321,11 @@ class ScheduleService {
       }
 
       if (kDebugMode) {
-        print('✅ KBO Stats에서 ${schedules.length}개 경기 파싱 완료');
+        if (kDebugMode) if (kDebugMode) print('✅ KBO Stats에서 ${schedules.length}개 경기 파싱 완료');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ KBO Stats 데이터 파싱 에러: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ KBO Stats 데이터 파싱 에러: $e');
       }
     }
 
@@ -353,7 +356,7 @@ class ScheduleService {
       return DateTime(year, month, day, hour, minute);
     } catch (e) {
       if (kDebugMode) {
-        print('❌ 날짜/시간 파싱 에러: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ 날짜/시간 파싱 에러: $e');
       }
       return null;
     }
@@ -484,7 +487,7 @@ class ScheduleService {
           .toList();
     } catch (e) {
       if (kDebugMode) {
-        print('❌ 캐시에서 경기 일정 가져오기 실패: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ 캐시에서 경기 일정 가져오기 실패: $e');
       }
       // 실패 시 빈 리스트 반환
       return [];
@@ -514,7 +517,7 @@ class ScheduleService {
       await _saveSchedules(allSchedules);
     } catch (e) {
       if (kDebugMode) {
-        print('❌ 캐시 저장 실패: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ 캐시 저장 실패: $e');
       }
     }
   }
@@ -523,16 +526,18 @@ class ScheduleService {
   Future<List<GameSchedule>> getSchedulesByDate(DateTime date) async {
     try {
       if (kDebugMode) {
-        print(
-          'ScheduleService: Getting schedules for ${date.year}-${date.month}-${date.day}',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'ScheduleService: Getting schedules for ${date.year}-${date.month}-${date.day}',
+          );
       }
 
       final monthSchedules = await getSchedulesByMonth(date.year, date.month);
       if (kDebugMode) {
-        print(
-          'ScheduleService: Total schedules loaded: ${monthSchedules.length}',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'ScheduleService: Total schedules loaded: ${monthSchedules.length}',
+          );
       }
 
       final filteredSchedules =
@@ -546,20 +551,22 @@ class ScheduleService {
               .toList();
 
       if (kDebugMode) {
-        print(
-          'ScheduleService: Found ${filteredSchedules.length} schedules for ${date.year}-${date.month}-${date.day}',
-        );
-        for (final schedule in filteredSchedules) {
-          print(
-            'ScheduleService: - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}',
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'ScheduleService: Found ${filteredSchedules.length} schedules for ${date.year}-${date.month}-${date.day}',
           );
+        for (final schedule in filteredSchedules) {
+          if (kDebugMode)
+            if (kDebugMode) print(
+              'ScheduleService: - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}',
+            );
         }
       }
 
       return filteredSchedules;
     } catch (e) {
       if (kDebugMode) {
-        print('❌ 특정 날짜 경기 일정 가져오기 실패: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ 특정 날짜 경기 일정 가져오기 실패: $e');
       }
       return [];
     }
@@ -571,7 +578,8 @@ class ScheduleService {
       final today = DateTime.now();
 
       if (kDebugMode) {
-        print('🚀 오늘의 경기 빠른 로딩: ${today.year}-${today.month}-${today.day}');
+        if (kDebugMode)
+          if (kDebugMode) print('🚀 오늘의 경기 빠른 로딩: ${today.year}-${today.month}-${today.day}');
       }
 
       // 1. 캐시에서 먼저 확인
@@ -589,7 +597,7 @@ class ScheduleService {
 
         if (todayGames.isNotEmpty) {
           if (kDebugMode) {
-            print('✅ 캐시에서 오늘 경기 ${todayGames.length}개 반환');
+            if (kDebugMode) if (kDebugMode) print('✅ 캐시에서 오늘 경기 ${todayGames.length}개 반환');
           }
           return todayGames;
         }
@@ -613,7 +621,7 @@ class ScheduleService {
               .toList();
 
       if (kDebugMode) {
-        print('✅ 네이버 API에서 오늘 경기 ${todayGames.length}개 로드');
+        if (kDebugMode) if (kDebugMode) print('✅ 네이버 API에서 오늘 경기 ${todayGames.length}개 로드');
       }
 
       // 4. 캐시에 저장
@@ -624,7 +632,7 @@ class ScheduleService {
       return todayGames;
     } catch (e) {
       if (kDebugMode) {
-        print('❌ 오늘 경기 빠른 로딩 실패: $e');
+        if (kDebugMode) if (kDebugMode) print('❌ 오늘 경기 빠른 로딩 실패: $e');
       }
 
       // 실패 시 기본 데이터 반환
@@ -644,7 +652,7 @@ class ScheduleService {
       }).toList();
     } catch (error) {
       if (kDebugMode) {
-        print('❌ 예정된 경기 일정 가져오기 실패: $error');
+        if (kDebugMode) if (kDebugMode) print('❌ 예정된 경기 일정 가져오기 실패: $error');
       }
       return [];
     }
@@ -691,7 +699,7 @@ class ScheduleService {
         await _saveSchedules(schedules);
       }
     } catch (e) {
-      print('Error syncing with records: $e');
+      if (kDebugMode) if (kDebugMode) print('Error syncing with records: $e');
     }
   }
 
@@ -702,7 +710,7 @@ class ScheduleService {
       final jsonList = schedules.map((schedule) => schedule.toJson()).toList();
       await file.writeAsString(json.encode(jsonList));
     } catch (e) {
-      print('Error saving schedules: $e');
+      if (kDebugMode) if (kDebugMode) print('Error saving schedules: $e');
     }
   }
 
@@ -712,7 +720,7 @@ class ScheduleService {
       final directory = await getApplicationDocumentsDirectory();
       return File('${directory.path}/$_fileName');
     } catch (e) {
-      print('Error getting local file: $e');
+      if (kDebugMode) if (kDebugMode) print('Error getting local file: $e');
       rethrow;
     }
   }
@@ -728,7 +736,7 @@ class ScheduleService {
           'https://api-gw.sports.naver.com/schedule/calendar?upperCategoryId=kbaseball&categoryIds=kbo&date=$dateString';
 
       if (kDebugMode) {
-        print('네이버 캘린더 API 호출: $url');
+        if (kDebugMode) if (kDebugMode) print('네이버 캘린더 API 호출: $url');
       }
 
       final response = await http
@@ -744,7 +752,7 @@ class ScheduleService {
 
       if (response.statusCode != 200) {
         if (kDebugMode) {
-          print('네이버 캘린더 API 호출 실패: ${response.statusCode}');
+          if (kDebugMode) if (kDebugMode) print('네이버 캘린더 API 호출 실패: ${response.statusCode}');
         }
         return [];
       }
@@ -753,7 +761,7 @@ class ScheduleService {
 
       if (data['success'] != true || data['result'] == null) {
         if (kDebugMode) {
-          print('네이버 캘린더 API 응답 오류: ${data['code']}');
+          if (kDebugMode) if (kDebugMode) print('네이버 캘린더 API 응답 오류: ${data['code']}');
         }
         return [];
       }
@@ -763,7 +771,7 @@ class ScheduleService {
 
       if (dates == null) {
         if (kDebugMode) {
-          print('네이버 캘린더 API: 날짜 데이터가 없습니다');
+          if (kDebugMode) if (kDebugMode) print('네이버 캘린더 API: 날짜 데이터가 없습니다');
         }
         return [];
       }
@@ -851,9 +859,10 @@ class ScheduleService {
                   parsedTime.minute,
                 );
                 if (kDebugMode) {
-                  print(
-                    '✅ 네이버 API에서 시간 정보 사용: $startTimeStr → ${parsedTime.hour}:${parsedTime.minute.toString().padLeft(2, '0')}',
-                  );
+                  if (kDebugMode)
+                    if (kDebugMode) print(
+                      '✅ 네이버 API에서 시간 정보 사용: $startTimeStr → ${parsedTime.hour}:${parsedTime.minute.toString().padLeft(2, '0')}',
+                    );
                 }
               } else {
                 gameDateTime = _getDefaultGameTime(gameDate);
@@ -881,7 +890,7 @@ class ScheduleService {
             // _updateGameTimeInBackground(gameId, schedule, gameDate);
           } catch (e) {
             if (kDebugMode) {
-              print('네이버 캘린더: 경기 정보 파싱 오류 - $e');
+              if (kDebugMode) if (kDebugMode) print('네이버 캘린더: 경기 정보 파싱 오류 - $e');
             }
             continue;
           }
@@ -889,12 +898,13 @@ class ScheduleService {
       }
 
       if (kDebugMode) {
-        print('네이버 캘린더: 총 ${schedules.length}개 경기 파싱 완료 (기본 시간)');
+        if (kDebugMode)
+          if (kDebugMode) print('네이버 캘린더: 총 ${schedules.length}개 경기 파싱 완료 (기본 시간)');
       }
       return schedules;
     } catch (e) {
       if (kDebugMode) {
-        print('네이버 캘린더 API 오류: $e');
+        if (kDebugMode) if (kDebugMode) print('네이버 캘린더 API 오류: $e');
       }
       return [];
     }
@@ -956,7 +966,7 @@ class ScheduleService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('⚠️ 시간 파싱 오류: $e');
+        if (kDebugMode) if (kDebugMode) print('⚠️ 시간 파싱 오류: $e');
       }
     }
 
@@ -1038,11 +1048,12 @@ class ScheduleService {
     try {
       await Future.wait(futures);
       if (kDebugMode) {
-        print('🚀 ${monthsBehind + 1 + monthsAhead}개월 데이터 미리 로드 완료');
+        if (kDebugMode)
+          if (kDebugMode) print('🚀 ${monthsBehind + 1 + monthsAhead}개월 데이터 미리 로드 완료');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('⚠️ 일부 월 데이터 미리 로드 실패: $e');
+        if (kDebugMode) if (kDebugMode) print('⚠️ 일부 월 데이터 미리 로드 실패: $e');
       }
     }
   }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:seungyo/constants/stadium_data.dart' as stadium_data;
 import 'package:seungyo/constants/team_data.dart' as team_data;
@@ -27,49 +28,75 @@ class DatabaseService {
 
   Future<void> _initializeDefaultData() async {
     try {
-      print('Starting database initialization...');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('Starting database initialization...');
+      }
 
       // 팀 데이터가 비어있으면 기본 데이터 삽입
       final existingTeams = await _database.getAllTeams();
-      print('Existing teams count: ${existingTeams.length}');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('Existing teams count: ${existingTeams.length}');
+      }
       if (existingTeams.isEmpty) {
-        print('Inserting team data...');
+        if (kDebugMode) {
+          if (kDebugMode) if (kDebugMode) print('Inserting team data...');
+        }
         await _insertTeamData();
-        print('Team data inserted successfully');
+        if (kDebugMode) {
+          if (kDebugMode) if (kDebugMode) print('Team data inserted successfully');
+        }
       }
 
       // 경기장 데이터가 비어있으면 기본 데이터 삽입
       final existingStadiums = await _database.getAllStadiums();
-      print('Existing stadiums count: ${existingStadiums.length}');
+      if (kDebugMode) {
+        if (kDebugMode)
+          if (kDebugMode) print('Existing stadiums count: ${existingStadiums.length}');
+      }
       if (existingStadiums.isEmpty) {
-        print('Inserting stadium data...');
+        if (kDebugMode) {
+          if (kDebugMode) if (kDebugMode) print('Inserting stadium data...');
+        }
         await _insertStadiumData();
-        print('Stadium data inserted successfully');
+        if (kDebugMode) {
+          if (kDebugMode) if (kDebugMode) print('Stadium data inserted successfully');
+        }
       }
 
       // 기록 데이터는 목업을 넣지 않고 사용자가 직접 추가하도록 함
       final existingRecords = await _database.getAllRecords();
-      print('Existing records count: ${existingRecords.length}');
+      if (kDebugMode) {
+        if (kDebugMode)
+          if (kDebugMode) print('Existing records count: ${existingRecords.length}');
+      }
       // if (existingRecords.isEmpty) {
-      //   print('Inserting record data...');
+      //   if (kDebugMode) if (kDebugMode) print('Inserting record data...');
       //   await _insertRecordData();
-      //   print('Record data inserted successfully');
+      //   if (kDebugMode) if (kDebugMode) print('Record data inserted successfully');
       // }
 
-      print('Database initialization completed successfully');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('Database initialization completed successfully');
+      }
     } catch (e) {
-      print('Error initializing default data: $e');
-      print('Error stack trace: ${StackTrace.current}');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('Error initializing default data: $e');
+        if (kDebugMode) if (kDebugMode) print('Error stack trace: ${StackTrace.current}');
+      }
     }
   }
 
   Future<void> _insertTeamData() async {
     try {
       final teams = team_data.TeamData.teams;
-      print('Found ${teams.length} teams to insert');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('Found ${teams.length} teams to insert');
+      }
       for (int i = 0; i < teams.length; i++) {
         final team = teams[i];
-        print('Inserting team: ${team.name} (${team.id})');
+        if (kDebugMode) {
+          if (kDebugMode) if (kDebugMode) print('Inserting team: ${team.name} (${team.id})');
+        }
         await _database.insertTeam(
           TeamsCompanion.insert(
             id: team.id,
@@ -79,19 +106,28 @@ class DatabaseService {
           ),
         );
       }
-      print('All teams inserted successfully');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('All teams inserted successfully');
+      }
     } catch (e) {
-      print('Error inserting team data: $e');
-      print('Error stack trace: ${StackTrace.current}');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('Error inserting team data: $e');
+        if (kDebugMode) if (kDebugMode) print('Error stack trace: ${StackTrace.current}');
+      }
     }
   }
 
   Future<void> _insertStadiumData() async {
     try {
       final stadiums = stadium_data.StadiumData.stadiums;
-      print('Found ${stadiums.length} stadiums to insert');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('Found ${stadiums.length} stadiums to insert');
+      }
       for (final stadium in stadiums) {
-        print('Inserting stadium: ${stadium.name} (${stadium.id})');
+        if (kDebugMode) {
+          if (kDebugMode)
+            if (kDebugMode) print('Inserting stadium: ${stadium.name} (${stadium.id})');
+        }
         await _database.insertStadium(
           StadiumsCompanion.insert(
             id: stadium.id,
@@ -100,10 +136,14 @@ class DatabaseService {
           ),
         );
       }
-      print('All stadiums inserted successfully');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('All stadiums inserted successfully');
+      }
     } catch (e) {
-      print('Error inserting stadium data: $e');
-      print('Error stack trace: ${StackTrace.current}');
+      if (kDebugMode) {
+        if (kDebugMode) if (kDebugMode) print('Error inserting stadium data: $e');
+        if (kDebugMode) if (kDebugMode) print('Error stack trace: ${StackTrace.current}');
+      }
     }
   }
 
@@ -128,7 +168,7 @@ class DatabaseService {
   //       );
   //     }
   //   } catch (e) {
-  //     print('Error inserting record data: $e');
+  //     if (kDebugMode) if (kDebugMode) print('Error inserting record data: $e');
   //   }
   // }
 
@@ -153,7 +193,7 @@ class DatabaseService {
           )
           .toList();
     } catch (e) {
-      print('Error converting teams to app models: $e');
+      if (kDebugMode) if (kDebugMode) print('Error converting teams to app models: $e');
       return [];
     }
   }
@@ -248,7 +288,7 @@ class DatabaseService {
           )
           .toList();
     } catch (e) {
-      print('Error converting stadiums to app models: $e');
+      if (kDebugMode) if (kDebugMode) print('Error converting stadiums to app models: $e');
       return [];
     }
   }
@@ -284,7 +324,7 @@ class DatabaseService {
         try {
           photos = List<String>.from(json.decode(dbRecord.photosJson!));
         } catch (e) {
-          print('Error parsing photos JSON: $e');
+          if (kDebugMode) if (kDebugMode) print('Error parsing photos JSON: $e');
         }
       }
 
@@ -329,7 +369,7 @@ class DatabaseService {
         companions: [],
       );
     } catch (e) {
-      print('Error converting record to game record: $e');
+      if (kDebugMode) if (kDebugMode) print('Error converting record to game record: $e');
       return null;
     }
   }
@@ -349,7 +389,7 @@ class DatabaseService {
 
       return gameRecords;
     } catch (e) {
-      print('Error getting all game records: $e');
+      if (kDebugMode) if (kDebugMode) print('Error getting all game records: $e');
       return [];
     }
   }
@@ -357,102 +397,108 @@ class DatabaseService {
   // 디버그용 메서드들
   Future<void> printDatabaseStatus() async {
     try {
-      print('=== DATABASE STATUS ===');
+      if (kDebugMode) if (kDebugMode) print('=== DATABASE STATUS ===');
 
       // 팀 데이터 확인
       final teams = await _database.getAllTeams();
-      print('Teams count: ${teams.length}');
+      if (kDebugMode) if (kDebugMode) print('Teams count: ${teams.length}');
       if (teams.isNotEmpty) {
-        print('First 3 teams:');
+        if (kDebugMode) if (kDebugMode) print('First 3 teams:');
         for (int i = 0; i < (teams.length > 3 ? 3 : teams.length); i++) {
           final team = teams[i];
-          print('  - ${team.id}: ${team.name} (${team.code})');
+          if (kDebugMode) if (kDebugMode) print('  - ${team.id}: ${team.name} (${team.code})');
         }
       }
 
       // 경기장 데이터 확인
       final stadiums = await _database.getAllStadiums();
-      print('Stadiums count: ${stadiums.length}');
+      if (kDebugMode) if (kDebugMode) print('Stadiums count: ${stadiums.length}');
       if (stadiums.isNotEmpty) {
-        print('First 3 stadiums:');
+        if (kDebugMode) if (kDebugMode) print('First 3 stadiums:');
         for (int i = 0; i < (stadiums.length > 3 ? 3 : stadiums.length); i++) {
           final stadium = stadiums[i];
-          print('  - ${stadium.id}: ${stadium.name} (${stadium.city})');
+          if (kDebugMode)
+            if (kDebugMode) print('  - ${stadium.id}: ${stadium.name} (${stadium.city})');
         }
       }
 
       // 기록 데이터 확인
       final records = await _database.getAllRecords();
-      print('Records count: ${records.length}');
+      if (kDebugMode) if (kDebugMode) print('Records count: ${records.length}');
       if (records.isNotEmpty) {
-        print('First 3 records:');
+        if (kDebugMode) if (kDebugMode) print('First 3 records:');
         for (int i = 0; i < (records.length > 3 ? 3 : records.length); i++) {
           final record = records[i];
-          print(
-            '  - Record ${record.id}: ${record.date} at ${record.stadiumId}',
-          );
-          print(
-            '    ${record.homeTeamId} vs ${record.awayTeamId} (${record.homeScore}-${record.awayScore})',
-          );
+          if (kDebugMode)
+            if (kDebugMode) print(
+              '  - Record ${record.id}: ${record.date} at ${record.stadiumId}',
+            );
+          if (kDebugMode)
+            if (kDebugMode) print(
+              '    ${record.homeTeamId} vs ${record.awayTeamId} (${record.homeScore}-${record.awayScore})',
+            );
         }
       }
 
-      print('======================');
+      if (kDebugMode) if (kDebugMode) print('======================');
     } catch (e) {
-      print('Error checking database status: $e');
+      if (kDebugMode) if (kDebugMode) print('Error checking database status: $e');
     }
   }
 
   Future<void> printAllTeams() async {
     try {
       final teams = await _database.getAllTeams();
-      print('=== ALL TEAMS (${teams.length}) ===');
+      if (kDebugMode) if (kDebugMode) print('=== ALL TEAMS (${teams.length}) ===');
       for (final team in teams) {
-        print(
-          'ID: ${team.id}, Name: ${team.name}, Code: ${team.code}, Emblem: ${team.emblem}',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'ID: ${team.id}, Name: ${team.name}, Code: ${team.code}, Emblem: ${team.emblem}',
+          );
       }
-      print('========================');
+      if (kDebugMode) if (kDebugMode) print('========================');
     } catch (e) {
-      print('Error printing teams: $e');
+      if (kDebugMode) if (kDebugMode) print('Error printing teams: $e');
     }
   }
 
   Future<void> printAllStadiums() async {
     try {
       final stadiums = await _database.getAllStadiums();
-      print('=== ALL STADIUMS (${stadiums.length}) ===');
+      if (kDebugMode) if (kDebugMode) print('=== ALL STADIUMS (${stadiums.length}) ===');
       for (final stadium in stadiums) {
-        print(
-          'ID: ${stadium.id}, Name: ${stadium.name}, City: ${stadium.city}',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'ID: ${stadium.id}, Name: ${stadium.name}, City: ${stadium.city}',
+          );
       }
-      print('============================');
+      if (kDebugMode) if (kDebugMode) print('============================');
     } catch (e) {
-      print('Error printing stadiums: $e');
+      if (kDebugMode) if (kDebugMode) print('Error printing stadiums: $e');
     }
   }
 
   Future<void> printAllRecords() async {
     try {
       final records = await _database.getAllRecords();
-      print('=== ALL RECORDS (${records.length}) ===');
+      if (kDebugMode) if (kDebugMode) print('=== ALL RECORDS (${records.length}) ===');
       for (final record in records) {
-        print('ID: ${record.id}');
-        print('Date: ${record.date}');
-        print('Stadium: ${record.stadiumId}');
-        print('Teams: ${record.homeTeamId} vs ${record.awayTeamId}');
-        print('Score: ${record.homeScore}-${record.awayScore}');
-        print('Seat: ${record.seat}');
-        print('Comment: ${record.comment}');
-        print('Favorite: ${record.isFavorite}');
-        print('Canceled: ${record.canceled}');
-        print('Created: ${record.createdAt}');
-        print('---');
+        if (kDebugMode) if (kDebugMode) print('ID: ${record.id}');
+        if (kDebugMode) if (kDebugMode) print('Date: ${record.date}');
+        if (kDebugMode) if (kDebugMode) print('Stadium: ${record.stadiumId}');
+        if (kDebugMode)
+          if (kDebugMode) print('Teams: ${record.homeTeamId} vs ${record.awayTeamId}');
+        if (kDebugMode) if (kDebugMode) print('Score: ${record.homeScore}-${record.awayScore}');
+        if (kDebugMode) if (kDebugMode) print('Seat: ${record.seat}');
+        if (kDebugMode) if (kDebugMode) print('Comment: ${record.comment}');
+        if (kDebugMode) if (kDebugMode) print('Favorite: ${record.isFavorite}');
+        if (kDebugMode) if (kDebugMode) print('Canceled: ${record.canceled}');
+        if (kDebugMode) if (kDebugMode) print('Created: ${record.createdAt}');
+        if (kDebugMode) if (kDebugMode) print('---');
       }
-      print('=========================');
+      if (kDebugMode) if (kDebugMode) print('=========================');
     } catch (e) {
-      print('Error printing records: $e');
+      if (kDebugMode) if (kDebugMode) print('Error printing records: $e');
     }
   }
 
@@ -460,7 +506,7 @@ class DatabaseService {
     try {
       await _database.close();
     } catch (e) {
-      print('Error disposing database: $e');
+      if (kDebugMode) if (kDebugMode) print('Error disposing database: $e');
     }
   }
 }

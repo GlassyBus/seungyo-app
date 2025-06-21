@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -791,7 +791,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      print('저장 오류: $e');
+      if (kDebugMode) print('저장 오류: $e');
       _showErrorMessage('이미지 저장 중 오류가 발생했습니다.');
     } finally {
       setState(() => _isProcessing = false);
@@ -827,9 +827,9 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
       // 단순한 스케일링 (화면 너비 기준)
       final scaleX = imageWidth / screenSize.width;
 
-      print('이미지 원본 크기: ${imageWidth}x${imageHeight}');
-      print('화면 크기: ${screenSize.width}x${screenSize.height}');
-      print('스케일: $scaleX');
+      if (kDebugMode) print('이미지 원본 크기: ${imageWidth}x${imageHeight}');
+      if (kDebugMode) print('화면 크기: ${screenSize.width}x${screenSize.height}');
+      if (kDebugMode) print('스케일: $scaleX');
 
       // 각 텍스트 오버레이 그리기
       for (final overlay in _textOverlays) {
@@ -838,10 +838,10 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         final scaledY = overlay.position.dy * scaleX; // 동일한 스케일 사용
         final scaledFontSize = overlay.fontSize * scaleX;
 
-        print('텍스트: ${overlay.text}');
-        print('화면 좌표: (${overlay.position.dx}, ${overlay.position.dy})');
-        print('이미지 좌표: ($scaledX, $scaledY)');
-        print('폰트 크기: ${overlay.fontSize} -> $scaledFontSize');
+        if (kDebugMode) print('텍스트: ${overlay.text}');
+        if (kDebugMode) print('화면 좌표: (${overlay.position.dx}, ${overlay.position.dy})');
+        if (kDebugMode) print('이미지 좌표: ($scaledX, $scaledY)');
+        if (kDebugMode) print('폰트 크기: ${overlay.fontSize} -> $scaledFontSize');
 
         // 메인 텍스트만 그리기 (그림자 효과 없음)
         final textPainter = TextPainter(
@@ -884,11 +884,11 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
 
       await tempFile.writeAsBytes(finalBytes);
 
-      print('이미지 합성 완료: ${tempFile.path}');
+      if (kDebugMode) print('이미지 합성 완료: ${tempFile.path}');
 
       return tempFile;
     } catch (e) {
-      print('텍스트 합성 오류: $e');
+      if (kDebugMode) print('텍스트 합성 오류: $e');
       throw Exception('텍스트를 이미지에 합성하는 중 오류가 발생했습니다: $e');
     }
   }
@@ -925,7 +925,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         throw Exception('자른 이미지 파일이 유효하지 않습니다');
       }
     } catch (e) {
-      print('자르기 완료 처리 오류: $e');
+      if (kDebugMode) print('자르기 완료 처리 오류: $e');
       _showErrorMessage('이미지 자르기 중 오류가 발생했습니다');
 
       // 실패 시 다이얼로그 닫기
@@ -993,7 +993,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         _showErrorMessage('이미지를 처리할 수 없습니다.');
       }
     } catch (e) {
-      print('이미지 회전 오류: $e');
+      if (kDebugMode) print('이미지 회전 오류: $e');
       _showErrorMessage('이미지 회전 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       if (mounted) {

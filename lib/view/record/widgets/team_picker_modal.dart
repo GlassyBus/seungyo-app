@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:seungyo/models/team.dart' as app_models;
+import 'package:flutter/foundation.dart';import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/theme/theme.dart';
 
 class TeamPickerModal extends StatefulWidget {
@@ -62,7 +62,7 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
           team.logo!,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            print('TeamPickerModal: Error loading team logo: ${team.logo}');
+            if (kDebugMode) print('TeamPickerModal: Error loading team logo: ${team.logo}');
             return _buildFallbackLogo(team);
           },
         );

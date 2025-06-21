@@ -112,14 +112,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _loadHomeData() async {
-    print('MainScreen: Starting to load home data...');
+    if (kDebugMode) if (kDebugMode) print('MainScreen: Starting to load home data...');
     setState(() {
       _isLoading = true;
     });
 
     try {
       // 🚀 1단계: 기본 데이터 먼저 로드 (빠른 표시)
-      print('MainScreen: Loading basic data first...');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Loading basic data first...');
 
       final recordService = RecordService();
       final userProfile = await _userService.getUserProfile();
@@ -164,7 +164,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _isNewsLoading = true; // 뉴스도 여전히 로딩 중
       });
 
-      print(
+      if (kDebugMode) if (kDebugMode) print(
         'MainScreen: Basic data loaded, now loading today games and news...',
       );
 
@@ -179,16 +179,16 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
           .preloadSchedules()
           .then((_) {
             if (kDebugMode) {
-              print('MainScreen: 백그라운드 데이터 미리 로드 완료');
+              if (kDebugMode) if (kDebugMode) print('MainScreen: 백그라운드 데이터 미리 로드 완료');
             }
           })
           .catchError((e) {
             if (kDebugMode) {
-              print('MainScreen: 백그라운드 데이터 미리 로드 실패: $e');
+              if (kDebugMode) if (kDebugMode) print('MainScreen: 백그라운드 데이터 미리 로드 실패: $e');
             }
           });
     } catch (e) {
-      print('MainScreen: Error loading basic data: $e');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Error loading basic data: $e');
 
       // 오류 발생 시에도 기본값으로라도 UI 표시
       setState(() {
@@ -209,7 +209,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   /// 오늘 경기 비동기 로드
   Future<void> _loadTodayGamesAsync() async {
     try {
-      print('MainScreen: Loading today\'s games asynchronously...');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Loading today\'s games asynchronously...');
 
       final todayGames = await _scheduleService.getTodayGamesQuick();
 
@@ -218,9 +218,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _isTodayGamesLoading = false; // 로딩 완료
       });
 
-      print('MainScreen: Today games loaded - ${todayGames.length} games');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Today games loaded - ${todayGames.length} games');
     } catch (e) {
-      print('MainScreen: Error loading today games: $e');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Error loading today games: $e');
       setState(() {
         _todayGames = [];
         _isTodayGamesLoading = false; // 로딩 완료 (실패해도)
@@ -231,7 +231,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   /// 뉴스 데이터 비동기 로드
   Future<void> _loadNewsAsync(Team? favoriteTeam) async {
     try {
-      print('MainScreen: Loading news asynchronously...');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Loading news asynchronously...');
 
       final teamKeyword = favoriteTeam?.name ?? '두산';
       final newsItems = await _newsService.getNewsByKeyword(
@@ -244,9 +244,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _isNewsLoading = false; // 로딩 완료
       });
 
-      print('MainScreen: News loaded - ${newsItems.length} items');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: News loaded - ${newsItems.length} items');
     } catch (e) {
-      print('MainScreen: Error loading news: $e');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Error loading news: $e');
       setState(() {
         _newsItems = [];
         _isNewsLoading = false; // 로딩 완료 (실패해도)
@@ -278,14 +278,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   }
 
   Future<bool> _handleDoubleBackPress() async {
-    print('MainScreen: Back button pressed on tab $_currentTabIndex');
+    if (kDebugMode) if (kDebugMode) print('MainScreen: Back button pressed on tab $_currentTabIndex');
     final now = DateTime.now();
     const duration = Duration(seconds: 2);
 
     if (_lastBackPressed == null ||
         now.difference(_lastBackPressed!) > duration) {
       // 첫 번째 뒤로가기 또는 2초가 지난 후
-      print('MainScreen: First back press or timeout, showing warning');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: First back press or timeout, showing warning');
       _lastBackPressed = now;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -298,7 +298,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       return false; // 앱을 종료하지 않음
     } else {
       // 2초 이내에 두 번째 뒤로가기
-      print('MainScreen: Second back press within 2 seconds, exiting app');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Second back press within 2 seconds, exiting app');
       return true; // 앱 종료
     }
   }
@@ -346,7 +346,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   void _onTabChanged(int index) {
     // 이미 같은 탭이 선택되어 있으면 무시
     if (_currentTabIndex == index) {
-      print('MainScreen: Same tab selected, ignoring...');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Same tab selected, ignoring...');
       return;
     }
 
@@ -357,7 +357,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     // 기록 탭에서 다른 탭으로 이동할 때는 새로고침하지 않음
     // 홈 탭으로 돌아올 때만 새로고침 (다른 탭에서 변경사항이 있을 수 있음)
     if (index == 0) {
-      print('MainScreen: Switched to home tab, refreshing data...');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Switched to home tab, refreshing data...');
       _loadHomeData();
     }
   }
@@ -450,7 +450,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       ),
       onRecordChanged: () {
         // 기록이 변경되었을 때 홈 데이터와 일정 탭 새로고침
-        print('MainScreen: Record changed, refreshing all data...');
+        if (kDebugMode) if (kDebugMode) print('MainScreen: Record changed, refreshing all data...');
         _loadHomeData();
         _refreshSchedulePage();
       },
@@ -490,7 +490,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
       // 상세 화면에서 수정/삭제가 발생했으면 홈 데이터와 일정 탭 새로고침
       if (result == true) {
-        print(
+        if (kDebugMode) if (kDebugMode) print(
           'MainScreen: Record modified/deleted from detail view, refreshing all data...',
         );
         await _loadHomeData();
@@ -507,7 +507,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
       // 기록 추가 후 홈 데이터와 일정 탭 새로고침
       if (result == true) {
-        print(
+        if (kDebugMode) if (kDebugMode) print(
           'MainScreen: Record added from today\'s game, refreshing all data...',
         );
         await _loadHomeData();
@@ -533,7 +533,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   // 네비게이션 메서드들
   void _navigateToAddRecord() async {
     HapticFeedback.lightImpact();
-    print('MainScreen: Navigating to CreateRecordScreen...');
+    if (kDebugMode) if (kDebugMode) print('MainScreen: Navigating to CreateRecordScreen...');
 
     final result = await Navigator.push(
       context,
@@ -542,13 +542,13 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
     // 기록 추가 후 홈 데이터와 일정 탭 새로고침
     if (result == true) {
-      print('MainScreen: Record added successfully, refreshing all data...');
+      if (kDebugMode) if (kDebugMode) print('MainScreen: Record added successfully, refreshing all data...');
       await _loadHomeData();
       _refreshSchedulePage();
 
       // 기록 탭이 현재 탭이면 해당 데이터도 새로고침
       if (_currentTabIndex == 1) {
-        print('MainScreen: Currently on records tab, triggering refresh...');
+        if (kDebugMode) if (kDebugMode) print('MainScreen: Currently on records tab, triggering refresh...');
         setState(() {
           // setState를 호출하여 RecordListPage가 새로고침되도록 함
         });
@@ -563,7 +563,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         'schedule_${DateTime.now().millisecondsSinceEpoch}',
       );
     });
-    print('MainScreen: Schedule page refreshed with new key');
+    if (kDebugMode) if (kDebugMode) print('MainScreen: Schedule page refreshed with new key');
   }
 
   void _navigateToUserProfile() {

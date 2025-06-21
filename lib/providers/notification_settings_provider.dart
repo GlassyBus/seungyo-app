@@ -36,7 +36,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
       await loadSettings();
 
       if (kDebugMode) {
-        print(
+        if (kDebugMode) print(
           '🔔 NotificationSettings 초기화 완료: 시작 알림 = $_gameStartNotification, 종료 알림 = $_gameEndNotification',
         );
       }
@@ -44,7 +44,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
       _setError('초기화 실패: $error');
 
       if (kDebugMode) {
-        print('❌ NotificationSettings 초기화 실패: $error');
+        if (kDebugMode) print('❌ NotificationSettings 초기화 실패: $error');
       }
     } finally {
       _setLoading(false);
@@ -73,7 +73,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print(
+        if (kDebugMode) print(
           '📱 알림 설정 로드됨: 시작=$_gameStartNotification, 종료=$_gameEndNotification',
         );
       }
@@ -91,7 +91,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
   }) {
     if (value == null) {
       if (kDebugMode) {
-        print('⚠️ $settingName 설정이 null입니다. 기본값($defaultValue)을 사용합니다.');
+        if (kDebugMode) print('⚠️ $settingName 설정이 null입니다. 기본값($defaultValue)을 사용합니다.');
       }
       return defaultValue;
     }
@@ -103,7 +103,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
     try {
       if (_gameStartNotification == value) {
         if (kDebugMode) {
-          print('🔄 경기 시작 알림 설정이 동일합니다: $value');
+          if (kDebugMode) print('🔄 경기 시작 알림 설정이 동일합니다: $value');
         }
         return;
       }
@@ -112,7 +112,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print('🔔 경기 시작 알림 설정 변경: $value');
+        if (kDebugMode) print('🔔 경기 시작 알림 설정 변경: $value');
       }
     } catch (error) {
       _setError('경기 시작 알림 설정 실패: $error');
@@ -125,7 +125,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
     try {
       if (_gameEndNotification == value) {
         if (kDebugMode) {
-          print('🔄 경기 종료 알림 설정이 동일합니다: $value');
+          if (kDebugMode) print('🔄 경기 종료 알림 설정이 동일합니다: $value');
         }
         return;
       }
@@ -134,7 +134,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print('⚾ 경기 종료 알림 설정 변경: $value');
+        if (kDebugMode) print('⚾ 경기 종료 알림 설정 변경: $value');
       }
     } catch (error) {
       _setError('경기 종료 알림 설정 실패: $error');
@@ -167,7 +167,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
       await _updatePushNotifications();
 
       if (kDebugMode) {
-        print(
+        if (kDebugMode) print(
           '💾 알림 설정 저장 완료: 시작=$_gameStartNotification, 종료=$_gameEndNotification',
         );
       }
@@ -191,12 +191,12 @@ class NotificationSettingsProvider extends ChangeNotifier {
       await _notificationService.updateNotificationSettings(schedules);
 
       if (kDebugMode) {
-        print('📱 푸시 알림 업데이트 완료: ${schedules.length}개 경기');
+        if (kDebugMode) print('📱 푸시 알림 업데이트 완료: ${schedules.length}개 경기');
         await _notificationService.printScheduledNotifications();
       }
     } catch (error) {
       if (kDebugMode) {
-        print('❌ 푸시 알림 업데이트 실패: $error');
+        if (kDebugMode) print('❌ 푸시 알림 업데이트 실패: $error');
       }
       // 푸시 알림 실패는 설정 저장을 방해하지 않음
     }
@@ -219,17 +219,17 @@ class NotificationSettingsProvider extends ChangeNotifier {
   Future<void> _attemptRollback() async {
     try {
       if (kDebugMode) {
-        print('🔄 설정 롤백을 시도합니다...');
+        if (kDebugMode) print('🔄 설정 롤백을 시도합니다...');
       }
 
       await loadSettings();
 
       if (kDebugMode) {
-        print('✅ 설정이 롤백되었습니다.');
+        if (kDebugMode) print('✅ 설정이 롤백되었습니다.');
       }
     } catch (rollbackError) {
       if (kDebugMode) {
-        print('❌ 롤백도 실패했습니다: $rollbackError');
+        if (kDebugMode) print('❌ 롤백도 실패했습니다: $rollbackError');
       }
     }
   }
@@ -244,13 +244,13 @@ class NotificationSettingsProvider extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        print('🔄 알림 설정이 기본값으로 재설정되었습니다.');
+        if (kDebugMode) print('🔄 알림 설정이 기본값으로 재설정되었습니다.');
       }
     } catch (error) {
       _setError('기본값 재설정 실패: $error');
 
       if (kDebugMode) {
-        print('❌ 기본값 재설정 실패: $error');
+        if (kDebugMode) print('❌ 기본값 재설정 실패: $error');
       }
 
       rethrow;
@@ -283,7 +283,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
     notifyListeners();
 
     if (kDebugMode) {
-      print('❌ NotificationSettings 에러: $error');
+      if (kDebugMode) print('❌ NotificationSettings 에러: $error');
     }
   }
 
@@ -298,7 +298,7 @@ class NotificationSettingsProvider extends ChangeNotifier {
   @override
   void dispose() {
     if (kDebugMode) {
-      print('🗑️ NotificationSettingsProvider disposed');
+      if (kDebugMode) print('🗑️ NotificationSettingsProvider disposed');
     }
     super.dispose();
   }

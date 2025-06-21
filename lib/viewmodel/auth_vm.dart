@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/foundation.dart';import 'package:fluttertoast/fluttertoast.dart';
 import 'package:seungyo/constants/team_data.dart';
 import 'package:seungyo/repository/auth_repository.dart';
 
@@ -37,9 +37,9 @@ class AuthViewModel extends ChangeNotifier {
       final teamData = TeamData.getById(_team!);
       if (teamData != null) {
         await _authRepo.setTeam(teamData.code);
-        print('AuthViewModel: Saved team code: ${teamData.code} for team ID: $_team');
+        if (kDebugMode) if (kDebugMode) print('AuthViewModel: Saved team code: ${teamData.code} for team ID: $_team');
       } else {
-        print('AuthViewModel: Warning - Team not found for ID: $_team');
+        if (kDebugMode) if (kDebugMode) print('AuthViewModel: Warning - Team not found for ID: $_team');
       }
     }
     if (_nickname != null) await _authRepo.setNickname(_nickname!);
@@ -47,21 +47,21 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> loadSavedData() async {
-    print('AuthViewModel: Loading saved data...');
+    if (kDebugMode) if (kDebugMode) print('AuthViewModel: Loading saved data...');
     final teamCode = await _authRepo.getTeam();
     final nickname = await _authRepo.getNickname();
 
-    print('AuthViewModel: Loaded team code: $teamCode');
-    print('AuthViewModel: Loaded nickname: $nickname');
+    if (kDebugMode) if (kDebugMode) print('AuthViewModel: Loaded team code: $teamCode');
+    if (kDebugMode) if (kDebugMode) print('AuthViewModel: Loaded nickname: $nickname');
 
     // 팀 코드를 팀 ID로 변환
     if (teamCode != null) {
       final teamData = TeamData.getByCode(teamCode);
       if (teamData != null) {
         _team = teamData.id;
-        print('AuthViewModel: Converted team code "$teamCode" to team ID "${teamData.id}"');
+        if (kDebugMode) if (kDebugMode) print('AuthViewModel: Converted team code "$teamCode" to team ID "${teamData.id}"');
       } else {
-        print('AuthViewModel: Warning - Team not found for code: $teamCode');
+        if (kDebugMode) if (kDebugMode) print('AuthViewModel: Warning - Team not found for code: $teamCode');
         _team = teamCode; // fallback
       }
     } else {
@@ -71,7 +71,7 @@ class AuthViewModel extends ChangeNotifier {
     _nickname = nickname;
     notifyListeners();
 
-    print('AuthViewModel: Final values - team: $_team, nickname: $_nickname');
+    if (kDebugMode) if (kDebugMode) print('AuthViewModel: Final values - team: $_team, nickname: $_nickname');
   }
 
   Future<bool> handleDoubleBackPress(BuildContext context) async {

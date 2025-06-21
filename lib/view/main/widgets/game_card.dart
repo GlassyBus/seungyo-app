@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/foundation.dart';import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../models/game_record.dart';
 import '../../../models/game_schedule.dart';
@@ -388,7 +388,7 @@ class GameCard extends StatelessWidget {
                   height: 24,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
-                    print(
+                    if (kDebugMode) if (kDebugMode) print(
                       'GameCard: Failed to load team logo: $logoPath for $teamName',
                     );
                     // 로고 로드 실패 시 기본 색상 원 표시

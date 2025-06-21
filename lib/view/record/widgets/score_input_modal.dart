@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';import 'package:flutter/material.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/theme/theme.dart';
@@ -46,7 +46,7 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
         _awayTeamData = teams.firstWhereOrNull((t) => t.id == widget.awayTeam);
       });
     } catch (e) {
-      print('Error loading team data: $e');
+      if (kDebugMode) if (kDebugMode) print('Error loading team data: $e');
     }
   }
 

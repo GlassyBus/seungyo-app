@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/team.dart' as app_models;
@@ -33,15 +34,17 @@ class UserService {
   // 사용자 프로필 가져오기 (AuthRepository에서 데이터 읽기)
   Future<UserProfile> getUserProfile() async {
     try {
-      print('UserService: Getting user profile...');
+      if (kDebugMode) if (kDebugMode) print('UserService: Getting user profile...');
 
       // AuthRepository에서 닉네임과 팀 코드 가져오기
       final authRepo = AuthRepository();
       final nickname = await authRepo.getNickname();
       final teamCode = await authRepo.getTeam();
 
-      print('UserService: Nickname from AuthRepository: $nickname');
-      print('UserService: Team code from AuthRepository: $teamCode');
+      if (kDebugMode)
+        if (kDebugMode) print('UserService: Nickname from AuthRepository: $nickname');
+      if (kDebugMode)
+        if (kDebugMode) print('UserService: Team code from AuthRepository: $teamCode');
 
       if (nickname != null && teamCode != null) {
         // AuthRepository에서 데이터를 찾았다면 팀 코드를 통해 팀 ID 찾기
@@ -55,9 +58,10 @@ class UserService {
           updatedAt: DateTime.now(),
         );
 
-        print(
-          'UserService: Created profile from AuthRepository - Nickname: ${profile.nickname}, TeamId: ${profile.favoriteTeamId}',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'UserService: Created profile from AuthRepository - Nickname: ${profile.nickname}, TeamId: ${profile.favoriteTeamId}',
+          );
         return profile;
       }
 
@@ -65,8 +69,10 @@ class UserService {
       final prefsNickname = await _prefsHelper.getNickname();
       final prefsTeamId = await _prefsHelper.getSelectedTeamId();
 
-      print('UserService: Fallback - Nickname from prefs: $prefsNickname');
-      print('UserService: Fallback - Team ID from prefs: $prefsTeamId');
+      if (kDebugMode)
+        if (kDebugMode) print('UserService: Fallback - Nickname from prefs: $prefsNickname');
+      if (kDebugMode)
+        if (kDebugMode) print('UserService: Fallback - Team ID from prefs: $prefsTeamId');
 
       if (prefsNickname != null && prefsTeamId != null) {
         final profile = UserProfile(
@@ -76,9 +82,10 @@ class UserService {
           updatedAt: DateTime.now(),
         );
 
-        print(
-          'UserService: Created profile from SharedPreferencesHelper - Nickname: ${profile.nickname}, TeamId: ${profile.favoriteTeamId}',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'UserService: Created profile from SharedPreferencesHelper - Nickname: ${profile.nickname}, TeamId: ${profile.favoriteTeamId}',
+          );
         return profile;
       }
 
@@ -88,7 +95,8 @@ class UserService {
 
       if (profileJson == null) {
         // 프로필이 없으면 기본 프로필 생성 후 저장
-        print('UserService: No profile found, using default profile');
+        if (kDebugMode)
+          if (kDebugMode) print('UserService: No profile found, using default profile');
         await saveUserProfile(_defaultProfile);
         return _defaultProfile;
       }
@@ -96,7 +104,7 @@ class UserService {
       final json = jsonDecode(profileJson);
       return UserProfile.fromJson(json);
     } catch (e) {
-      print('Error getting user profile: $e');
+      if (kDebugMode) if (kDebugMode) print('Error getting user profile: $e');
       return _defaultProfile;
     }
   }
@@ -104,7 +112,7 @@ class UserService {
   // 사용자 프로필 저장 (AuthRepository와 동기화)
   Future<void> saveUserProfile(UserProfile profile) async {
     try {
-      print('UserService: Saving user profile...');
+      if (kDebugMode) if (kDebugMode) print('UserService: Saving user profile...');
 
       // AuthRepository에 닉네임과 팀 코드 저장
       final authRepo = AuthRepository();
@@ -114,9 +122,10 @@ class UserService {
       final teamData = TeamData.getById(profile.favoriteTeamId);
       if (teamData != null) {
         await authRepo.setTeam(teamData.code);
-        print(
-          'UserService: Saved to AuthRepository - Nickname: ${profile.nickname}, TeamCode: ${teamData.code}',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'UserService: Saved to AuthRepository - Nickname: ${profile.nickname}, TeamCode: ${teamData.code}',
+          );
       }
 
       // SharedPreferencesHelper에도 저장 (호환성 유지)
@@ -137,9 +146,9 @@ class UserService {
         throw Exception('SharedPreferences 저장 실패');
       }
 
-      print('UserService: Profile saved successfully');
+      if (kDebugMode) if (kDebugMode) print('UserService: Profile saved successfully');
     } catch (e) {
-      print('Error saving user profile: $e');
+      if (kDebugMode) if (kDebugMode) print('Error saving user profile: $e');
       throw Exception('프로필 저장 중 오류가 발생했습니다: ${e.toString()}');
     }
   }
@@ -157,7 +166,7 @@ class UserService {
       await saveUserProfile(updatedProfile);
       return updatedProfile;
     } catch (e) {
-      print('Error updating nickname: $e');
+      if (kDebugMode) if (kDebugMode) print('Error updating nickname: $e');
       return _defaultProfile;
     }
   }
@@ -173,7 +182,7 @@ class UserService {
       await saveUserProfile(updatedProfile);
       return updatedProfile;
     } catch (e) {
-      print('Error updating favorite team: $e');
+      if (kDebugMode) if (kDebugMode) print('Error updating favorite team: $e');
       return _defaultProfile;
     }
   }
@@ -181,38 +190,43 @@ class UserService {
   // 사용자의 응원 팀 정보 가져오기 (DB에서 실제 팀 정보 조회)
   Future<app_models.Team?> getUserFavoriteTeam() async {
     try {
-      print('UserService: Getting user favorite team...');
+      if (kDebugMode) if (kDebugMode) print('UserService: Getting user favorite team...');
 
       final profile = await getUserProfile();
-      print(
-        'UserService: User favorite team ID from profile: ${profile.favoriteTeamId}',
-      );
+      if (kDebugMode)
+        if (kDebugMode) print(
+          'UserService: User favorite team ID from profile: ${profile.favoriteTeamId}',
+        );
 
       final teams = await DatabaseService().getTeamsAsAppModels();
-      print('UserService: Found ${teams.length} teams in database');
+      if (kDebugMode)
+        if (kDebugMode) print('UserService: Found ${teams.length} teams in database');
 
       // 프로필의 favoriteTeamId로 팀 찾기
       final favoriteTeam =
           teams.where((team) => team.id == profile.favoriteTeamId).firstOrNull;
 
       if (favoriteTeam != null) {
-        print(
-          'UserService: Found favorite team: ${favoriteTeam.name} (ID: ${favoriteTeam.id})',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'UserService: Found favorite team: ${favoriteTeam.name} (ID: ${favoriteTeam.id})',
+          );
         return favoriteTeam;
       } else {
-        print(
-          'UserService: Favorite team not found, using first available team',
-        );
+        if (kDebugMode)
+          if (kDebugMode) print(
+            'UserService: Favorite team not found, using first available team',
+          );
         // 팀을 찾지 못한 경우 첫 번째 팀을 반환
         final fallbackTeam = teams.isNotEmpty ? teams.first : null;
         if (fallbackTeam != null) {
-          print('UserService: Using fallback team: ${fallbackTeam.name}');
+          if (kDebugMode)
+            if (kDebugMode) print('UserService: Using fallback team: ${fallbackTeam.name}');
         }
         return fallbackTeam;
       }
     } catch (e) {
-      print('Error getting user favorite team: $e');
+      if (kDebugMode) if (kDebugMode) print('Error getting user favorite team: $e');
       return null;
     }
   }
@@ -222,9 +236,9 @@ class UserService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_profileKey);
-      print('UserService: User profile reset');
+      if (kDebugMode) if (kDebugMode) print('UserService: User profile reset');
     } catch (e) {
-      print('Error resetting user profile: $e');
+      if (kDebugMode) if (kDebugMode) print('Error resetting user profile: $e');
     }
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';import 'package:provider/provider.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/theme/app_colors.dart';
@@ -33,9 +33,9 @@ class _WelcomeViewState extends State<WelcomeView> {
 
   Future<void> _loadTeams() async {
     try {
-      print('WelcomeView: Loading teams from database...');
+      if (kDebugMode) print('WelcomeView: Loading teams from database...');
       final teams = await DatabaseService().getTeamsAsAppModels();
-      print('WelcomeView: Loaded ${teams.length} teams');
+      if (kDebugMode) print('WelcomeView: Loaded ${teams.length} teams');
 
       setState(() {
         _teams = teams;
@@ -44,7 +44,7 @@ class _WelcomeViewState extends State<WelcomeView> {
 
       // 선택된 팀 찾기
       final vm = context.read<AuthViewModel>();
-      print('WelcomeView: AuthViewModel team value: "${vm.team}"');
+      if (kDebugMode) print('WelcomeView: AuthViewModel team value: "${vm.team}"');
 
       if (vm.team != null && _teams.isNotEmpty) {
         final selectedTeam = _teams.where((team) => team.id == vm.team).firstOrNull;
@@ -54,22 +54,22 @@ class _WelcomeViewState extends State<WelcomeView> {
         });
 
         if (selectedTeam != null) {
-          print('WelcomeView: ✅ Found team: ${selectedTeam.name} (Logo: ${selectedTeam.logo})');
+          if (kDebugMode) print('WelcomeView: ✅ Found team: ${selectedTeam.name} (Logo: ${selectedTeam.logo})');
         } else {
-          print('WelcomeView: ❌ No team found for ID: ${vm.team}');
+          if (kDebugMode) print('WelcomeView: ❌ No team found for ID: ${vm.team}');
           // 팀을 찾지 못한 경우 첫 번째 팀을 fallback으로 사용
           if (_teams.isNotEmpty) {
             setState(() {
               _selectedTeam = _teams.first;
             });
-            print('WelcomeView: Using fallback team: ${_teams.first.name}');
+            if (kDebugMode) print('WelcomeView: Using fallback team: ${_teams.first.name}');
           }
         }
       } else {
-        print('WelcomeView: vm.team is null or teams list is empty');
+        if (kDebugMode) print('WelcomeView: vm.team is null or teams list is empty');
       }
     } catch (e) {
-      print('WelcomeView: Error loading teams: $e');
+      if (kDebugMode) print('WelcomeView: Error loading teams: $e');
       setState(() {
         _isLoadingTeams = false;
       });
@@ -197,52 +197,52 @@ class _WelcomeViewState extends State<WelcomeView> {
   }
 
   Widget _buildTeamLogo() {
-    print('WelcomeView: _buildTeamLogo called');
-    print('WelcomeView: _isLoadingTeams: $_isLoadingTeams');
-    print('WelcomeView: _selectedTeam: $_selectedTeam');
+    if (kDebugMode) print('WelcomeView: _buildTeamLogo called');
+    if (kDebugMode) print('WelcomeView: _isLoadingTeams: $_isLoadingTeams');
+    if (kDebugMode) print('WelcomeView: _selectedTeam: $_selectedTeam');
 
     if (_isLoadingTeams) {
-      print('WelcomeView: Still loading teams, showing spinner');
+      if (kDebugMode) print('WelcomeView: Still loading teams, showing spinner');
       return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.navy));
     }
 
     if (_selectedTeam != null) {
-      print('WelcomeView: Selected team found: ${_selectedTeam!.name}');
-      print('WelcomeView: Team logo: ${_selectedTeam!.logo}');
-      print('WelcomeView: Team shortName: ${_selectedTeam!.shortName}');
+      if (kDebugMode) print('WelcomeView: Selected team found: ${_selectedTeam!.name}');
+      if (kDebugMode) print('WelcomeView: Team logo: ${_selectedTeam!.logo}');
+      if (kDebugMode) print('WelcomeView: Team shortName: ${_selectedTeam!.shortName}');
 
       if (_selectedTeam!.logo != null && _selectedTeam!.logo!.isNotEmpty) {
         if (_selectedTeam!.logo!.startsWith('assets/')) {
-          print('WelcomeView: Loading asset image: ${_selectedTeam!.logo}');
+          if (kDebugMode) print('WelcomeView: Loading asset image: ${_selectedTeam!.logo}');
           return Image.asset(
             _selectedTeam!.logo!,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
-              print('WelcomeView: Error loading asset image: $error');
+              if (kDebugMode) print('WelcomeView: Error loading asset image: $error');
               return _buildFallbackLogo();
             },
           );
         } else {
           // 이모지나 다른 텍스트
-          print('WelcomeView: Using emoji/text logo: ${_selectedTeam!.logo}');
+          if (kDebugMode) print('WelcomeView: Using emoji/text logo: ${_selectedTeam!.logo}');
           return Center(child: Text(_selectedTeam!.logo!, style: const TextStyle(fontSize: 40)));
         }
       } else {
-        print('WelcomeView: Logo is empty, using fallback');
+        if (kDebugMode) print('WelcomeView: Logo is empty, using fallback');
         return _buildFallbackLogo();
       }
     } else {
       // 팀을 찾을 수 없는 경우 기본 아이콘
-      print('WelcomeView: No selected team, showing default icon');
+      if (kDebugMode) print('WelcomeView: No selected team, showing default icon');
       return const Center(child: Icon(Icons.sports_baseball, size: 40, color: AppColors.navy));
     }
   }
 
   Widget _buildFallbackLogo() {
-    print('WelcomeView: _buildFallbackLogo called');
+    if (kDebugMode) print('WelcomeView: _buildFallbackLogo called');
     if (_selectedTeam != null && _selectedTeam!.shortName.isNotEmpty) {
       final firstChar = _selectedTeam!.shortName.substring(0, 1);
-      print('WelcomeView: Using first character of shortName: $firstChar');
+      if (kDebugMode) print('WelcomeView: Using first character of shortName: $firstChar');
       return Center(
         child: Text(
           firstChar,
@@ -250,7 +250,7 @@ class _WelcomeViewState extends State<WelcomeView> {
         ),
       );
     } else {
-      print('WelcomeView: Using baseball emoji as fallback');
+      if (kDebugMode) print('WelcomeView: Using baseball emoji as fallback');
       return const Center(
         child: Text('⚾', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.navy)),
       );

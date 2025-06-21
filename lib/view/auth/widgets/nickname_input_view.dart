@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';import 'package:provider/provider.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/theme/app_colors.dart';
@@ -51,9 +51,9 @@ class _NicknameInputViewState extends State<NicknameInputView> {
 
   Future<void> _loadTeams() async {
     try {
-      print('NicknameInputView: Loading teams from database...');
+      if (kDebugMode) print('NicknameInputView: Loading teams from database...');
       final teams = await DatabaseService().getTeamsAsAppModels();
-      print('NicknameInputView: Loaded ${teams.length} teams');
+      if (kDebugMode) print('NicknameInputView: Loaded ${teams.length} teams');
 
       setState(() {
         _teams = teams;
@@ -68,10 +68,10 @@ class _NicknameInputViewState extends State<NicknameInputView> {
         setState(() {
           _selectedTeam = selectedTeam;
         });
-        print('NicknameInputView: Selected team - ${selectedTeam?.name}');
+        if (kDebugMode) print('NicknameInputView: Selected team - ${selectedTeam?.name}');
       }
     } catch (e) {
-      print('NicknameInputView: Error loading teams: $e');
+      if (kDebugMode) print('NicknameInputView: Error loading teams: $e');
       setState(() {
         _isLoadingTeams = false;
       });

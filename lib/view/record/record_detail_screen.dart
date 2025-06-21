@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -55,7 +55,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading team data: $e');
+      if (kDebugMode) if (kDebugMode) print('Error loading team data: $e');
       setState(() {
         _record = widget.game.copyWith(
           homeTeam: app_models.Team(

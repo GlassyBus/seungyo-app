@@ -82,14 +82,14 @@ class _DateTimePickerModalState extends State<DateTimePickerModal> {
         _updateSelectedTimeSlot();
 
         if (kDebugMode) {
-          print(
+          if (kDebugMode) print(
             '📅 ${_currentMonth.year}년 ${_currentMonth.month}월 경기 일정 로드: ${schedules.length}개',
           );
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('❌ 경기 일정 로드 실패: $e');
+        if (kDebugMode) print('❌ 경기 일정 로드 실패: $e');
       }
 
       if (mounted) {

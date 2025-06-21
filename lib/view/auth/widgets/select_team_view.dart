@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';import 'package:provider/provider.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/theme/theme.dart';
@@ -50,15 +50,15 @@ class _SelectTeamViewState extends State<SelectTeamView> {
         _errorMessage = null;
       });
 
-      print('SelectTeamView: Loading teams from database...');
+      if (kDebugMode) print('SelectTeamView: Loading teams from database...');
       _teams = await DatabaseService().getTeamsAsAppModels();
-      print('SelectTeamView: Loaded ${_teams.length} teams');
+      if (kDebugMode) print('SelectTeamView: Loaded ${_teams.length} teams');
 
       setState(() {
         _isLoading = false;
       });
     } catch (e) {
-      print('SelectTeamView: Error loading teams: $e');
+      if (kDebugMode) print('SelectTeamView: Error loading teams: $e');
       setState(() {
         _isLoading = false;
       });
@@ -221,7 +221,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
 
         return GestureDetector(
           onTap: () {
-            print('SelectTeamView: Team selected - ${team.name} (${team.id})');
+            if (kDebugMode) print('SelectTeamView: Team selected - ${team.name} (${team.id})');
             if (widget.isStandalone) {
               setState(() {
                 _selectedTeamId = team.id;
@@ -358,7 +358,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
           onPressed:
               selectedTeam != null && !_isLoading
                   ? () {
-                    print(
+                    if (kDebugMode) print(
                       'SelectTeamView: Returning selected team - ${selectedTeam.name}',
                     );
                     Navigator.pop(context, selectedTeam);
