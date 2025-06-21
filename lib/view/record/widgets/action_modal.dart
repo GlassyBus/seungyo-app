@@ -5,7 +5,8 @@ class RecordActionModal extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
-  const RecordActionModal({super.key, this.onEdit, this.onDelete});
+  const RecordActionModal({Key? key, this.onEdit, this.onDelete})
+    : super(key: key);
 
   static Future<void> show(
     BuildContext context, {
@@ -24,6 +25,7 @@ class RecordActionModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),

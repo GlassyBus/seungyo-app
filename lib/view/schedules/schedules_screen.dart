@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -321,35 +320,31 @@ class _SchedulePageState extends State<SchedulePage> {
             record: record,
             onTap: () => _navigateToRecordDetail(context, record),
           );
-        }),
+        }).toList(),
         const SizedBox(height: 16), // 하단 여백
       ],
     );
   }
 
   /// 직관 기록 상세 화면으로 이동
-  Future<void> _navigateToRecordDetail(
-    BuildContext context,
-    dynamic record,
-  ) async {
+  void _navigateToRecordDetail(BuildContext context, dynamic record) async {
     try {
-      final provider = context.read<ScheduleProvider>();
-
       final result = await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => RecordDetailPage(game: record)),
       );
 
-      // 결과가 true이면 목록 새로고침
+      // 상세 화면에서 변경이 있었다면 목록 새로고침
       if (result == true && mounted) {
+        final provider = context.read<ScheduleProvider>();
         provider.loadSchedules();
-        if (mounted) {
-          _loadSelectedDateGames(provider.selectedDate);
-        }
+        _loadSelectedDateGames(provider.selectedDate);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('SchedulesScreen: Navigation error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('오류가 발생했습니다: $e')));
       }
     }
   }

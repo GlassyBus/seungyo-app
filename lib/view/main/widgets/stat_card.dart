@@ -8,11 +8,11 @@ class StatCard extends StatelessWidget {
   final bool hasData;
 
   const StatCard({
-    super.key,
+    Key? key,
     required this.label,
     required this.value,
     this.hasData = true,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

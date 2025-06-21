@@ -5,10 +5,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
   final Function(int) onTabChanged;
 
   const CustomBottomNavigationBar({
-    super.key,
+    Key? key,
     required this.currentIndex,
     required this.onTabChanged,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

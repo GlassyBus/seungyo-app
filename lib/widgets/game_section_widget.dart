@@ -20,7 +20,7 @@ class GameSectionWidget extends StatelessWidget {
   final bool isLoading; // 로딩 상태 추가
 
   const GameSectionWidget({
-    super.key,
+    Key? key,
     required this.title,
     this.subtitle,
     required this.games,
@@ -31,7 +31,7 @@ class GameSectionWidget extends StatelessWidget {
     this.padding,
     this.headerTrailing,
     this.isLoading = false, // 기본값 false
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +42,7 @@ class GameSectionWidget extends StatelessWidget {
         children: [
           // 제목이 비어있지 않을 때만 헤더 표시
           if (title.isNotEmpty) ...[_buildHeader(), const SizedBox(height: 20)],
-
+          
           // 🔄 로딩 중일 때
           if (isLoading)
             _buildLoadingWidget()
@@ -98,21 +98,9 @@ class GameSectionWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
-          title,
-          style: AppTextStyles.subtitle1.copyWith(
-            color: AppColors.navy,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+        Text(title, style: AppTextStyles.subtitle1.copyWith(color: AppColors.navy, fontWeight: FontWeight.w700)),
         if (subtitle != null)
-          Text(
-            subtitle!,
-            style: AppTextStyles.body2.copyWith(
-              color: AppColors.black,
-              fontWeight: FontWeight.w400,
-            ),
-          )
+          Text(subtitle!, style: AppTextStyles.body2.copyWith(color: AppColors.black, fontWeight: FontWeight.w400))
         else if (headerTrailing != null)
           headerTrailing!,
       ],

@@ -18,7 +18,7 @@ class GameListWidget extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
 
   const GameListWidget({
-    super.key,
+    Key? key,
     required this.games,
     required this.attendedRecords,
     required this.onGameTap,
@@ -26,7 +26,7 @@ class GameListWidget extends StatelessWidget {
     this.emptyWidget,
     this.showDate = false,
     this.padding,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +37,7 @@ class GameListWidget extends StatelessWidget {
 
     // 2. 모든 경기가 취소/연기된 경우 (우천 취소/연기)
     final allGamesCanceledOrPostponed = games.every(
-      (game) =>
-          game.status == GameStatus.canceled ||
-          game.status == GameStatus.postponed,
+      (game) => game.status == GameStatus.canceled || game.status == GameStatus.postponed,
     );
     if (allGamesCanceledOrPostponed) {
       return _buildCanceledGames();
@@ -57,11 +55,7 @@ class GameListWidget extends StatelessWidget {
               // 해당 경기에 대한 직관 기록이 있는지 확인
               final attendedRecord = _findAttendedRecord(game);
 
-              return GameCard(
-                game: game,
-                attendedRecord: attendedRecord,
-                onEditTap: () => onGameTap(game),
-              );
+              return GameCard(game: game, attendedRecord: attendedRecord, onEditTap: () => onGameTap(game));
             }).toList(),
       ),
     );
@@ -130,19 +124,13 @@ class GameListWidget extends StatelessWidget {
           Text(
             emptyMessage ?? '경기가 없는 날이에요.',
             textAlign: TextAlign.center,
-            style: AppTextStyles.subtitle1.copyWith(
-              fontWeight: FontWeight.w500,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.subtitle1.copyWith(fontWeight: FontWeight.w500, color: AppColors.black),
           ),
           const SizedBox(height: 4),
           Text(
             '일주일에 하루밖에 없는 화나지 않는 날',
             textAlign: TextAlign.center,
-            style: AppTextStyles.body3.copyWith(
-              color: AppColors.gray80,
-              fontWeight: FontWeight.w500,
-            ),
+            style: AppTextStyles.body3.copyWith(color: AppColors.gray80, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -165,10 +153,7 @@ class GameListWidget extends StatelessWidget {
           Text(
             '우천으로 취소/연기되었어요.',
             textAlign: TextAlign.center,
-            style: AppTextStyles.subtitle1.copyWith(
-              fontWeight: FontWeight.w500,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.subtitle1.copyWith(fontWeight: FontWeight.w500, color: AppColors.black),
           ),
         ],
       ),

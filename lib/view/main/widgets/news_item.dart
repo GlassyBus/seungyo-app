@@ -6,7 +6,8 @@ class NewsItem extends StatelessWidget {
   final Map<String, dynamic> newsData;
   final Function()? onTap;
 
-  const NewsItem({super.key, required this.newsData, this.onTap});
+  const NewsItem({Key? key, required this.newsData, this.onTap})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {

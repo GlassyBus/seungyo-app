@@ -217,7 +217,7 @@ class GameRecordCard extends StatelessWidget {
   }
 
   Widget _buildVerticalDottedLine(double contentHeight) {
-    return SizedBox(
+    return Container(
       width: 10,
       height: contentHeight,
       child: CustomPaint(painter: DottedLinePainter()),
@@ -264,7 +264,7 @@ class GameRecordCard extends StatelessWidget {
                   fontSize: 28,
                 ),
               )
-            else
+            else if (record.homeScore != null && record.awayScore != null)
               Text(
                 '${record.homeScore}:${record.awayScore}',
                 style: AppTextStyles.body1.copyWith(

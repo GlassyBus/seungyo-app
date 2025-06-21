@@ -8,12 +8,12 @@ class QuickActionButtons extends StatelessWidget {
   final VoidCallback onViewStats;
 
   const QuickActionButtons({
-    super.key,
+    Key? key,
     required this.onAddRecord,
     required this.onViewRecords,
     required this.onViewSchedule,
     required this.onViewStats,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

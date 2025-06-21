@@ -1,14 +1,15 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:crop_your_image/crop_your_image.dart';
+import 'package:flutter/services.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
@@ -18,24 +19,26 @@ class ImageEditorScreen extends StatefulWidget {
   final Function(String) onImageEdited;
 
   const ImageEditorScreen({
-    super.key,
+    Key? key,
     required this.image,
     required this.onImageEdited,
-  });
+  }) : super(key: key);
 
   @override
   State<ImageEditorScreen> createState() => _ImageEditorScreenState();
 }
 
 class _ImageEditorScreenState extends State<ImageEditorScreen> {
-  final List<TextOverlay> _textOverlays = [];
-
-  bool _isProcessing = false;
-
   late File _currentImage;
+  late File _originalImage; // 원본 이미지 보존
+  bool _isProcessing = false;
   final CropController _cropController = CropController();
   bool _showCropDialog = false;
   Uint8List? _cropTargetBytes;
+
+  // 텍스트 오버레이
+  List<TextOverlay> _textOverlays = [];
+  int? _selectedTextIndex;
 
   // 자르기 비율 선택
   double? _selectedAspectRatio;
@@ -47,6 +50,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
   void initState() {
     super.initState();
     _currentImage = widget.image;
+    _originalImage = widget.image;
   }
 
   @override
@@ -159,6 +163,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
               left: overlay.position.dx,
               top: overlay.position.dy,
               child: GestureDetector(
+                onTap: () => _selectTextOverlay(index),
                 onPanUpdate: (details) => _moveTextOverlay(index, details),
                 onDoubleTap: () => _showTextDialog(editIndex: index),
                 child: Text(
@@ -217,7 +222,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         HapticFeedback.lightImpact();
         onTap();
       },
-      child: SizedBox(
+      child: Container(
         width: 70,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -404,6 +409,16 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         ),
       ),
     );
+  }
+
+  // 부드러운 비율 변경 처리 (더 이상 필요하지 않음)
+  void _updateAspectRatio(double? newRatio) {
+    // 단순히 setState만 사용하여 깜빡임 방지
+  }
+
+  // 크롭 위젯 새로고침 (더 이상 필요하지 않음)
+  void _refreshCropWidget() {
+    // Key 기반 방식으로 대체됨
   }
 
   // 텍스트 추가
@@ -702,6 +717,10 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                                     } else {
                                       _textOverlays.add(overlay);
                                     }
+                                    _selectedTextIndex =
+                                        isEditing
+                                            ? editIndex
+                                            : _textOverlays.length - 1;
                                   });
 
                                   Navigator.pop(context);
@@ -734,6 +753,12 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                 ),
           ),
     );
+  }
+
+  void _selectTextOverlay(int index) {
+    setState(() {
+      _selectedTextIndex = index;
+    });
   }
 
   void _moveTextOverlay(int index, DragUpdateDetails details) {
@@ -769,7 +794,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
       File finalImage = _currentImage;
 
       if (_textOverlays.isNotEmpty) {
-        finalImage = await _combineTextWithImage(finalImage);
+        finalImage = await _renderImageWithText();
       }
 
       // 파일이 존재하는지 확인
@@ -791,47 +816,46 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      if (kDebugMode) print('저장 오류: $e');
+      print('저장 오류: $e');
       _showErrorMessage('이미지 저장 중 오류가 발생했습니다.');
     } finally {
       setState(() => _isProcessing = false);
     }
   }
 
-  Future<File> _combineTextWithImage(File imageFile) async {
+  // 텍스트 오버레이를 이미지에 합성하는 함수
+  Future<File> _renderImageWithText() async {
     try {
-      setState(() => _isProcessing = true);
+      // 현재 이미지의 크기 정보 가져오기
+      final bytes = await _currentImage.readAsBytes();
+      final baseImage = img.decodeImage(bytes);
 
-      // MediaQuery를 async 함수 외부로 이동
-      final screenSize = MediaQuery.of(context).size;
-
-      // 원본 이미지 읽기
-      final bytes = await imageFile.readAsBytes();
-      final originalImage = img.decodeImage(bytes);
-      if (originalImage == null) {
-        throw Exception('이미지를 읽을 수 없습니다');
+      if (baseImage == null) {
+        throw Exception('이미지를 디코딩할 수 없습니다');
       }
 
-      final imageWidth = originalImage.width.toDouble();
-      final imageHeight = originalImage.height.toDouble();
+      final imageWidth = baseImage.width.toDouble();
+      final imageHeight = baseImage.height.toDouble();
 
-      if (kDebugMode) print('텍스트 오버레이 개수: ${_textOverlays.length}');
-
-      // Canvas 설정
+      // Canvas를 사용하여 텍스트를 직접 그리기
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
 
-      // 원본 이미지 그리기
+      // 기본 이미지 그리기
       final codec = await ui.instantiateImageCodec(bytes);
       final frame = await codec.getNextFrame();
       canvas.drawImage(frame.image, Offset.zero, Paint());
 
+      // 화면 크기 정보
+      final screenSize = MediaQuery.of(context).size;
+
       // 단순한 스케일링 (화면 너비 기준)
       final scaleX = imageWidth / screenSize.width;
+      final scaleY = imageHeight / screenSize.width; // 일관된 스케일 사용
 
-      if (kDebugMode) print('이미지 원본 크기: ${imageWidth}x$imageHeight');
-      if (kDebugMode) print('화면 크기: ${screenSize.width}x${screenSize.height}');
-      if (kDebugMode) print('스케일: $scaleX');
+      print('이미지 원본 크기: ${imageWidth}x${imageHeight}');
+      print('화면 크기: ${screenSize.width}x${screenSize.height}');
+      print('스케일: $scaleX');
 
       // 각 텍스트 오버레이 그리기
       for (final overlay in _textOverlays) {
@@ -840,12 +864,10 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         final scaledY = overlay.position.dy * scaleX; // 동일한 스케일 사용
         final scaledFontSize = overlay.fontSize * scaleX;
 
-        if (kDebugMode) {
-          print('텍스트: ${overlay.text}');
-          print('화면 좌표: (${overlay.position.dx}, ${overlay.position.dy})');
-          print('이미지 좌표: ($scaledX, $scaledY)');
-          print('폰트 크기: ${overlay.fontSize} -> $scaledFontSize');
-        }
+        print('텍스트: ${overlay.text}');
+        print('화면 좌표: (${overlay.position.dx}, ${overlay.position.dy})');
+        print('이미지 좌표: ($scaledX, $scaledY)');
+        print('폰트 크기: ${overlay.fontSize} -> $scaledFontSize');
 
         // 메인 텍스트만 그리기 (그림자 효과 없음)
         final textPainter = TextPainter(
@@ -888,11 +910,11 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
 
       await tempFile.writeAsBytes(finalBytes);
 
-      if (kDebugMode) print('이미지 합성 완료: ${tempFile.path}');
+      print('이미지 합성 완료: ${tempFile.path}');
 
       return tempFile;
     } catch (e) {
-      if (kDebugMode) print('텍스트 합성 오류: $e');
+      print('텍스트 합성 오류: $e');
       throw Exception('텍스트를 이미지에 합성하는 중 오류가 발생했습니다: $e');
     }
   }
@@ -915,6 +937,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
       if (await tempFile.exists() && await tempFile.length() > 100) {
         setState(() {
           _currentImage = tempFile;
+          _originalImage = tempFile; // 새로운 기준점 설정
           _showCropDialog = false;
           _cropTargetBytes = null;
           _selectedAspectRatio = null; // 비율 선택 초기화
@@ -929,7 +952,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         throw Exception('자른 이미지 파일이 유효하지 않습니다');
       }
     } catch (e) {
-      if (kDebugMode) print('자르기 완료 처리 오류: $e');
+      print('자르기 완료 처리 오류: $e');
       _showErrorMessage('이미지 자르기 중 오류가 발생했습니다');
 
       // 실패 시 다이얼로그 닫기
@@ -963,7 +986,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
 
   // 색상 비교 함수
   bool _areColorsEqual(Color color1, Color color2) {
-    return color1.toARGB32() == color2.toARGB32();
+    return color1.value == color2.value;
   }
 
   // 이미지 회전 - 개선된 버전
@@ -989,6 +1012,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         if (mounted && await tempFile.exists()) {
           setState(() {
             _currentImage = tempFile;
+            _originalImage = tempFile; // 새로운 기준점으로 설정
           });
         } else {
           _showErrorMessage('회전된 이미지를 저장할 수 없습니다.');
@@ -997,7 +1021,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         _showErrorMessage('이미지를 처리할 수 없습니다.');
       }
     } catch (e) {
-      if (kDebugMode) print('이미지 회전 오류: $e');
+      print('이미지 회전 오류: $e');
       _showErrorMessage('이미지 회전 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       if (mounted) {

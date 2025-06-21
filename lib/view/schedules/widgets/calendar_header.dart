@@ -9,11 +9,11 @@ class CalendarHeader extends StatefulWidget {
   final VoidCallback? onTodayPressed;
 
   const CalendarHeader({
-    super.key,
+    Key? key,
     required this.currentMonth,
     required this.onMonthChanged,
     this.onTodayPressed,
-  });
+  }) : super(key: key);
 
   @override
   State<CalendarHeader> createState() => _CalendarHeaderState();

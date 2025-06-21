@@ -11,12 +11,12 @@ class TodayGamesSection extends StatelessWidget {
   final bool isLoading; // 로딩 상태 추가
 
   const TodayGamesSection({
-    super.key,
+    Key? key,
     required this.todayGames,
     required this.attendedRecords,
     required this.onGameEditTap,
     this.isLoading = false, // 기본값 false
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

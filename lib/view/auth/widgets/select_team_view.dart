@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';import 'package:provider/provider.dart';
+import 'package:provider/provider.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/theme/theme.dart';
@@ -18,13 +18,7 @@ class SelectTeamView extends StatefulWidget {
   /// 앱바 제목
   final String? title;
 
-  const SelectTeamView({
-    super.key,
-    this.onNext,
-    this.isStandalone = false,
-    this.currentTeamId,
-    this.title,
-  });
+  const SelectTeamView({super.key, this.onNext, this.isStandalone = false, this.currentTeamId, this.title});
 
   @override
   State<SelectTeamView> createState() => _SelectTeamViewState();
@@ -50,17 +44,23 @@ class _SelectTeamViewState extends State<SelectTeamView> {
         _errorMessage = null;
       });
 
-      if (kDebugMode) print('SelectTeamView: Loading teams from database...');
-      _teams = await DatabaseService().getTeamsAsAppModels();
-      if (kDebugMode) print('SelectTeamView: Loaded ${_teams.length} teams');
+      print('SelectTeamView: Loading teams from database...');
+      final teams = await DatabaseService().getTeamsAsAppModels();
+      print('SelectTeamView: Loaded ${teams.length} teams');
+
+      if (teams.isEmpty) {
+        throw Exception('팀 목록이 비어있습니다');
+      }
 
       setState(() {
+        _teams = teams;
         _isLoading = false;
       });
-    } catch (e) {
-      if (kDebugMode) print('SelectTeamView: Error loading teams: $e');
+    } catch (e, stackTrace) {
+      print('SelectTeamView: Error loading teams: $e');
       setState(() {
         _isLoading = false;
+        _errorMessage = '팀 목록을 불러오는데 실패했습니다: ${e.toString()}';
       });
     }
   }
@@ -83,10 +83,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
         backgroundColor: Colors.white,
         foregroundColor: AppColors.black,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
       ),
       body: Column(
         children: [
@@ -145,9 +142,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                         const SizedBox(height: 25),
                         Text(
                           '어느 구단을 응원하시나요?',
-                          style: AppTextStyles.h3.copyWith(
-                            color: AppColors.navy,
-                          ),
+                          style: AppTextStyles.h3.copyWith(color: AppColors.navy),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 40),
@@ -168,10 +163,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
   Widget _buildContent() {
     if (_isLoading) {
       return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(50.0),
-          child: CircularProgressIndicator(color: AppColors.navy),
-        ),
+        child: Padding(padding: EdgeInsets.all(50.0), child: CircularProgressIndicator(color: AppColors.navy)),
       );
     }
 
@@ -179,18 +171,11 @@ class _SelectTeamViewState extends State<SelectTeamView> {
       return Center(
         child: Column(
           children: [
-            Text(
-              _errorMessage!,
-              style: AppTextStyles.body2.copyWith(color: Colors.red),
-              textAlign: TextAlign.center,
-            ),
+            Text(_errorMessage!, style: AppTextStyles.body2.copyWith(color: Colors.red), textAlign: TextAlign.center),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadTeams,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.navy,
-                foregroundColor: Colors.white,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.navy, foregroundColor: Colors.white),
               child: const Text('다시 시도'),
             ),
           ],
@@ -215,13 +200,11 @@ class _SelectTeamViewState extends State<SelectTeamView> {
       itemBuilder: (context, index) {
         final team = _teams[index];
         final isSelected =
-            widget.isStandalone
-                ? (_selectedTeamId == team.id)
-                : (context.watch<AuthViewModel>().team == team.id);
+            widget.isStandalone ? (_selectedTeamId == team.id) : (context.watch<AuthViewModel>().team == team.id);
 
         return GestureDetector(
           onTap: () {
-            if (kDebugMode) print('SelectTeamView: Team selected - ${team.name} (${team.id})');
+            print('SelectTeamView: Team selected - ${team.name} (${team.id})');
             if (widget.isStandalone) {
               setState(() {
                 _selectedTeamId = team.id;
@@ -239,10 +222,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.mint : AppColors.gray10,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? AppColors.mint : AppColors.gray20,
-                    width: isSelected ? 3 : 2,
-                  ),
+                  border: Border.all(color: isSelected ? AppColors.mint : AppColors.gray20, width: isSelected ? 3 : 2),
                 ),
                 child: Center(
                   child:
@@ -256,23 +236,14 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                                 errorBuilder: (context, error, stackTrace) {
                                   return Text(
                                     team.shortName.substring(0, 1),
-                                    style: const TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                                   );
                                 },
                               )
-                              : Text(
-                                team.logo!,
-                                style: const TextStyle(fontSize: 32),
-                              )
+                              : Text(team.logo!, style: const TextStyle(fontSize: 32))
                           : Text(
                             team.shortName.substring(0, 1),
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                           ),
                 ),
               ),
@@ -295,32 +266,22 @@ class _SelectTeamViewState extends State<SelectTeamView> {
   }
 
   Widget _buildAuthFlowBottomButton(AuthViewModel vm) {
-    final selectedTeam =
-        vm.team != null
-            ? _teams.where((team) => team.id == vm.team).firstOrNull
-            : null;
+    final selectedTeam = vm.team != null ? _teams.where((team) => team.id == vm.team).firstOrNull : null;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         children: [
-          SizedBox(
+          Container(
             width: double.infinity,
             height: 56,
             child: TextButton(
-              onPressed:
-                  selectedTeam != null && !_isLoading && widget.onNext != null
-                      ? widget.onNext
-                      : null,
+              onPressed: selectedTeam != null && !_isLoading && widget.onNext != null ? widget.onNext : null,
               style: TextButton.styleFrom(
-                backgroundColor:
-                    selectedTeam != null ? AppColors.navy : AppColors.navy5,
-                foregroundColor:
-                    selectedTeam != null ? Colors.white : AppColors.navy30,
+                backgroundColor: selectedTeam != null ? AppColors.navy : AppColors.navy5,
+                foregroundColor: selectedTeam != null ? Colors.white : AppColors.navy30,
                 disabledForegroundColor: AppColors.navy30,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: EdgeInsets.zero,
               ),
               child:
@@ -330,9 +291,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                       : Text('다음', style: AppTextStyles.subtitle2),
@@ -345,9 +304,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
 
   Widget _buildStandaloneBottomButton() {
     final selectedTeam =
-        _selectedTeamId != null
-            ? _teams.where((team) => team.id == _selectedTeamId).firstOrNull
-            : null;
+        _selectedTeamId != null ? _teams.where((team) => team.id == _selectedTeamId).firstOrNull : null;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -358,11 +315,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
           onPressed:
               selectedTeam != null && !_isLoading
                   ? () {
-                    if (kDebugMode) {
-                      print(
-                      'SelectTeamView: Returning selected team - ${selectedTeam.name}',
-                    );
-                    }
+                    print('SelectTeamView: Returning selected team - ${selectedTeam!.name}');
                     Navigator.pop(context, selectedTeam);
                   }
                   : null,
@@ -371,9 +324,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
             foregroundColor: Colors.white,
             disabledBackgroundColor: AppColors.gray30,
             disabledForegroundColor: AppColors.gray50,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           child:
               _isLoading
@@ -388,10 +339,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
                   : Text(
                     '선택 완료',
                     style: AppTextStyles.subtitle2.copyWith(
-                      color:
-                          selectedTeam != null
-                              ? Colors.white
-                              : AppColors.gray50,
+                      color: selectedTeam != null ? Colors.white : AppColors.gray50,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

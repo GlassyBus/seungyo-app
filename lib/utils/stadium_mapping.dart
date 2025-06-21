@@ -1,6 +1,5 @@
 /// 경기장 매핑 유틸리티 클래스
-library;
-import 'package:flutter/foundation.dart';class StadiumMapping {
+class StadiumMapping {
   /// 경기장 이름과 홈팀을 기반으로 최적의 경기장 ID를 반환
   static String? getBestStadiumId(String stadiumName, String homeTeam) {
     // 홈팀 기반 경기장 매핑
@@ -81,7 +80,7 @@ import 'package:flutter/foundation.dart';class StadiumMapping {
     }
 
     // 5. 매핑을 찾을 수 없는 경우 null 반환
-    if (kDebugMode) if (kDebugMode) print('StadiumMapping: Could not map stadium "$stadiumName" with home team "$homeTeam"');
+    print('StadiumMapping: Could not map stadium "$stadiumName" with home team "$homeTeam"');
     return null;
   }
 } 

@@ -10,11 +10,11 @@ class DateTimePickerModal extends StatefulWidget {
   final List<GameSchedule>? gameSchedules; // 초기 경기 일정 데이터 (더 이상 필수 아님)
 
   const DateTimePickerModal({
-    super.key,
+    Key? key,
     this.initialDateTime,
     required this.onDateTimeSelected,
     this.gameSchedules,
-  });
+  }) : super(key: key);
 
   @override
   State<DateTimePickerModal> createState() => _DateTimePickerModalState();
@@ -82,16 +82,14 @@ class _DateTimePickerModalState extends State<DateTimePickerModal> {
         _updateSelectedTimeSlot();
 
         if (kDebugMode) {
-          if (kDebugMode) {
-            print(
+          print(
             '📅 ${_currentMonth.year}년 ${_currentMonth.month}월 경기 일정 로드: ${schedules.length}개',
           );
-          }
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        if (kDebugMode) print('❌ 경기 일정 로드 실패: $e');
+        print('❌ 경기 일정 로드 실패: $e');
       }
 
       if (mounted) {

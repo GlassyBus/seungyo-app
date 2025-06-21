@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/theme/theme.dart';
@@ -12,13 +12,13 @@ class ScoreInputModal extends StatefulWidget {
   final Function(int homeScore, int awayScore) onScoreSelected;
 
   const ScoreInputModal({
-    super.key,
+    Key? key,
     required this.homeTeam,
     required this.awayTeam,
     this.initialHomeScore,
     this.initialAwayScore,
     required this.onScoreSelected,
-  });
+  }) : super(key: key);
 
   @override
   State<ScoreInputModal> createState() => _ScoreInputModalState();
@@ -46,7 +46,7 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
         _awayTeamData = teams.firstWhereOrNull((t) => t.id == widget.awayTeam);
       });
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error loading team data: $e');
+      print('Error loading team data: $e');
     }
   }
 
@@ -62,10 +62,7 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
       ),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
       ),
       child: SafeArea(
         child: Column(
@@ -83,17 +80,12 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
   Widget _buildHeader(ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.gray10)),
-      ),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray10))),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text('경기 결과 입력', style: textTheme.titleLarge),
-          IconButton(
-            icon: Icon(Icons.close, color: colorScheme.onSurface),
-            onPressed: () => Navigator.pop(context),
-          ),
+          IconButton(icon: Icon(Icons.close, color: colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
         ],
       ),
     );
@@ -109,14 +101,8 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '홈팀',
-                style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
-              ),
-              Text(
-                '상대팀',
-                style: textTheme.bodySmall?.copyWith(color: AppColors.gray70),
-              ),
+              Text('홈팀', style: textTheme.bodySmall?.copyWith(color: AppColors.gray70)),
+              Text('상대팀', style: textTheme.bodySmall?.copyWith(color: AppColors.gray70)),
             ],
           ),
           const SizedBox(height: 12),
@@ -124,18 +110,10 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  _homeTeamData?.name ?? '홈팀',
-                  style: textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
+                child: Text(_homeTeamData?.name ?? '홈팀', style: textTheme.titleMedium, textAlign: TextAlign.center),
               ),
               Expanded(
-                child: Text(
-                  _awayTeamData?.name ?? '상대팀',
-                  style: textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
+                child: Text(_awayTeamData?.name ?? '상대팀', style: textTheme.titleMedium, textAlign: TextAlign.center),
               ),
             ],
           ),
@@ -143,25 +121,12 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildScoreCounter(
-                _homeScore,
-                (value) => setState(() => _homeScore = value),
-                textTheme,
-              ),
+              _buildScoreCounter(_homeScore, (value) => setState(() => _homeScore = value), textTheme),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  ':',
-                  style: textTheme.displayLarge?.copyWith(
-                    color: AppColors.gray50,
-                  ),
-                ),
+                child: Text(':', style: textTheme.displayLarge?.copyWith(color: AppColors.gray50)),
               ),
-              _buildScoreCounter(
-                _awayScore,
-                (value) => setState(() => _awayScore = value),
-                textTheme,
-              ),
+              _buildScoreCounter(_awayScore, (value) => setState(() => _awayScore = value), textTheme),
             ],
           ),
         ],
@@ -169,11 +134,7 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
     );
   }
 
-  Widget _buildScoreCounter(
-    int score,
-    Function(int) onChanged,
-    TextTheme textTheme,
-  ) {
+  Widget _buildScoreCounter(int score, Function(int) onChanged, TextTheme textTheme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -182,10 +143,7 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
           icon: Container(
             width: 36,
             height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.navy,
-              borderRadius: BorderRadius.circular(18),
-            ),
+            decoration: BoxDecoration(color: AppColors.navy, borderRadius: BorderRadius.circular(18)),
             child: const Icon(Icons.add, color: Colors.white, size: 20),
           ),
         ),
@@ -201,11 +159,7 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
               color: score > 0 ? AppColors.navy : AppColors.gray30,
               borderRadius: BorderRadius.circular(18),
             ),
-            child: Icon(
-              Icons.remove,
-              color: score > 0 ? Colors.white : AppColors.gray50,
-              size: 20,
-            ),
+            child: Icon(Icons.remove, color: score > 0 ? Colors.white : AppColors.gray50, size: 20),
           ),
         ),
       ],
@@ -226,14 +180,9 @@ class _ScoreInputModalState extends State<ScoreInputModal> {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.navy,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
-          child: Text(
-            '확인',
-            style: AppTextStyles.button1.copyWith(color: Colors.white),
-          ),
+          child: Text('확인', style: AppTextStyles.button1.copyWith(color: Colors.white)),
         ),
       ),
     );

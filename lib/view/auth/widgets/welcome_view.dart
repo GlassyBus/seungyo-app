@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/services/database_service.dart';
@@ -33,14 +32,10 @@ class _WelcomeViewState extends State<WelcomeView> {
   }
 
   Future<void> _loadTeams() async {
-    final vm = context.read<AuthViewModel>();
-
     try {
-      if (kDebugMode) print('WelcomeView: Loading teams from database...');
+      print('WelcomeView: Loading teams from database...');
       final teams = await DatabaseService().getTeamsAsAppModels();
-      if (kDebugMode) print('WelcomeView: Loaded ${teams.length} teams');
-
-      if (!mounted) return;
+      print('WelcomeView: Loaded ${teams.length} teams');
 
       setState(() {
         _teams = teams;
@@ -48,46 +43,33 @@ class _WelcomeViewState extends State<WelcomeView> {
       });
 
       // 선택된 팀 찾기
-      if (kDebugMode) {
-        print('WelcomeView: AuthViewModel team value: "${vm.team}"');
-      }
+      final vm = context.read<AuthViewModel>();
+      print('WelcomeView: AuthViewModel team value: "${vm.team}"');
 
       if (vm.team != null && _teams.isNotEmpty) {
-        final selectedTeam =
-            _teams.where((team) => team.id == vm.team).firstOrNull;
+        final selectedTeam = _teams.where((team) => team.id == vm.team).firstOrNull;
 
         setState(() {
           _selectedTeam = selectedTeam;
         });
 
         if (selectedTeam != null) {
-          if (kDebugMode) {
-            print(
-              'WelcomeView: ✅ Found team: ${selectedTeam.name} (Logo: ${selectedTeam.logo})',
-            );
-          }
+          print('WelcomeView: ✅ Found team: ${selectedTeam.name} (Logo: ${selectedTeam.logo})');
         } else {
-          if (kDebugMode) {
-            print('WelcomeView: ❌ No team found for ID: ${vm.team}');
-          }
+          print('WelcomeView: ❌ No team found for ID: ${vm.team}');
           // 팀을 찾지 못한 경우 첫 번째 팀을 fallback으로 사용
           if (_teams.isNotEmpty) {
             setState(() {
               _selectedTeam = _teams.first;
             });
-            if (kDebugMode) {
-              print('WelcomeView: Using fallback team: ${_teams.first.name}');
-            }
+            print('WelcomeView: Using fallback team: ${_teams.first.name}');
           }
         }
       } else {
-        if (kDebugMode) {
-          print('WelcomeView: vm.team is null or teams list is empty');
-        }
+        print('WelcomeView: vm.team is null or teams list is empty');
       }
     } catch (e) {
-      if (kDebugMode) print('WelcomeView: Error loading teams: $e');
-      if (!mounted) return;
+      print('WelcomeView: Error loading teams: $e');
       setState(() {
         _isLoadingTeams = false;
       });
@@ -130,7 +112,7 @@ class _WelcomeViewState extends State<WelcomeView> {
             children: [
               // 메인 콘텐츠 영역
               Expanded(
-                child: SizedBox(
+                child: Container(
                   width: double.infinity,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -145,16 +127,10 @@ class _WelcomeViewState extends State<WelcomeView> {
                             decoration: BoxDecoration(
                               color: AppColors.navy5,
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.gray30,
-                                width: 1,
-                              ),
+                              border: Border.all(color: AppColors.gray30, width: 1),
                             ),
                             child: ClipOval(
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: _buildTeamLogo(),
-                              ),
+                              child: Padding(padding: const EdgeInsets.all(20.0), child: _buildTeamLogo()),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -162,9 +138,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                           // 팀 이름
                           Text(
                             '$teamName 승요의',
-                            style: AppTextStyles.subtitle1.copyWith(
-                              color: AppColors.navy,
-                            ),
+                            style: AppTextStyles.subtitle1.copyWith(color: AppColors.navy),
                             textAlign: TextAlign.center,
                           ),
 
@@ -175,35 +149,21 @@ class _WelcomeViewState extends State<WelcomeView> {
                             children: [
                               // 닉네임 (글로우 효과)
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
                                 decoration: BoxDecoration(
                                   boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.mint.withValues(
-                                        alpha: 0.3,
-                                      ),
-                                      blurRadius: 10,
-                                      spreadRadius: 1,
-                                    ),
+                                    BoxShadow(color: AppColors.mint.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 1),
                                   ],
                                 ),
                                 child: Text(
                                   nickname,
-                                  style: AppTextStyles.h3.copyWith(
-                                    color: AppColors.navy,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: AppTextStyles.h3.copyWith(color: AppColors.navy, fontWeight: FontWeight.bold),
                                 ),
                               ),
                               // '님!' 텍스트
                               Text(
                                 '님!',
-                                style: AppTextStyles.h3.copyWith(
-                                  color: AppColors.navy,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: AppTextStyles.h3.copyWith(color: AppColors.navy, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -223,9 +183,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                       const SizedBox(height: 20),
                       Text(
                         '${_countdown - 1}초 후 자동으로 이동합니다',
-                        style: AppTextStyles.body2.copyWith(
-                          color: AppColors.gray70,
-                        ),
+                        style: AppTextStyles.body2.copyWith(color: AppColors.gray70),
                       ),
                     ],
                   ),
@@ -239,112 +197,62 @@ class _WelcomeViewState extends State<WelcomeView> {
   }
 
   Widget _buildTeamLogo() {
-    if (kDebugMode) {
-      print('WelcomeView: _buildTeamLogo called');
-    }
-    if (kDebugMode) {
-      print('WelcomeView: _isLoadingTeams: $_isLoadingTeams');
-    }
-    if (kDebugMode) {
-      print('WelcomeView: _selectedTeam: $_selectedTeam');
-    }
+    print('WelcomeView: _buildTeamLogo called');
+    print('WelcomeView: _isLoadingTeams: $_isLoadingTeams');
+    print('WelcomeView: _selectedTeam: $_selectedTeam');
 
     if (_isLoadingTeams) {
-      if (kDebugMode) {
-        print('WelcomeView: Still loading teams, showing spinner');
-      }
-      return const Center(
-        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.navy),
-      );
+      print('WelcomeView: Still loading teams, showing spinner');
+      return const Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.navy));
     }
 
     if (_selectedTeam != null) {
-      if (kDebugMode) {
-        print('WelcomeView: Selected team found: ${_selectedTeam!.name}');
-      }
-      if (kDebugMode) {
-        print('WelcomeView: Team logo: ${_selectedTeam!.logo}');
-      }
-      if (kDebugMode) {
-        print('WelcomeView: Team shortName: ${_selectedTeam!.shortName}');
-      }
+      print('WelcomeView: Selected team found: ${_selectedTeam!.name}');
+      print('WelcomeView: Team logo: ${_selectedTeam!.logo}');
+      print('WelcomeView: Team shortName: ${_selectedTeam!.shortName}');
 
       if (_selectedTeam!.logo != null && _selectedTeam!.logo!.isNotEmpty) {
         if (_selectedTeam!.logo!.startsWith('assets/')) {
-          if (kDebugMode) {
-            print('WelcomeView: Loading asset image: ${_selectedTeam!.logo}');
-          }
+          print('WelcomeView: Loading asset image: ${_selectedTeam!.logo}');
           return Image.asset(
             _selectedTeam!.logo!,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
-              if (kDebugMode) {
-                print('WelcomeView: Error loading asset image: $error');
-              }
+              print('WelcomeView: Error loading asset image: $error');
               return _buildFallbackLogo();
             },
           );
         } else {
           // 이모지나 다른 텍스트
-          if (kDebugMode) {
-            print('WelcomeView: Using emoji/text logo: ${_selectedTeam!.logo}');
-          }
-          return Center(
-            child: Text(
-              _selectedTeam!.logo!,
-              style: const TextStyle(fontSize: 40),
-            ),
-          );
+          print('WelcomeView: Using emoji/text logo: ${_selectedTeam!.logo}');
+          return Center(child: Text(_selectedTeam!.logo!, style: const TextStyle(fontSize: 40)));
         }
       } else {
-        if (kDebugMode) {
-          print('WelcomeView: Logo is empty, using fallback');
-        }
+        print('WelcomeView: Logo is empty, using fallback');
         return _buildFallbackLogo();
       }
     } else {
       // 팀을 찾을 수 없는 경우 기본 아이콘
-      if (kDebugMode) {
-        print('WelcomeView: No selected team, showing default icon');
-      }
-      return const Center(
-        child: Icon(Icons.sports_baseball, size: 40, color: AppColors.navy),
-      );
+      print('WelcomeView: No selected team, showing default icon');
+      return const Center(child: Icon(Icons.sports_baseball, size: 40, color: AppColors.navy));
     }
   }
 
   Widget _buildFallbackLogo() {
-    if (kDebugMode) {
-      print('WelcomeView: _buildFallbackLogo called');
-    }
+    print('WelcomeView: _buildFallbackLogo called');
     if (_selectedTeam != null && _selectedTeam!.shortName.isNotEmpty) {
       final firstChar = _selectedTeam!.shortName.substring(0, 1);
-      if (kDebugMode) {
-        print('WelcomeView: Using first character of shortName: $firstChar');
-      }
+      print('WelcomeView: Using first character of shortName: $firstChar');
       return Center(
         child: Text(
           firstChar,
-          style: const TextStyle(
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-            color: AppColors.navy,
-          ),
+          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.navy),
         ),
       );
     } else {
-      if (kDebugMode) {
-        print('WelcomeView: Using baseball emoji as fallback');
-      }
+      print('WelcomeView: Using baseball emoji as fallback');
       return const Center(
-        child: Text(
-          '⚾',
-          style: TextStyle(
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-            color: AppColors.navy,
-          ),
-        ),
+        child: Text('⚾', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: AppColors.navy)),
       );
     }
   }

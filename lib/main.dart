@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -11,6 +10,7 @@ import 'package:seungyo/view/auth/auth_screen.dart';
 import 'package:seungyo/view/main/main_screen.dart';
 import 'package:seungyo/view/splash/splash_screen.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
+import 'package:seungyo/viewmodel/splash_vm.dart';
 import 'package:seungyo/providers/schedule_provider.dart';
 import 'package:seungyo/theme/theme.dart';
 import 'package:seungyo/services/database_service.dart';
@@ -35,31 +35,21 @@ void main() async {
   final dbService = DatabaseService();
   try {
     await dbService.initialize();
-    if (kDebugMode) {
-      print('DB 초기화 성공');
-    }
+    print('DB 초기화 성공');
 
     // 디버그: DB 상태 확인
-    if (kDebugMode) {
-      print('DB 초기화 완료. 상태 확인 중...');
-    }
+    print('DB 초기화 완료. 상태 확인 중...');
     await dbService.printDatabaseStatus();
   } catch (e) {
-    if (kDebugMode) {
-      print('DB 초기화 실패: $e');
-    }
+    print('DB 초기화 실패: $e');
   }
 
   // 알림 서비스 초기화
   try {
     await NotificationService().initialize();
-    if (kDebugMode) {
-      print('🔔 알림 서비스 초기화 성공');
-    }
+    print('🔔 알림 서비스 초기화 성공');
   } catch (e) {
-    if (kDebugMode) {
-      print('❌ 알림 서비스 초기화 실패: $e');
-    }
+    print('❌ 알림 서비스 초기화 실패: $e');
   }
 
   SystemChrome.setSystemUIOverlayStyle(
@@ -85,6 +75,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => SplashViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => ScheduleProvider()),
       ],

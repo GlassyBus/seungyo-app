@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import '../models/team.dart';
 import '../services/database_service.dart';
 
@@ -18,7 +17,7 @@ class TeamService {
     try {
       return await DatabaseService().getTeamsAsAppModels();
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error getting teams from DB: $e');
+      print('Error getting teams from DB: $e');
       return [];
     }
   }
@@ -29,7 +28,7 @@ class TeamService {
       final teams = await getAllTeams();
       return teams.where((team) => team.id == teamId).firstOrNull;
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error getting team by ID: $e');
+      print('Error getting team by ID: $e');
       return null;
     }
   }
@@ -38,11 +37,10 @@ class TeamService {
   Future<Team?> getTeamByName(String teamName) async {
     try {
       final teams = await getAllTeams();
-      return teams
-          .where((team) => team.name == teamName || team.shortName == teamName)
-          .firstOrNull;
+      return teams.where((team) => 
+        team.name == teamName || team.shortName == teamName).firstOrNull;
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error getting team by name: $e');
+      print('Error getting team by name: $e');
       return null;
     }
   }
@@ -57,16 +55,17 @@ class TeamService {
   Future<List<Team>> searchTeams(String query) async {
     try {
       final teams = await getAllTeams();
-
+      
       if (query.isEmpty) {
         return teams;
       }
 
       return teams.where((team) {
-        return team.name.contains(query) || team.shortName.contains(query);
+        return team.name.contains(query) ||
+            team.shortName.contains(query);
       }).toList();
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error searching teams: $e');
+      print('Error searching teams: $e');
       return [];
     }
   }
@@ -77,7 +76,7 @@ class TeamService {
       final teams = await getAllTeams();
       return teams.where((team) => teamIds.contains(team.id)).toList();
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error getting teams by IDs: $e');
+      print('Error getting teams by IDs: $e');
       return [];
     }
   }
@@ -90,7 +89,7 @@ class TeamService {
       // 현재는 처음 4개 팀 반환
       return teams.take(4).toList();
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error getting popular teams: $e');
+      print('Error getting popular teams: $e');
       return [];
     }
   }
@@ -105,8 +104,12 @@ class TeamService {
         'citiesWithTeams': 9, // KBO 9개 도시
       };
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error getting league stats: $e');
-      return {'totalTeams': 0, 'averageFoundedYear': 0, 'citiesWithTeams': 0};
+      print('Error getting league stats: $e');
+      return {
+        'totalTeams': 0,
+        'averageFoundedYear': 0,
+        'citiesWithTeams': 0,
+      };
     }
   }
 }

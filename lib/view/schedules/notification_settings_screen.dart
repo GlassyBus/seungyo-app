@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -130,21 +131,7 @@ class NotificationSettingsScreen extends StatelessWidget {
       return;
     }
 
-    // 권한 요청 후 토글 처리
-    await _requestPermissionAndToggle(context, onSuccess);
-  }
-
-  /// 권한 요청 후 토글 처리
-  Future<void> _requestPermissionAndToggle(
-    BuildContext context,
-    VoidCallback onSuccess,
-  ) async {
-    // Provider를 async 함수 시작 부분에서 가져오기
-    final provider = Provider.of<NotificationSettingsProvider>(
-      context,
-      listen: false,
-    );
-
+    // 알림을 켜는 경우 권한 확인 및 요청
     final notificationService = NotificationService();
     final hasPermission =
         await notificationService.requestNotificationPermission();
@@ -153,7 +140,7 @@ class NotificationSettingsScreen extends StatelessWidget {
       onSuccess();
     } else {
       // 권한이 없으면 off 상태 유지
-      provider
+      Provider.of<NotificationSettingsProvider>(context, listen: false)
         ..setGameStartNotification(false)
         ..setGameEndNotification(false);
     }

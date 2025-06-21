@@ -1,13 +1,15 @@
 import 'dart:io';
+import 'dart:math';
+
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
-import 'package:collection/collection.dart';
 import 'package:seungyo/models/game_record_form.dart';
 import 'package:seungyo/models/game_schedule.dart';
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/services/record_service.dart';
+import 'package:seungyo/services/schedule_service.dart';
 import 'package:seungyo/utils/stadium_mapping.dart';
 
 import '../../models/game_record.dart';
@@ -25,7 +27,8 @@ class CreateRecordScreen extends StatefulWidget {
   final GameRecord? gameRecord; // 수정할 기록 (null이면 새 기록)
   final GameSchedule? gameSchedule; // 미리 설정할 경기 정보 (null이면 빈 폼)
 
-  const CreateRecordScreen({super.key, this.gameRecord, this.gameSchedule});
+  const CreateRecordScreen({Key? key, this.gameRecord, this.gameSchedule})
+    : super(key: key);
 
   @override
   State<CreateRecordScreen> createState() => _CreateRecordScreenState();
@@ -34,6 +37,7 @@ class CreateRecordScreen extends StatefulWidget {
 class _CreateRecordScreenState extends State<CreateRecordScreen> {
   final _formKey = GlobalKey<FormState>();
   late RecordService _recordService;
+  late ScheduleService _scheduleService;
   late GameRecordForm _form;
   final TextEditingController _seatController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
@@ -41,6 +45,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   List<File> _selectedImages = [];
   bool _isMemorableGame = false;
   bool _isGameCanceled = false; // 경기취소 상태
+  bool _isLoading = false;
   bool _isImageLoading = false;
   bool _isSaving = false;
   List<app_models.Stadium> _stadiums = [];
@@ -50,6 +55,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   void initState() {
     super.initState();
     _recordService = RecordService();
+    _scheduleService = ScheduleService();
     _form = GameRecordForm();
     _loadStadiums();
     _loadTeams();
@@ -69,11 +75,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   void _initializeWithSchedule() {
     final schedule = widget.gameSchedule!;
-    if (kDebugMode) {
-      print(
-        'CreateRecordScreen: Initializing with schedule - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}',
-      );
-    }
+    print(
+      'CreateRecordScreen: Initializing with schedule - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}',
+    );
 
     // 경기장 ID 매핑
     String? stadiumId = StadiumMapping.getBestStadiumId(
@@ -85,21 +89,15 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     String? homeTeamId = _getTeamIdByName(schedule.homeTeam);
     String? awayTeamId = _getTeamIdByName(schedule.awayTeam);
 
-    if (kDebugMode) {
-      print(
-        'CreateRecordScreen: Mapped stadium "${schedule.stadium}" -> "$stadiumId"',
-      );
-    }
-    if (kDebugMode) {
-      print(
-        'CreateRecordScreen: Mapped home team "${schedule.homeTeam}" -> "$homeTeamId"',
-      );
-    }
-    if (kDebugMode) {
-      print(
-        'CreateRecordScreen: Mapped away team "${schedule.awayTeam}" -> "$awayTeamId"',
-      );
-    }
+    print(
+      'CreateRecordScreen: Mapped stadium "${schedule.stadium}" -> "$stadiumId"',
+    );
+    print(
+      'CreateRecordScreen: Mapped home team "${schedule.homeTeam}" -> "$homeTeamId"',
+    );
+    print(
+      'CreateRecordScreen: Mapped away team "${schedule.awayTeam}" -> "$awayTeamId"',
+    );
 
     // 기본적으로 경기 시간, 경기장, 팀 정보 설정
     setState(() {
@@ -146,11 +144,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   void _initializeWithExistingRecord() {
     final record = widget.gameRecord!;
-    if (kDebugMode) {
-      print(
-        'CreateRecordScreen: Initializing with existing record ID: ${record.id}',
-      );
-    }
+    print(
+      'CreateRecordScreen: Initializing with existing record ID: ${record.id}',
+    );
 
     // 폼 데이터 설정
     _form = GameRecordForm(
@@ -180,22 +176,18 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       _form = _form.copyWith(imagePaths: record.photos);
     }
 
-    if (kDebugMode) {
-      print('CreateRecordScreen: Form initialized with existing data');
-      print('  - DateTime: ${_form.gameDateTime}');
-      print('  - Stadium: ${_form.stadiumId}');
-      print('  - Home Team: ${_form.homeTeamId}');
-      print('  - Away Team: ${_form.awayTeamId}');
-      print('  - Seat: ${_form.seatInfo}');
-      print('  - Comment: ${_form.comment}');
-      print('  - Photos: ${record.photos.length}');
-    }
+    print('CreateRecordScreen: Form initialized with existing data');
+    print('  - DateTime: ${_form.gameDateTime}');
+    print('  - Stadium: ${_form.stadiumId}');
+    print('  - Home Team: ${_form.homeTeamId}');
+    print('  - Away Team: ${_form.awayTeamId}');
+    print('  - Seat: ${_form.seatInfo}');
+    print('  - Comment: ${_form.comment}');
+    print('  - Photos: ${record.photos.length}');
   }
 
   Future<void> _debugDatabaseStatus() async {
-    if (kDebugMode) {
-      print('=== CreateRecordScreen - DB 상태 확인 ===');
-    }
+    print('=== CreateRecordScreen - DB 상태 확인 ===');
     await DatabaseService().printDatabaseStatus();
   }
 
@@ -206,9 +198,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         _stadiums = stadiums;
       });
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading stadiums: $e');
-      }
+      print('Error loading stadiums: $e');
     }
   }
 
@@ -219,9 +209,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         _teams = teams;
       });
     } catch (e) {
-      if (kDebugMode) {
-        print('Error loading teams: $e');
-      }
+      print('Error loading teams: $e');
     }
   }
 
@@ -850,17 +838,13 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             onTap: () {
               setState(() {
                 _isGameCanceled = !_isGameCanceled;
-                if (kDebugMode) {
-                  print(
-                    'CreateRecordScreen: Game canceled toggled to: $_isGameCanceled',
-                  );
-                }
+                print(
+                  'CreateRecordScreen: Game canceled toggled to: $_isGameCanceled',
+                );
                 if (_isGameCanceled) {
-                  if (kDebugMode) {
-                    print(
-                      'CreateRecordScreen: Clearing scores due to cancellation',
-                    );
-                  }
+                  print(
+                    'CreateRecordScreen: Clearing scores due to cancellation',
+                  );
                   _form = _form.copyWith(homeScore: null, awayScore: null);
                 }
               });
@@ -1051,11 +1035,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
-      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
     } finally {
       setState(() {
         _isImageLoading = false;
@@ -1084,11 +1066,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         });
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
-      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
     } finally {
       setState(() {
         _isImageLoading = false;
@@ -1158,11 +1138,8 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   void _showScoreInput() {
-    if (_form.homeTeamId == null ||
-        _form.awayTeamId == null ||
-        _isGameCanceled) {
+    if (_form.homeTeamId == null || _form.awayTeamId == null || _isGameCanceled)
       return;
-    }
 
     showModalBottomSheet(
       context: context,
@@ -1195,16 +1172,12 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   Future<void> _handleSave() async {
     if (!_canSave()) {
-      if (kDebugMode) {
-        print('CreateRecordScreen: Cannot save - validation failed');
-      }
+      print('CreateRecordScreen: Cannot save - validation failed');
       return;
     }
 
     try {
-      if (kDebugMode) {
-        print('CreateRecordScreen: Starting save process...');
-      }
+      print('CreateRecordScreen: Starting save process...');
       setState(() {
         _isSaving = true;
       });
@@ -1219,40 +1192,30 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         // 경기취소시에는 점수를 null로 유지 (이미 체크박스에서 null로 설정됨)
       );
 
-      if (kDebugMode) {
-        print('CreateRecordScreen: Form updated with final data');
-        print('CreateRecordScreen: Final form validation: ${_form.isValid}');
-        print('CreateRecordScreen: Form data summary:');
-        print('  - DateTime: ${_form.gameDateTime}');
-        print('  - Stadium: ${_form.stadiumId}');
-        print('  - Home Team: ${_form.homeTeamId}');
-        print('  - Away Team: ${_form.awayTeamId}');
-        print('  - Home Score: ${_form.homeScore}');
-        print('  - Away Score: ${_form.awayScore}');
-        print('  - Seat: ${_form.seatInfo}');
-        print('  - Comment: ${_form.comment}');
-        print('  - Is Favorite: ${_form.isFavorite}');
-        print('  - Is Canceled: ${_form.canceled}'); // 이 부분이 중요!
-        print('  - UI _isGameCanceled: $_isGameCanceled');
-      }
+      print('CreateRecordScreen: Form updated with final data');
+      print('CreateRecordScreen: Final form validation: ${_form.isValid}');
+      print('CreateRecordScreen: Form data summary:');
+      print('  - DateTime: ${_form.gameDateTime}');
+      print('  - Stadium: ${_form.stadiumId}');
+      print('  - Home Team: ${_form.homeTeamId}');
+      print('  - Away Team: ${_form.awayTeamId}');
+      print('  - Home Score: ${_form.homeScore}');
+      print('  - Away Score: ${_form.awayScore}');
+      print('  - Seat: ${_form.seatInfo}');
+      print('  - Comment: ${_form.comment}');
+      print('  - Is Favorite: ${_form.isFavorite}');
+      print('  - Is Canceled: ${_form.canceled}'); // 이 부분이 중요!
+      print('  - UI _isGameCanceled: $_isGameCanceled');
 
       await _submitForm();
-      if (kDebugMode) {
-        print('CreateRecordScreen: Save completed successfully');
-      }
+      print('CreateRecordScreen: Save completed successfully');
     } catch (e) {
-      if (kDebugMode) {
-        print('CreateRecordScreen: Save failed with error: $e');
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
-      }
+      print('CreateRecordScreen: Save failed with error: $e');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
     } finally {
-      if (kDebugMode) {
-        print('CreateRecordScreen: Resetting saving state');
-      }
+      print('CreateRecordScreen: Resetting saving state');
       setState(() {
         _isSaving = false;
       });
@@ -1260,34 +1223,24 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   Future<void> _submitForm() async {
-    if (kDebugMode) {
-      print('CreateRecordScreen: _submitForm called');
-    }
+    print('CreateRecordScreen: _submitForm called');
 
     if (!_formKey.currentState!.validate()) {
-      if (kDebugMode) {
-        print('CreateRecordScreen: Form validation failed');
-      }
+      print('CreateRecordScreen: Form validation failed');
       return;
     }
 
     _formKey.currentState!.save();
-    if (kDebugMode) {
-      print('CreateRecordScreen: Form state saved');
-    }
+    print('CreateRecordScreen: Form state saved');
 
     if (!_form.isValid) {
-      if (kDebugMode) {
-        print('CreateRecordScreen: Form isValid check failed');
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      print('CreateRecordScreen: Form isValid check failed');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
@@ -1296,46 +1249,34 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
       if (widget.gameRecord != null) {
         // 수정 모드
-        if (kDebugMode) {
-          print(
-            'CreateRecordScreen: Updating existing record ID: ${widget.gameRecord!.id}',
-          );
-        }
+        print(
+          'CreateRecordScreen: Updating existing record ID: ${widget.gameRecord!.id}',
+        );
         final success = await _recordService.updateRecord(
           widget.gameRecord!.id,
           _form,
         );
 
         if (success) {
-          if (kDebugMode) {
-            print('CreateRecordScreen: Record updated successfully');
-          }
+          print('CreateRecordScreen: Record updated successfully');
         } else {
           throw Exception('Failed to update record');
         }
       } else {
         // 새 기록 추가 모드
-        if (kDebugMode) {
-          print('CreateRecordScreen: Adding new record...');
-        }
+        print('CreateRecordScreen: Adding new record...');
         final recordId = await _recordService.addRecord(_form);
-        if (kDebugMode) {
-          print(
-            'CreateRecordScreen: Record added successfully with ID: $recordId',
-          );
-        }
+        print(
+          'CreateRecordScreen: Record added successfully with ID: $recordId',
+        );
       }
 
       if (mounted) {
-        if (kDebugMode) {
-          print('CreateRecordScreen: Navigating back with success result');
-        }
+        print('CreateRecordScreen: Navigating back with success result');
         Navigator.of(context).pop(true);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('CreateRecordScreen: Error in _submitForm: $e');
-      }
+      print('CreateRecordScreen: Error in _submitForm: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1349,7 +1290,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         );
       }
     } finally {
-      setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 

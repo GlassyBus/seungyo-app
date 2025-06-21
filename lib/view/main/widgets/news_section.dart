@@ -9,11 +9,11 @@ class NewsSection extends StatelessWidget {
   final bool isLoading; // 로딩 상태 추가
 
   const NewsSection({
-    super.key,
+    Key? key,
     required this.newsItems,
     required this.onNewsUrlTap,
     this.isLoading = false, // 기본값 false
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'package:seungyo/services/record_service.dart';
 import 'package:seungyo/theme/app_text_styles.dart';
+import 'package:seungyo/view/record/create_record_screen.dart';
 
 import '../../models/game_record.dart';
-import '../../services/record_service.dart';
 import 'record_detail_screen.dart';
 import 'widgets/game_record_card.dart';
 
@@ -40,9 +40,7 @@ class _RecordListPageState extends State<RecordListPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
-      if (kDebugMode) {
-        print('RecordScreen: App resumed, refreshing records...');
-      }
+      print('RecordScreen: App resumed, refreshing records...');
       _loadRecords();
     }
   }
@@ -52,21 +50,15 @@ class _RecordListPageState extends State<RecordListPage>
   }
 
   Future<void> _loadRecords() async {
-    if (kDebugMode) {
-      print('RecordScreen: Starting to load records...');
-    }
+    print('RecordScreen: Starting to load records...');
     setState(() {
       _isLoading = true;
     });
 
     try {
-      if (kDebugMode) {
-        print('RecordScreen: Calling RecordService.getAllRecords()...');
-      }
+      print('RecordScreen: Calling RecordService.getAllRecords()...');
       final records = await _recordService.getAllRecords();
-      if (kDebugMode) {
-        print('RecordScreen: Loaded ${records.length} records from database');
-      }
+      print('RecordScreen: Loaded ${records.length} records from database');
 
       // createdAt 기준으로 내림차순 정렬 (최신 기록이 위로)
       records.sort((a, b) {
@@ -74,17 +66,13 @@ class _RecordListPageState extends State<RecordListPage>
         final bTime = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         return bTime.compareTo(aTime);
       });
-      if (kDebugMode) {
-        print('RecordScreen: Records sorted by createdAt (newest first)');
-      }
+      print('RecordScreen: Records sorted by createdAt (newest first)');
 
       for (int i = 0; i < records.length && i < 3; i++) {
         final record = records[i];
-        if (kDebugMode) {
-          print(
-            'RecordScreen: Record $i - ${record.homeTeam.name} vs ${record.awayTeam.name}, Created: ${record.createdAt}, Stadium: ${record.stadium.name}',
-          );
-        }
+        print(
+          'RecordScreen: Record $i - ${record.homeTeam.name} vs ${record.awayTeam.name}, Created: ${record.createdAt}, Stadium: ${record.stadium.name}',
+        );
       }
 
       setState(() {
@@ -92,14 +80,10 @@ class _RecordListPageState extends State<RecordListPage>
         _isLoading = false;
       });
 
-      if (kDebugMode) {
-        print('RecordScreen: Records loaded and UI updated successfully');
-      }
+      print('RecordScreen: Records loaded and UI updated successfully');
     } catch (e) {
-      if (kDebugMode) {
-        print('RecordScreen: Error loading records: $e');
-        print('RecordScreen: Error stack trace: ${StackTrace.current}');
-      }
+      print('RecordScreen: Error loading records: $e');
+      print('RecordScreen: Error stack trace: ${StackTrace.current}');
 
       setState(() {
         _records = [];
@@ -126,11 +110,9 @@ class _RecordListPageState extends State<RecordListPage>
         _showOnlyFavorites
             ? nonCanceledRecords.where((record) => record.isFavorite).toList()
             : nonCanceledRecords;
-    if (kDebugMode) {
-      print(
-        'RecordScreen: Filtered records count: ${filtered.length} (showOnlyFavorites: $_showOnlyFavorites, excluded canceled: ${_records.length - nonCanceledRecords.length})',
-      );
-    }
+    print(
+      'RecordScreen: Filtered records count: ${filtered.length} (showOnlyFavorites: $_showOnlyFavorites, excluded canceled: ${_records.length - nonCanceledRecords.length})',
+    );
     return filtered;
   }
 
@@ -283,11 +265,9 @@ class _RecordListPageState extends State<RecordListPage>
 
     // 상세 화면에서 변경사항이 있으면 리스트 새로고침
     if (result == true) {
-      if (kDebugMode) {
-        print(
-          'RecordScreen: Changes detected from detail page, refreshing list...',
-        );
-      }
+      print(
+        'RecordScreen: Changes detected from detail page, refreshing list...',
+      );
       await _loadRecords();
 
       // 부모(메인 화면)에게 변경사항 알림
@@ -299,16 +279,12 @@ class _RecordListPageState extends State<RecordListPage>
 
   Future<void> _toggleFavorite(GameRecord record) async {
     try {
-      if (kDebugMode) {
-        print('RecordScreen: Toggling favorite for record ID: ${record.id}');
-      }
+      print('RecordScreen: Toggling favorite for record ID: ${record.id}');
 
       final success = await _recordService.toggleFavorite(record.id);
 
       if (success) {
-        if (kDebugMode) {
-          print('RecordScreen: Favorite toggled successfully');
-        }
+        print('RecordScreen: Favorite toggled successfully');
         setState(() {
           final index = _records.indexWhere((r) => r.id == record.id);
           if (index != -1) {
@@ -321,9 +297,7 @@ class _RecordListPageState extends State<RecordListPage>
           widget.onRecordChanged!();
         }
       } else {
-        if (kDebugMode) {
-          print('RecordScreen: Failed to toggle favorite');
-        }
+        print('RecordScreen: Failed to toggle favorite');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -334,9 +308,7 @@ class _RecordListPageState extends State<RecordListPage>
         }
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('RecordScreen: Error toggling favorite: $e');
-      }
+      print('RecordScreen: Error toggling favorite: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -346,5 +318,17 @@ class _RecordListPageState extends State<RecordListPage>
         );
       }
     }
+  }
+
+  void _handleAdd() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
+    ).then((result) {
+      if (result == true) {
+        print('RecordScreen: Record added successfully, refreshing list...');
+        _loadRecords();
+      }
+    });
   }
 }

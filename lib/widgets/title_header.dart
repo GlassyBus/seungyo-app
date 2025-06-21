@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart'; // SystemUiOverlayStyle을 위한 임포트
 
 /// 앱 전체에서 일관된 앱바를 제공하는 컴포넌트
