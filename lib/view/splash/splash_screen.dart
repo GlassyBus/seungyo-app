@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:seungyo/viewmodel/splash_vm.dart';
+
+import '../../viewmodel/splash_vm.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -10,11 +10,13 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final SplashViewModel _viewModel = SplashViewModel();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SplashViewModel>().handleNavigation(context);
+      _viewModel.checkAuthStatus(context);
     });
   }
 

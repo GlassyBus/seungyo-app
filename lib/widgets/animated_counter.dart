@@ -6,11 +6,11 @@ class AnimatedCounter extends StatefulWidget {
   final Duration duration;
 
   const AnimatedCounter({
-    Key? key,
+    super.key,
     required this.value,
     this.style,
     this.duration = const Duration(milliseconds: 1000),
-  }) : super(key: key);
+  });
 
   @override
   State<AnimatedCounter> createState() => _AnimatedCounterState();

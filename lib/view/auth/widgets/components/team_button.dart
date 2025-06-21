@@ -66,7 +66,7 @@ class TeamButton extends StatelessWidget {
               SizedBox(height: _verticalSpacing),
 
               // 팀 이름
-              Container(
+              SizedBox(
                 width: textWidth,
                 height: 22, // 높이를 고정하여 텍스트가 짤리지 않도록 함
                 child: Text(

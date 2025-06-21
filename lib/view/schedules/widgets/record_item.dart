@@ -9,8 +9,7 @@ class RecordItem extends StatelessWidget {
   final GameRecord record;
   final VoidCallback? onTap;
 
-  const RecordItem({Key? key, required this.record, this.onTap})
-    : super(key: key);
+  const RecordItem({super.key, required this.record, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +80,7 @@ class RecordItem extends StatelessWidget {
         if (badgeInfo.text.isNotEmpty) const SizedBox(width: 12),
         Expanded(
           child: Text(
-            '${record.stadium.name}, ${formattedTime}',
+            '${record.stadium.name}, $formattedTime',
             style: textTheme.bodyMedium?.copyWith(
               color: AppColors.navy,
               fontWeight: FontWeight.bold,

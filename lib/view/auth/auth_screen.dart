@@ -46,7 +46,9 @@ class _AuthScreenState extends State<AuthScreen> {
           return PopScope(
             canPop: false,
             onPopInvokedWithResult: (bool didPop, dynamic result) async {
-              if (didPop) return;
+              if (didPop) {
+                return;
+              }
 
               if (_currentPage == 0) {
                 final shouldExit = await vm.handleDoubleBackPress(context);
@@ -63,7 +65,13 @@ class _AuthScreenState extends State<AuthScreen> {
                 children: [
                   SelectTeamView(onNext: _nextPage),
                   NicknameInputView(onNext: _nextPage, onBack: _previousPage),
-                  WelcomeView(onNext: () => Navigator.pushReplacementNamed(context, Routes.main)),
+                  WelcomeView(
+                    onNext:
+                        () => Navigator.pushReplacementNamed(
+                          context,
+                          Routes.main,
+                        ),
+                  ),
                 ],
               ),
             ),

@@ -10,7 +10,7 @@ class ScheduleItem extends StatelessWidget {
   final GameSchedule schedule;
   final VoidCallback? onTap;
 
-  const ScheduleItem({Key? key, required this.schedule, this.onTap}) : super(key: key);
+  const ScheduleItem({super.key, required this.schedule, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,13 @@ class ScheduleItem extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -57,20 +63,30 @@ class ScheduleItem extends StatelessWidget {
         if (badgeInfo.text.isNotEmpty)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: badgeInfo.color, borderRadius: BorderRadius.circular(6)),
+            decoration: BoxDecoration(
+              color: badgeInfo.color,
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Text(
               badgeInfo.text,
-              style: textTheme.bodySmall?.copyWith(color: badgeInfo.textColor, fontWeight: FontWeight.bold),
+              style: textTheme.bodySmall?.copyWith(
+                color: badgeInfo.textColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         if (badgeInfo.text.isNotEmpty) const SizedBox(width: 12),
         Expanded(
           child: Text(
-            '${schedule.stadium}, ${formattedTime}',
-            style: textTheme.bodyMedium?.copyWith(color: AppColors.navy, fontWeight: FontWeight.bold),
+            '${schedule.stadium}, $formattedTime',
+            style: textTheme.bodyMedium?.copyWith(
+              color: AppColors.navy,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-        if (schedule.hasAttended) Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.gray50),
+        if (schedule.hasAttended)
+          Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.gray50),
       ],
     );
   }
@@ -95,7 +111,9 @@ class ScheduleItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   schedule.homeTeam,
-                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -111,16 +129,34 @@ class ScheduleItem extends StatelessWidget {
                   ? Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('${schedule.homeScore}', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(
+                        '${schedule.homeScore}',
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      Text(':', style: textTheme.titleLarge?.copyWith(color: AppColors.gray50)),
+                      Text(
+                        ':',
+                        style: textTheme.titleLarge?.copyWith(
+                          color: AppColors.gray50,
+                        ),
+                      ),
                       const SizedBox(width: 8),
-                      Text('${schedule.awayScore}', style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      Text(
+                        '${schedule.awayScore}',
+                        style: textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   )
                   : Text(
                     'VS',
-                    style: textTheme.titleLarge?.copyWith(color: AppColors.gray50, fontWeight: FontWeight.bold),
+                    style: textTheme.titleLarge?.copyWith(
+                      color: AppColors.gray50,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
         ),
 
@@ -132,7 +168,9 @@ class ScheduleItem extends StatelessWidget {
               Expanded(
                 child: Text(
                   schedule.awayTeam,
-                  style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.end,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -160,7 +198,10 @@ class ScheduleItem extends StatelessWidget {
         padding: const EdgeInsets.only(top: 12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(color: AppColors.mint.withValues(0.1), borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(
+            color: AppColors.mint.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -168,7 +209,10 @@ class ScheduleItem extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 '직관 기록 보기',
-                style: textTheme.bodySmall?.copyWith(color: AppColors.navy, fontWeight: FontWeight.w600),
+                style: textTheme.bodySmall?.copyWith(
+                  color: AppColors.navy,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -204,23 +248,55 @@ class ScheduleItem extends StatelessWidget {
     if (schedule.status == GameStatus.finished) {
       switch (schedule.result) {
         case GameResult.win:
-          return _BadgeInfo(color: AppColors.mint, textColor: AppColors.navy, text: 'WIN');
+          return _BadgeInfo(
+            color: AppColors.mint,
+            textColor: AppColors.navy,
+            text: 'WIN',
+          );
         case GameResult.lose:
-          return _BadgeInfo(color: AppColors.navy, textColor: Colors.white, text: 'LOSE');
+          return _BadgeInfo(
+            color: AppColors.navy,
+            textColor: Colors.white,
+            text: 'LOSE',
+          );
         case GameResult.draw:
-          return _BadgeInfo(color: AppColors.gray30, textColor: AppColors.black, text: 'DRAW');
+          return _BadgeInfo(
+            color: AppColors.gray30,
+            textColor: AppColors.black,
+            text: 'DRAW',
+          );
         default:
-          return _BadgeInfo(color: AppColors.gray10, textColor: AppColors.gray70, text: '종료');
+          return _BadgeInfo(
+            color: AppColors.gray10,
+            textColor: AppColors.gray70,
+            text: '종료',
+          );
       }
     } else if (schedule.status == GameStatus.inProgress) {
-      return _BadgeInfo(color: Colors.red, textColor: Colors.white, text: 'LIVE');
+      return _BadgeInfo(
+        color: Colors.red,
+        textColor: Colors.white,
+        text: 'LIVE',
+      );
     } else if (schedule.status == GameStatus.postponed) {
-      return _BadgeInfo(color: Colors.orange, textColor: Colors.white, text: 'PPD');
+      return _BadgeInfo(
+        color: Colors.orange,
+        textColor: Colors.white,
+        text: 'PPD',
+      );
     } else if (schedule.status == GameStatus.canceled) {
-      return _BadgeInfo(color: AppColors.gray30, textColor: AppColors.black, text: '취소');
+      return _BadgeInfo(
+        color: AppColors.gray30,
+        textColor: AppColors.black,
+        text: '취소',
+      );
     }
 
-    return _BadgeInfo(color: Colors.transparent, textColor: Colors.transparent, text: '');
+    return _BadgeInfo(
+      color: Colors.transparent,
+      textColor: Colors.transparent,
+      text: '',
+    );
   }
 
   /// 액션 버튼 표시 여부 확인
@@ -238,5 +314,9 @@ class _BadgeInfo {
   final Color textColor;
   final String text;
 
-  _BadgeInfo({required this.color, required this.textColor, required this.text});
+  _BadgeInfo({
+    required this.color,
+    required this.textColor,
+    required this.text,
+  });
 }

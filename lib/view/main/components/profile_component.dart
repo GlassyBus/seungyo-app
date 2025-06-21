@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:seungyo/models/user_profile.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 
@@ -21,24 +20,21 @@ class ProfileComponent extends StatelessWidget {
 
   /// 생성자
   const ProfileComponent({
-    Key? key,
+    super.key,
     this.userProfile,
     this.favoriteTeam,
     this.level = 1,
     this.isPremium = false,
     this.onMoreTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     // 사용자 닉네임 (기본값 제공)
     final userName = userProfile?.nickname ?? '승요 팬';
-    
+
     // 팀 이름 (기본값 제공)
     final teamName = favoriteTeam?.name ?? 'LG 트윈스';
-    
-    // 팀 로고
-    final teamLogo = favoriteTeam?.logo;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
@@ -81,7 +77,7 @@ class ProfileComponent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${teamName}의 승요',
+                      '$teamName의 승요',
                       style: const TextStyle(
                         color: Color(0xFF09004C),
                         fontSize: 16,
@@ -141,25 +137,6 @@ class ProfileComponent extends StatelessWidget {
     );
   }
 
-  /// 팀 로고 이미지 위젯
-  Widget _buildTeamLogoImage() {
-    return Container(
-      width: 60,
-      height: 60,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFDDDDDD), width: 1),
-      ),
-      child: ClipOval(
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: _buildTeamLogo(),
-        ),
-      ),
-    );
-  }
-
   /// 팀 로고 빌드
   Widget _buildTeamLogo() {
     if (favoriteTeam?.logo != null && favoriteTeam!.logo!.isNotEmpty) {
@@ -169,7 +146,6 @@ class ProfileComponent extends StatelessWidget {
           favoriteTeam!.logo!,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            print('ProfileComponent: Error loading team logo: ${favoriteTeam!.logo}');
             return _buildFallbackLogo();
           },
         );
@@ -202,116 +178,8 @@ class ProfileComponent extends StatelessWidget {
       );
     } else {
       return const Center(
-        child: Icon(
-          Icons.sports_baseball,
-          size: 32,
-          color: Color(0xFF09004C),
-        ),
+        child: Icon(Icons.sports_baseball, size: 32, color: Color(0xFF09004C)),
       );
-    }
-  }
-
-  /// 사용자 정보 위젯
-  Widget _buildUserInfo(String name, String team) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Flexible(
-              child: Text(
-                name,
-                style: const TextStyle(
-                  fontFamily: 'KBO Dia Gothic',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.32,
-                  color: Color(0xFF100F21),
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (isPremium)
-              Container(
-                margin: const EdgeInsets.only(left: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFD700),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'PREMIUM',
-                  style: TextStyle(
-                    fontFamily: 'KBO Dia Gothic',
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF000000),
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '응원팀: $team',
-          style: const TextStyle(
-            fontFamily: 'KBO Dia Gothic',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            letterSpacing: -0.28,
-            color: Color(0xFF7E8695),
-          ),
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-
-  /// 레벨 배지 위젯
-  Widget _buildLevelBadge() {
-    return GestureDetector(
-      onTap: onMoreTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Color(0xFF09004C),
-        ),
-        child: Center(
-          child: Text(
-            'Lv.$level',
-            style: const TextStyle(
-              fontFamily: 'KBO Dia Gothic',
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// 더보기 버튼을 빌드합니다.
-  Widget _buildMoreButton() {
-    return GestureDetector(
-      onTap: onMoreTap,
-      child: _buildIcon('assets/icons/more-25px.svg'),
-    );
-  }
-
-  /// 아이콘을 빌드합니다. SVG 또는 일반 이미지를 지원합니다.
-  Widget _buildIcon(String iconPath) {
-    if (iconPath.endsWith('.svg')) {
-      return SvgPicture.asset(
-        iconPath,
-        width: 24,
-        height: 24,
-        colorFilter: const ColorFilter.mode(Color(0xFF100F21), BlendMode.srcIn),
-      );
-    } else {
-      return Image.asset(iconPath, width: 24, height: 24, fit: BoxFit.contain);
     }
   }
 }
