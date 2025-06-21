@@ -488,15 +488,19 @@ class NotificationService {
           }).toList();
 
       if (kDebugMode) {
-        if (kDebugMode) print(
+        if (kDebugMode) {
+          print(
           '📱 전체 ${schedules.length}개 경기 중 응원팀(${favoriteTeam.name}, ID: ${favoriteTeam.id}) 경기: ${favoriteTeamSchedules.length}개',
         );
+        }
 
         // 필터링된 경기들 상세 로그
         for (final schedule in favoriteTeamSchedules) {
-          if (kDebugMode) print(
+          if (kDebugMode) {
+            print(
             '   ✅ ${schedule.homeTeam} vs ${schedule.awayTeam} (홈: ${_getTeamIdByName(schedule.homeTeam)}, 원정: ${_getTeamIdByName(schedule.awayTeam)})',
           );
+          }
         }
       }
 
@@ -512,15 +516,21 @@ class NotificationService {
       }
 
       if (kDebugMode) {
-        if (kDebugMode) print(
-          '📱 응원팀 ${favoriteTeamSchedules.length}개 경기 중 ${scheduledCount}개 경기에 대한 알림 설정 완료',
+        if (kDebugMode) {
+          print(
+          '📱 응원팀 ${favoriteTeamSchedules.length}개 경기 중 $scheduledCount개 경기에 대한 알림 설정 완료',
         );
-        if (kDebugMode) print(
+        }
+        if (kDebugMode) {
+          print(
           '  - 경기 시작 알림: ${settingsProvider.gameStartNotification ? '활성화' : '비활성화'}',
         );
-        if (kDebugMode) print(
+        }
+        if (kDebugMode) {
+          print(
           '  - 경기 종료 알림: ${settingsProvider.gameEndNotification ? '활성화' : '비활성화'}',
         );
+        }
       }
     } catch (error) {
       if (kDebugMode) {
@@ -543,9 +553,11 @@ class NotificationService {
       if (schedule.dateTime.isBefore(now) ||
           schedule.status != GameStatus.scheduled) {
         if (kDebugMode) {
-          if (kDebugMode) print(
+          if (kDebugMode) {
+            print(
             '⏭️ 스킵: ${schedule.homeTeam} vs ${schedule.awayTeam} (${schedule.status.displayName})',
           );
+          }
         }
         return false;
       }
@@ -566,12 +578,16 @@ class NotificationService {
 
       if (!isUserTeamGame) {
         if (kDebugMode) {
-          if (kDebugMode) print(
+          if (kDebugMode) {
+            print(
             '🚫 응원팀(${favoriteTeam.name}, ID: ${favoriteTeam.id}) 경기가 아님: ${schedule.homeTeam} vs ${schedule.awayTeam}',
           );
-          if (kDebugMode) print(
+          }
+          if (kDebugMode) {
+            print(
             '   홈팀 ID: ${_getTeamIdByName(schedule.homeTeam)}, 원정팀 ID: ${_getTeamIdByName(schedule.awayTeam)}',
           );
+          }
         }
         return false;
       }
@@ -597,9 +613,11 @@ class NotificationService {
           wasScheduled = true;
 
           if (kDebugMode) {
-            if (kDebugMode) print(
-              '🔔 응원팀 경기 시작 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} (${startNotificationTime})',
+            if (kDebugMode) {
+              print(
+              '🔔 응원팀 경기 시작 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} ($startNotificationTime)',
             );
+            }
           }
         }
       }
@@ -622,9 +640,11 @@ class NotificationService {
           wasScheduled = true;
 
           if (kDebugMode) {
-            if (kDebugMode) print(
-              '📝 응원팀 경기 종료 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} (${endNotificationTime})',
+            if (kDebugMode) {
+              print(
+              '📝 응원팀 경기 종료 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} ($endNotificationTime)',
             );
+            }
           }
         }
       }
@@ -677,7 +697,7 @@ class NotificationService {
           playSound: true,
           icon: '@mipmap/ic_launcher',
         ),
-        iOS: const DarwinNotificationDetails(
+        iOS: DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
@@ -859,8 +879,8 @@ class NotificationService {
 
       await _flutterLocalNotificationsPlugin.zonedSchedule(
         9998, // 테스트 알림 ID
-        '⏰ ${delaySeconds}초 후 테스트 알림',
-        '정확히 ${delaySeconds}초 후에 이 알림이 와야 합니다! 🎯',
+        '⏰ $delaySeconds초 후 테스트 알림',
+        '정확히 $delaySeconds초 후에 이 알림이 와야 합니다! 🎯',
         seoulScheduledTime,
         notificationDetails,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -876,7 +896,7 @@ class NotificationService {
           pendingNotifications.where((n) => n.id == 9998).firstOrNull;
 
       if (kDebugMode) {
-        if (kDebugMode) print('⏰ ${delaySeconds}초 후 테스트 알림 예약 완료');
+        if (kDebugMode) print('⏰ $delaySeconds초 후 테스트 알림 예약 완료');
         if (kDebugMode) print('   현재 시간 (로컬): $now');
         if (kDebugMode) print('   현재 시간 (서울): $seoulNow');
         if (kDebugMode) print('   예약 시간 (로컬): $scheduledTime');

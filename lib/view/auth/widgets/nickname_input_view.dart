@@ -260,7 +260,7 @@ class _NicknameInputViewState extends State<NicknameInputView> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // 등록 완료 버튼
-                    Container(
+                    SizedBox(
                       width: double.infinity,
                       height: 56,
                       child: TextButton(

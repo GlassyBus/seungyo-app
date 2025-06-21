@@ -78,7 +78,7 @@ class ScheduleItem extends StatelessWidget {
         if (badgeInfo.text.isNotEmpty) const SizedBox(width: 12),
         Expanded(
           child: Text(
-            '${schedule.stadium}, ${formattedTime}',
+            '${schedule.stadium}, $formattedTime',
             style: textTheme.bodyMedium?.copyWith(
               color: AppColors.navy,
               fontWeight: FontWeight.bold,

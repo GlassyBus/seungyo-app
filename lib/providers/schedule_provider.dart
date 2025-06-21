@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';import '../models/game_record.dart';
+import 'package:flutter/foundation.dart';
+import '../models/game_record.dart';
 import '../models/game_schedule.dart';
 import '../services/record_service.dart';
 import '../services/schedule_service.dart';
@@ -90,8 +91,14 @@ class ScheduleProvider extends ChangeNotifier {
         _currentMonth.month,
       );
 
-      if (kDebugMode) if (kDebugMode) print('로드된 직관 기록 수: ${allRecords.length}');
-      if (kDebugMode) if (kDebugMode) print('로드된 경기 일정 수: ${allSchedules.length}');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('로드된 직관 기록 수: ${allRecords.length}');
+        }
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('로드된 경기 일정 수: ${allSchedules.length}');
+        }
 
       // 현재 월의 기록만 필터링
       final monthRecords =
@@ -104,12 +111,21 @@ class ScheduleProvider extends ChangeNotifier {
       _recordMap = _createRecordMap(monthRecords);
       _scheduleMap = _createScheduleMap(allSchedules);
 
-      if (kDebugMode) if (kDebugMode) print('기록 맵 생성 완료: ${_recordMap.keys.length}개 날짜');
-      if (kDebugMode) if (kDebugMode) print('일정 맵 생성 완료: ${_scheduleMap.keys.length}개 날짜');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('기록 맵 생성 완료: ${_recordMap.keys.length}개 날짜');
+        }
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('일정 맵 생성 완료: ${_scheduleMap.keys.length}개 날짜');
+        }
 
       // 선택된 날짜의 기록 업데이트
       _updateDayRecords();
-      if (kDebugMode) if (kDebugMode) print('선택된 날짜 전체 경기: ${allDayGames.length}개');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('선택된 날짜 전체 경기: ${allDayGames.length}개');
+        }
 
       _setLoading(false);
       if (kDebugMode) if (kDebugMode) print('=== loadSchedules 완료 ===');
@@ -167,9 +183,13 @@ class ScheduleProvider extends ChangeNotifier {
     // 해당 날짜의 일정도 업데이트
     _daySchedules = _scheduleMap[dateKey] ?? [];
 
-    if (kDebugMode) if (kDebugMode) print(
-      '날짜 ${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day} 기록: ${_dayRecords.length}개, 일정: ${_daySchedules.length}개',
-    );
+    if (kDebugMode) {
+      if (kDebugMode) {
+        print(
+          '날짜 ${_selectedDate.year}-${_selectedDate.month}-${_selectedDate.day} 기록: ${_dayRecords.length}개, 일정: ${_daySchedules.length}개',
+        );
+      }
+    }
   }
 
   /// 날짜별 직관 기록 맵 생성

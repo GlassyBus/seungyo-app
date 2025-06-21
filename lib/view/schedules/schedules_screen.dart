@@ -320,7 +320,7 @@ class _SchedulePageState extends State<SchedulePage> {
             record: record,
             onTap: () => _navigateToRecordDetail(context, record),
           );
-        }).toList(),
+        }),
         const SizedBox(height: 16), // 하단 여백
       ],
     );

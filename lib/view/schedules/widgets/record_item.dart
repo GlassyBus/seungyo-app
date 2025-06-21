@@ -80,7 +80,7 @@ class RecordItem extends StatelessWidget {
         if (badgeInfo.text.isNotEmpty) const SizedBox(width: 12),
         Expanded(
           child: Text(
-            '${record.stadium.name}, ${formattedTime}',
+            '${record.stadium.name}, $formattedTime',
             style: textTheme.bodyMedium?.copyWith(
               color: AppColors.navy,
               fontWeight: FontWeight.bold,

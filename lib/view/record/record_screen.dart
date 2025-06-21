@@ -69,9 +69,11 @@ class _RecordListPageState extends State<RecordListPage>
 
       for (int i = 0; i < records.length && i < 3; i++) {
         final record = records[i];
-        if (kDebugMode) if (kDebugMode) print(
+        if (kDebugMode) if (kDebugMode) {
+          print(
           'RecordScreen: Record $i - ${record.homeTeam.name} vs ${record.awayTeam.name}, Created: ${record.createdAt}, Stadium: ${record.stadium.name}',
         );
+        }
       }
 
       setState(() {
@@ -109,9 +111,11 @@ class _RecordListPageState extends State<RecordListPage>
         _showOnlyFavorites
             ? nonCanceledRecords.where((record) => record.isFavorite).toList()
             : nonCanceledRecords;
-    if (kDebugMode) if (kDebugMode) print(
+    if (kDebugMode) if (kDebugMode) {
+      print(
       'RecordScreen: Filtered records count: ${filtered.length} (showOnlyFavorites: $_showOnlyFavorites, excluded canceled: ${_records.length - nonCanceledRecords.length})',
     );
+    }
     return filtered;
   }
 
@@ -264,9 +268,11 @@ class _RecordListPageState extends State<RecordListPage>
 
     // 상세 화면에서 변경사항이 있으면 리스트 새로고침
     if (result == true) {
-      if (kDebugMode) if (kDebugMode) print(
+      if (kDebugMode) if (kDebugMode) {
+        print(
         'RecordScreen: Changes detected from detail page, refreshing list...',
       );
+      }
       await _loadRecords();
 
       // 부모(메인 화면)에게 변경사항 알림

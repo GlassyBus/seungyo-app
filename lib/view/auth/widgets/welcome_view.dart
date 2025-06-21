@@ -112,7 +112,7 @@ class _WelcomeViewState extends State<WelcomeView> {
             children: [
               // 메인 콘텐츠 영역
               Expanded(
-                child: Container(
+                child: SizedBox(
                   width: double.infinity,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

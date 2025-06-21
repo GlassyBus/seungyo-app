@@ -217,7 +217,7 @@ class GameRecordCard extends StatelessWidget {
   }
 
   Widget _buildVerticalDottedLine(double contentHeight) {
-    return Container(
+    return SizedBox(
       width: 10,
       height: contentHeight,
       child: CustomPaint(painter: DottedLinePainter()),

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import '../lib/services/database_service.dart';
+import 'package:seungyo/services/database_service.dart';
 
 void main() async {
   if (kDebugMode) print('데이터베이스 테스트 시작');

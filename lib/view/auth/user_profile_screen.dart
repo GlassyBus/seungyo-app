@@ -55,9 +55,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final team = await _userService.getUserFavoriteTeam();
 
       if (kDebugMode) if (kDebugMode) print('UserProfilePage: Profile loaded - Nickname: ${profile.nickname}');
-      if (kDebugMode) if (kDebugMode) print(
+      if (kDebugMode) if (kDebugMode) {
+        print(
         'UserProfilePage: Team loaded - Name: ${team?.name}, Logo: ${team?.logo}',
       );
+      }
 
       setState(() {
         _userProfile = profile;
@@ -430,9 +432,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
           _favoriteTeam!.logo!,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            if (kDebugMode) if (kDebugMode) print(
+            if (kDebugMode) if (kDebugMode) {
+              print(
               'UserProfilePage: Error loading team logo: ${_favoriteTeam!.logo}',
             );
+            }
             return _buildFallbackLogo();
           },
         );

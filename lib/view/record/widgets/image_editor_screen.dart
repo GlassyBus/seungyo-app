@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:photo_view/photo_view.dart';
@@ -28,7 +27,7 @@ class ImageEditorScreen extends StatefulWidget {
 }
 
 class _ImageEditorScreenState extends State<ImageEditorScreen> {
-  List<TextOverlay> _textOverlays = [];
+  final List<TextOverlay> _textOverlays = [];
 
   bool _isProcessing = false;
 
@@ -217,7 +216,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         HapticFeedback.lightImpact();
         onTap();
       },
-      child: Container(
+      child: SizedBox(
         width: 70,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -827,7 +826,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
       // 단순한 스케일링 (화면 너비 기준)
       final scaleX = imageWidth / screenSize.width;
 
-      if (kDebugMode) print('이미지 원본 크기: ${imageWidth}x${imageHeight}');
+      if (kDebugMode) print('이미지 원본 크기: ${imageWidth}x$imageHeight');
       if (kDebugMode) print('화면 크기: ${screenSize.width}x${screenSize.height}');
       if (kDebugMode) print('스케일: $scaleX');
 

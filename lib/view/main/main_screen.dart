@@ -164,9 +164,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _isNewsLoading = true; // 뉴스도 여전히 로딩 중
       });
 
-      if (kDebugMode) if (kDebugMode) print(
+      if (kDebugMode) if (kDebugMode) {
+        print(
         'MainScreen: Basic data loaded, now loading today games and news...',
       );
+      }
 
       // 🚀 2단계: 오늘 경기 빠르게 로드 (별도로)
       _loadTodayGamesAsync();
@@ -490,9 +492,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
       // 상세 화면에서 수정/삭제가 발생했으면 홈 데이터와 일정 탭 새로고침
       if (result == true) {
-        if (kDebugMode) if (kDebugMode) print(
+        if (kDebugMode) if (kDebugMode) {
+          print(
           'MainScreen: Record modified/deleted from detail view, refreshing all data...',
         );
+        }
         await _loadHomeData();
         _refreshSchedulePage();
       }
@@ -507,9 +511,11 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
       // 기록 추가 후 홈 데이터와 일정 탭 새로고침
       if (result == true) {
-        if (kDebugMode) if (kDebugMode) print(
+        if (kDebugMode) if (kDebugMode) {
+          print(
           'MainScreen: Record added from today\'s game, refreshing all data...',
         );
+        }
         await _loadHomeData();
         _refreshSchedulePage();
       }

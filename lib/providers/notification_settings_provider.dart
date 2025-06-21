@@ -36,15 +36,19 @@ class NotificationSettingsProvider extends ChangeNotifier {
       await loadSettings();
 
       if (kDebugMode) {
-        if (kDebugMode) print(
-          '🔔 NotificationSettings 초기화 완료: 시작 알림 = $_gameStartNotification, 종료 알림 = $_gameEndNotification',
-        );
+        if (kDebugMode) {
+          print(
+            '🔔 NotificationSettings 초기화 완료: 시작 알림 = $_gameStartNotification, 종료 알림 = $_gameEndNotification',
+          );
+        }
       }
     } catch (error) {
       _setError('초기화 실패: $error');
 
       if (kDebugMode) {
-        if (kDebugMode) print('❌ NotificationSettings 초기화 실패: $error');
+        if (kDebugMode) {
+          print('❌ NotificationSettings 초기화 실패: $error');
+        }
       }
     } finally {
       _setLoading(false);
@@ -73,9 +77,11 @@ class NotificationSettingsProvider extends ChangeNotifier {
       notifyListeners();
 
       if (kDebugMode) {
-        if (kDebugMode) print(
-          '📱 알림 설정 로드됨: 시작=$_gameStartNotification, 종료=$_gameEndNotification',
-        );
+        if (kDebugMode) {
+          print(
+            '📱 알림 설정 로드됨: 시작=$_gameStartNotification, 종료=$_gameEndNotification',
+          );
+        }
       }
     } catch (error) {
       _setError('설정 로드 실패: $error');
@@ -91,7 +97,9 @@ class NotificationSettingsProvider extends ChangeNotifier {
   }) {
     if (value == null) {
       if (kDebugMode) {
-        if (kDebugMode) print('⚠️ $settingName 설정이 null입니다. 기본값($defaultValue)을 사용합니다.');
+        if (kDebugMode) {
+          print('⚠️ $settingName 설정이 null입니다. 기본값($defaultValue)을 사용합니다.');
+        }
       }
       return defaultValue;
     }
@@ -167,9 +175,11 @@ class NotificationSettingsProvider extends ChangeNotifier {
       await _updatePushNotifications();
 
       if (kDebugMode) {
-        if (kDebugMode) print(
-          '💾 알림 설정 저장 완료: 시작=$_gameStartNotification, 종료=$_gameEndNotification',
-        );
+        if (kDebugMode) {
+          print(
+            '💾 알림 설정 저장 완료: 시작=$_gameStartNotification, 종료=$_gameEndNotification',
+          );
+        }
       }
     } catch (error) {
       _setError('설정 저장 실패: $error');

@@ -26,7 +26,9 @@ class RecordService {
       if (kDebugMode) if (kDebugMode) print('RecordService: Getting all database records...');
       final dbRecords = await _database.getAllRecords();
       if (kDebugMode)
-        if (kDebugMode) print('RecordService: Found ${dbRecords.length} database records');
+        if (kDebugMode) {
+          print('RecordService: Found ${dbRecords.length} database records');
+        }
 
       final gameRecords = <GameRecord>[];
 
@@ -42,9 +44,11 @@ class RecordService {
       // 날짜 기준으로 내림차순 정렬 (최신 기록이 위로)
       gameRecords.sort((a, b) => b.dateTime.compareTo(a.dateTime));
       if (kDebugMode)
-        if (kDebugMode) print(
+        if (kDebugMode) {
+          print(
           'RecordService: Converted and sorted ${gameRecords.length} game records',
         );
+        }
 
       return gameRecords;
     } catch (e) {
@@ -98,17 +102,23 @@ class RecordService {
     try {
       if (kDebugMode) if (kDebugMode) print('RecordService: Starting addRecord...');
       if (kDebugMode)
-        if (kDebugMode) print(
+        if (kDebugMode) {
+          print(
           'RecordService: Form data - DateTime: ${form.gameDateTime}, Stadium: ${form.stadiumId}, HomeTeam: ${form.homeTeamId}, AwayTeam: ${form.awayTeamId}',
         );
+        }
       if (kDebugMode)
-        if (kDebugMode) print(
+        if (kDebugMode) {
+          print(
           'RecordService: Form scores - Home: ${form.homeScore}, Away: ${form.awayScore}',
         );
+        }
       if (kDebugMode)
-        if (kDebugMode) print(
+        if (kDebugMode) {
+          print(
           'RecordService: Form extras - Seat: ${form.seatInfo}, Comment: ${form.comment}, Favorite: ${form.isFavorite}, Canceled: ${form.canceled}',
         );
+        }
 
       // 필수 필드 검증
       if (!form.isValid) {
@@ -122,18 +132,24 @@ class RecordService {
       List<String> photosPaths = [];
       if (form.imagePaths != null && form.imagePaths!.isNotEmpty) {
         if (kDebugMode)
-          if (kDebugMode) print('RecordService: Processing ${form.imagePaths!.length} images');
+          if (kDebugMode) {
+            print('RecordService: Processing ${form.imagePaths!.length} images');
+          }
         for (final imagePath in form.imagePaths!) {
           if (kDebugMode) if (kDebugMode) print('RecordService: Processing image: $imagePath');
           final permanentPath = await _saveImagePermanently(imagePath);
           photosPaths.add(permanentPath);
           if (kDebugMode)
-            if (kDebugMode) print('RecordService: Image saved to: $permanentPath');
+            if (kDebugMode) {
+              print('RecordService: Image saved to: $permanentPath');
+            }
         }
       } else if (form.imagePath != null) {
         // 하위 호환성을 위해 단일 이미지 경로도 처리
         if (kDebugMode)
-          if (kDebugMode) print('RecordService: Processing single image: ${form.imagePath}');
+          if (kDebugMode) {
+            print('RecordService: Processing single image: ${form.imagePath}');
+          }
         final permanentPath = await _saveImagePermanently(form.imagePath!);
         photosPaths.add(permanentPath);
         if (kDebugMode) if (kDebugMode) print('RecordService: Image saved to: $permanentPath');
@@ -162,29 +178,39 @@ class RecordService {
       if (kDebugMode) if (kDebugMode) print('RecordService: Inserting record into database...');
       final recordId = await _database.insertRecord(companion);
       if (kDebugMode)
-        if (kDebugMode) print('RecordService: Record inserted successfully with ID: $recordId');
+        if (kDebugMode) {
+          print('RecordService: Record inserted successfully with ID: $recordId');
+        }
 
       // 검증: 실제로 DB에 들어갔는지 확인
       final allRecords = await _database.getAllRecords();
       if (kDebugMode)
-        if (kDebugMode) print(
+        if (kDebugMode) {
+          print(
           'RecordService: Total records in DB after insert: ${allRecords.length}',
         );
+        }
 
       final insertedRecord =
           allRecords.where((r) => r.id == recordId).firstOrNull;
       if (insertedRecord != null) {
         if (kDebugMode)
-          if (kDebugMode) print('RecordService: Verification successful - Record found in DB');
+          if (kDebugMode) {
+            print('RecordService: Verification successful - Record found in DB');
+          }
         if (kDebugMode)
-          if (kDebugMode) print(
+          if (kDebugMode) {
+            print(
             'RecordService: Inserted record details - Date: ${insertedRecord.date}, Stadium: ${insertedRecord.stadiumId}, Teams: ${insertedRecord.homeTeamId} vs ${insertedRecord.awayTeamId}',
           );
+          }
       } else {
         if (kDebugMode)
-          if (kDebugMode) print(
+          if (kDebugMode) {
+            print(
             'RecordService: WARNING - Record not found in DB after insert!',
           );
+          }
       }
 
       return recordId;
@@ -207,9 +233,11 @@ class RecordService {
       }
 
       if (kDebugMode)
-        if (kDebugMode) print(
+        if (kDebugMode) {
+          print(
           'RecordService: Found existing record, proceeding with update...',
         );
+        }
 
       // 이미지 처리
       List<String> photosPaths = [];
@@ -221,27 +249,35 @@ class RecordService {
             jsonDecode(existingRecord.photosJson!),
           );
           if (kDebugMode)
-            if (kDebugMode) print(
+            if (kDebugMode) {
+              print(
               'RecordService: Loaded ${photosPaths.length} existing photos',
             );
+            }
         } catch (e) {
           if (kDebugMode)
-            if (kDebugMode) print('RecordService: Error parsing existing photos JSON: $e');
+            if (kDebugMode) {
+              print('RecordService: Error parsing existing photos JSON: $e');
+            }
         }
       }
 
       // 새로운 이미지들 추가
       if (form.imagePaths != null && form.imagePaths!.isNotEmpty) {
         if (kDebugMode)
-          if (kDebugMode) print(
+          if (kDebugMode) {
+            print(
             'RecordService: Processing ${form.imagePaths!.length} new images',
           );
+          }
         for (final imagePath in form.imagePaths!) {
           if (!imagePath.startsWith('/data/')) {
             final permanentPath = await _saveImagePermanently(imagePath);
             photosPaths.add(permanentPath);
             if (kDebugMode)
-              if (kDebugMode) print('RecordService: Added new image: $permanentPath');
+              if (kDebugMode) {
+                print('RecordService: Added new image: $permanentPath');
+              }
           } else {
             // 이미 영구 저장된 경로인 경우 그대로 유지
             if (!photosPaths.contains(imagePath)) {
@@ -255,7 +291,9 @@ class RecordService {
         final permanentPath = await _saveImagePermanently(form.imagePath!);
         photosPaths.add(permanentPath);
         if (kDebugMode)
-          if (kDebugMode) print('RecordService: Added single new image: $permanentPath');
+          if (kDebugMode) {
+            print('RecordService: Added single new image: $permanentPath');
+          }
       }
 
       // 업데이트된 기록 생성
@@ -286,17 +324,25 @@ class RecordService {
         final updatedRecordFromDb = await _getRecordById(id);
         if (updatedRecordFromDb != null) {
           if (kDebugMode)
-            if (kDebugMode) print('RecordService: Verification - Record updated successfully');
+            if (kDebugMode) {
+              print('RecordService: Verification - Record updated successfully');
+            }
           if (kDebugMode)
-            if (kDebugMode) print('  - Stadium: ${updatedRecordFromDb.stadiumId}');
+            if (kDebugMode) {
+              print('  - Stadium: ${updatedRecordFromDb.stadiumId}');
+            }
           if (kDebugMode)
-            if (kDebugMode) print(
+            if (kDebugMode) {
+              print(
               '  - Teams: ${updatedRecordFromDb.homeTeamId} vs ${updatedRecordFromDb.awayTeamId}',
             );
+            }
           if (kDebugMode)
-            if (kDebugMode) print(
+            if (kDebugMode) {
+              print(
               '  - Score: ${updatedRecordFromDb.homeScore}-${updatedRecordFromDb.awayScore}',
             );
+            }
         }
       }
 
@@ -338,7 +384,9 @@ class RecordService {
   Future<bool> toggleFavorite(int id) async {
     try {
       if (kDebugMode)
-        if (kDebugMode) print('RecordService: Toggling favorite for record ID: $id');
+        if (kDebugMode) {
+          print('RecordService: Toggling favorite for record ID: $id');
+        }
 
       final record = await _getRecordById(id);
       if (record == null) {
@@ -347,10 +395,14 @@ class RecordService {
       }
 
       if (kDebugMode)
-        if (kDebugMode) print('RecordService: Current favorite status: ${record.isFavorite}');
+        if (kDebugMode) {
+          print('RecordService: Current favorite status: ${record.isFavorite}');
+        }
       final newFavoriteStatus = !record.isFavorite;
       if (kDebugMode)
-        if (kDebugMode) print('RecordService: New favorite status will be: $newFavoriteStatus');
+        if (kDebugMode) {
+          print('RecordService: New favorite status will be: $newFavoriteStatus');
+        }
 
       final updatedRecord = RecordsCompanion(
         id: Value(id),
@@ -376,9 +428,11 @@ class RecordService {
         final updatedRecordFromDb = await _getRecordById(id);
         if (updatedRecordFromDb != null) {
           if (kDebugMode)
-            if (kDebugMode) print(
+            if (kDebugMode) {
+              print(
               'RecordService: Verification - DB now shows favorite status: ${updatedRecordFromDb.isFavorite}',
             );
+            }
         }
       }
 
@@ -442,7 +496,7 @@ class RecordService {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
 
     // 새 파일 경로
-    final newPath = '${imagesDir.path}/record_${timestamp}.$extension';
+    final newPath = '${imagesDir.path}/record_$timestamp.$extension';
 
     // 파일 복사
     final sourceFile = File(sourcePath);

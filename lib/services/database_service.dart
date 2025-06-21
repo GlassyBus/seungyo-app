@@ -29,13 +29,19 @@ class DatabaseService {
   Future<void> _initializeDefaultData() async {
     try {
       if (kDebugMode) {
-        if (kDebugMode) if (kDebugMode) print('Starting database initialization...');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Starting database initialization...');
+          }
       }
 
       // 팀 데이터가 비어있으면 기본 데이터 삽입
       final existingTeams = await _database.getAllTeams();
       if (kDebugMode) {
-        if (kDebugMode) if (kDebugMode) print('Existing teams count: ${existingTeams.length}');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Existing teams count: ${existingTeams.length}');
+          }
       }
       if (existingTeams.isEmpty) {
         if (kDebugMode) {
@@ -43,7 +49,10 @@ class DatabaseService {
         }
         await _insertTeamData();
         if (kDebugMode) {
-          if (kDebugMode) if (kDebugMode) print('Team data inserted successfully');
+          if (kDebugMode)
+            if (kDebugMode) {
+              print('Team data inserted successfully');
+            }
         }
       }
 
@@ -51,7 +60,9 @@ class DatabaseService {
       final existingStadiums = await _database.getAllStadiums();
       if (kDebugMode) {
         if (kDebugMode)
-          if (kDebugMode) print('Existing stadiums count: ${existingStadiums.length}');
+          if (kDebugMode) {
+            print('Existing stadiums count: ${existingStadiums.length}');
+          }
       }
       if (existingStadiums.isEmpty) {
         if (kDebugMode) {
@@ -59,7 +70,10 @@ class DatabaseService {
         }
         await _insertStadiumData();
         if (kDebugMode) {
-          if (kDebugMode) if (kDebugMode) print('Stadium data inserted successfully');
+          if (kDebugMode)
+            if (kDebugMode) {
+              print('Stadium data inserted successfully');
+            }
         }
       }
 
@@ -67,7 +81,9 @@ class DatabaseService {
       final existingRecords = await _database.getAllRecords();
       if (kDebugMode) {
         if (kDebugMode)
-          if (kDebugMode) print('Existing records count: ${existingRecords.length}');
+          if (kDebugMode) {
+            print('Existing records count: ${existingRecords.length}');
+          }
       }
       // if (existingRecords.isEmpty) {
       //   if (kDebugMode) if (kDebugMode) print('Inserting record data...');
@@ -76,12 +92,21 @@ class DatabaseService {
       // }
 
       if (kDebugMode) {
-        if (kDebugMode) if (kDebugMode) print('Database initialization completed successfully');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Database initialization completed successfully');
+          }
       }
     } catch (e) {
       if (kDebugMode) {
-        if (kDebugMode) if (kDebugMode) print('Error initializing default data: $e');
-        if (kDebugMode) if (kDebugMode) print('Error stack trace: ${StackTrace.current}');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Error initializing default data: $e');
+          }
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Error stack trace: ${StackTrace.current}');
+          }
       }
     }
   }
@@ -90,12 +115,18 @@ class DatabaseService {
     try {
       final teams = team_data.TeamData.teams;
       if (kDebugMode) {
-        if (kDebugMode) if (kDebugMode) print('Found ${teams.length} teams to insert');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Found ${teams.length} teams to insert');
+          }
       }
       for (int i = 0; i < teams.length; i++) {
         final team = teams[i];
         if (kDebugMode) {
-          if (kDebugMode) if (kDebugMode) print('Inserting team: ${team.name} (${team.id})');
+          if (kDebugMode)
+            if (kDebugMode) {
+              print('Inserting team: ${team.name} (${team.id})');
+            }
         }
         await _database.insertTeam(
           TeamsCompanion.insert(
@@ -107,12 +138,18 @@ class DatabaseService {
         );
       }
       if (kDebugMode) {
-        if (kDebugMode) if (kDebugMode) print('All teams inserted successfully');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('All teams inserted successfully');
+          }
       }
     } catch (e) {
       if (kDebugMode) {
         if (kDebugMode) if (kDebugMode) print('Error inserting team data: $e');
-        if (kDebugMode) if (kDebugMode) print('Error stack trace: ${StackTrace.current}');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Error stack trace: ${StackTrace.current}');
+          }
       }
     }
   }
@@ -121,12 +158,17 @@ class DatabaseService {
     try {
       final stadiums = stadium_data.StadiumData.stadiums;
       if (kDebugMode) {
-        if (kDebugMode) if (kDebugMode) print('Found ${stadiums.length} stadiums to insert');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Found ${stadiums.length} stadiums to insert');
+          }
       }
       for (final stadium in stadiums) {
         if (kDebugMode) {
           if (kDebugMode)
-            if (kDebugMode) print('Inserting stadium: ${stadium.name} (${stadium.id})');
+            if (kDebugMode) {
+              print('Inserting stadium: ${stadium.name} (${stadium.id})');
+            }
         }
         await _database.insertStadium(
           StadiumsCompanion.insert(
@@ -137,12 +179,21 @@ class DatabaseService {
         );
       }
       if (kDebugMode) {
-        if (kDebugMode) if (kDebugMode) print('All stadiums inserted successfully');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('All stadiums inserted successfully');
+          }
       }
     } catch (e) {
       if (kDebugMode) {
-        if (kDebugMode) if (kDebugMode) print('Error inserting stadium data: $e');
-        if (kDebugMode) if (kDebugMode) print('Error stack trace: ${StackTrace.current}');
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Error inserting stadium data: $e');
+          }
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Error stack trace: ${StackTrace.current}');
+          }
       }
     }
   }
@@ -193,7 +244,10 @@ class DatabaseService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error converting teams to app models: $e');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('Error converting teams to app models: $e');
+        }
       return [];
     }
   }
@@ -288,7 +342,10 @@ class DatabaseService {
           )
           .toList();
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error converting stadiums to app models: $e');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('Error converting stadiums to app models: $e');
+        }
       return [];
     }
   }
@@ -324,7 +381,10 @@ class DatabaseService {
         try {
           photos = List<String>.from(json.decode(dbRecord.photosJson!));
         } catch (e) {
-          if (kDebugMode) if (kDebugMode) print('Error parsing photos JSON: $e');
+          if (kDebugMode)
+            if (kDebugMode) {
+              print('Error parsing photos JSON: $e');
+            }
         }
       }
 
@@ -369,7 +429,10 @@ class DatabaseService {
         companions: [],
       );
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error converting record to game record: $e');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('Error converting record to game record: $e');
+        }
       return null;
     }
   }
@@ -389,7 +452,10 @@ class DatabaseService {
 
       return gameRecords;
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error getting all game records: $e');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('Error getting all game records: $e');
+        }
       return [];
     }
   }
@@ -406,19 +472,27 @@ class DatabaseService {
         if (kDebugMode) if (kDebugMode) print('First 3 teams:');
         for (int i = 0; i < (teams.length > 3 ? 3 : teams.length); i++) {
           final team = teams[i];
-          if (kDebugMode) if (kDebugMode) print('  - ${team.id}: ${team.name} (${team.code})');
+          if (kDebugMode)
+            if (kDebugMode) {
+              print('  - ${team.id}: ${team.name} (${team.code})');
+            }
         }
       }
 
       // 경기장 데이터 확인
       final stadiums = await _database.getAllStadiums();
-      if (kDebugMode) if (kDebugMode) print('Stadiums count: ${stadiums.length}');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('Stadiums count: ${stadiums.length}');
+        }
       if (stadiums.isNotEmpty) {
         if (kDebugMode) if (kDebugMode) print('First 3 stadiums:');
         for (int i = 0; i < (stadiums.length > 3 ? 3 : stadiums.length); i++) {
           final stadium = stadiums[i];
           if (kDebugMode)
-            if (kDebugMode) print('  - ${stadium.id}: ${stadium.name} (${stadium.city})');
+            if (kDebugMode) {
+              print('  - ${stadium.id}: ${stadium.name} (${stadium.city})');
+            }
         }
       }
 
@@ -430,31 +504,43 @@ class DatabaseService {
         for (int i = 0; i < (records.length > 3 ? 3 : records.length); i++) {
           final record = records[i];
           if (kDebugMode)
-            if (kDebugMode) print(
-              '  - Record ${record.id}: ${record.date} at ${record.stadiumId}',
-            );
+            if (kDebugMode) {
+              print(
+                '  - Record ${record.id}: ${record.date} at ${record.stadiumId}',
+              );
+            }
           if (kDebugMode)
-            if (kDebugMode) print(
-              '    ${record.homeTeamId} vs ${record.awayTeamId} (${record.homeScore}-${record.awayScore})',
-            );
+            if (kDebugMode) {
+              print(
+                '    ${record.homeTeamId} vs ${record.awayTeamId} (${record.homeScore}-${record.awayScore})',
+              );
+            }
         }
       }
 
       if (kDebugMode) if (kDebugMode) print('======================');
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error checking database status: $e');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('Error checking database status: $e');
+        }
     }
   }
 
   Future<void> printAllTeams() async {
     try {
       final teams = await _database.getAllTeams();
-      if (kDebugMode) if (kDebugMode) print('=== ALL TEAMS (${teams.length}) ===');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('=== ALL TEAMS (${teams.length}) ===');
+        }
       for (final team in teams) {
         if (kDebugMode)
-          if (kDebugMode) print(
-            'ID: ${team.id}, Name: ${team.name}, Code: ${team.code}, Emblem: ${team.emblem}',
-          );
+          if (kDebugMode) {
+            print(
+              'ID: ${team.id}, Name: ${team.name}, Code: ${team.code}, Emblem: ${team.emblem}',
+            );
+          }
       }
       if (kDebugMode) if (kDebugMode) print('========================');
     } catch (e) {
@@ -465,12 +551,17 @@ class DatabaseService {
   Future<void> printAllStadiums() async {
     try {
       final stadiums = await _database.getAllStadiums();
-      if (kDebugMode) if (kDebugMode) print('=== ALL STADIUMS (${stadiums.length}) ===');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('=== ALL STADIUMS (${stadiums.length}) ===');
+        }
       for (final stadium in stadiums) {
         if (kDebugMode)
-          if (kDebugMode) print(
-            'ID: ${stadium.id}, Name: ${stadium.name}, City: ${stadium.city}',
-          );
+          if (kDebugMode) {
+            print(
+              'ID: ${stadium.id}, Name: ${stadium.name}, City: ${stadium.city}',
+            );
+          }
       }
       if (kDebugMode) if (kDebugMode) print('============================');
     } catch (e) {
@@ -481,14 +572,22 @@ class DatabaseService {
   Future<void> printAllRecords() async {
     try {
       final records = await _database.getAllRecords();
-      if (kDebugMode) if (kDebugMode) print('=== ALL RECORDS (${records.length}) ===');
+      if (kDebugMode)
+        if (kDebugMode) {
+          print('=== ALL RECORDS (${records.length}) ===');
+        }
       for (final record in records) {
         if (kDebugMode) if (kDebugMode) print('ID: ${record.id}');
         if (kDebugMode) if (kDebugMode) print('Date: ${record.date}');
         if (kDebugMode) if (kDebugMode) print('Stadium: ${record.stadiumId}');
         if (kDebugMode)
-          if (kDebugMode) print('Teams: ${record.homeTeamId} vs ${record.awayTeamId}');
-        if (kDebugMode) if (kDebugMode) print('Score: ${record.homeScore}-${record.awayScore}');
+          if (kDebugMode) {
+            print('Teams: ${record.homeTeamId} vs ${record.awayTeamId}');
+          }
+        if (kDebugMode)
+          if (kDebugMode) {
+            print('Score: ${record.homeScore}-${record.awayScore}');
+          }
         if (kDebugMode) if (kDebugMode) print('Seat: ${record.seat}');
         if (kDebugMode) if (kDebugMode) print('Comment: ${record.comment}');
         if (kDebugMode) if (kDebugMode) print('Favorite: ${record.isFavorite}');

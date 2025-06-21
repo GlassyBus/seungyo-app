@@ -69,9 +69,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   void _initializeWithSchedule() {
     final schedule = widget.gameSchedule!;
-    if (kDebugMode) if (kDebugMode) print(
+    if (kDebugMode) if (kDebugMode) {
+      print(
       'CreateRecordScreen: Initializing with schedule - ${schedule.homeTeam} vs ${schedule.awayTeam} at ${schedule.stadium}',
     );
+    }
 
     // 경기장 ID 매핑
     String? stadiumId = StadiumMapping.getBestStadiumId(
@@ -83,15 +85,21 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
     String? homeTeamId = _getTeamIdByName(schedule.homeTeam);
     String? awayTeamId = _getTeamIdByName(schedule.awayTeam);
 
-    if (kDebugMode) if (kDebugMode) print(
+    if (kDebugMode) if (kDebugMode) {
+      print(
       'CreateRecordScreen: Mapped stadium "${schedule.stadium}" -> "$stadiumId"',
     );
-    if (kDebugMode) if (kDebugMode) print(
+    }
+    if (kDebugMode) if (kDebugMode) {
+      print(
       'CreateRecordScreen: Mapped home team "${schedule.homeTeam}" -> "$homeTeamId"',
     );
-    if (kDebugMode) if (kDebugMode) print(
+    }
+    if (kDebugMode) if (kDebugMode) {
+      print(
       'CreateRecordScreen: Mapped away team "${schedule.awayTeam}" -> "$awayTeamId"',
     );
+    }
 
     // 기본적으로 경기 시간, 경기장, 팀 정보 설정
     setState(() {
@@ -138,9 +146,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
   void _initializeWithExistingRecord() {
     final record = widget.gameRecord!;
-    if (kDebugMode) if (kDebugMode) print(
+    if (kDebugMode) if (kDebugMode) {
+      print(
       'CreateRecordScreen: Initializing with existing record ID: ${record.id}',
     );
+    }
 
     // 폼 데이터 설정
     _form = GameRecordForm(
@@ -832,13 +842,17 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
             onTap: () {
               setState(() {
                 _isGameCanceled = !_isGameCanceled;
-                if (kDebugMode) if (kDebugMode) print(
+                if (kDebugMode) if (kDebugMode) {
+                  print(
                   'CreateRecordScreen: Game canceled toggled to: $_isGameCanceled',
                 );
+                }
                 if (_isGameCanceled) {
-                  if (kDebugMode) if (kDebugMode) print(
+                  if (kDebugMode) if (kDebugMode) {
+                    print(
                     'CreateRecordScreen: Clearing scores due to cancellation',
                   );
+                  }
                   _form = _form.copyWith(homeScore: null, awayScore: null);
                 }
               });
@@ -1132,8 +1146,9 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   }
 
   void _showScoreInput() {
-    if (_form.homeTeamId == null || _form.awayTeamId == null || _isGameCanceled)
+    if (_form.homeTeamId == null || _form.awayTeamId == null || _isGameCanceled) {
       return;
+    }
 
     showModalBottomSheet(
       context: context,
@@ -1243,9 +1258,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
 
       if (widget.gameRecord != null) {
         // 수정 모드
-        if (kDebugMode) if (kDebugMode) print(
+        if (kDebugMode) if (kDebugMode) {
+          print(
           'CreateRecordScreen: Updating existing record ID: ${widget.gameRecord!.id}',
         );
+        }
         final success = await _recordService.updateRecord(
           widget.gameRecord!.id,
           _form,
@@ -1260,9 +1277,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         // 새 기록 추가 모드
         if (kDebugMode) if (kDebugMode) print('CreateRecordScreen: Adding new record...');
         final recordId = await _recordService.addRecord(_form);
-        if (kDebugMode) if (kDebugMode) print(
+        if (kDebugMode) if (kDebugMode) {
+          print(
           'CreateRecordScreen: Record added successfully with ID: $recordId',
         );
+        }
       }
 
       if (mounted) {

@@ -41,7 +41,7 @@ class NoScheduleView extends StatelessWidget {
     return Column(
       children: [
         // 우산 캐릭터 이미지 (배경 제거)
-        Container(
+        SizedBox(
           width: 100,
           height: 100,
           child: Image.asset(
@@ -84,7 +84,7 @@ class NoScheduleView extends StatelessWidget {
     return Column(
       children: [
         // Assets 폴더의 break-time 이미지 사용 (쉬는승요 캐릭터)
-        Container(
+        SizedBox(
           width: 100,
           height: 100,
           child: Image.asset(

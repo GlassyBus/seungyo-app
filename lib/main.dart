@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
@@ -35,21 +36,31 @@ void main() async {
   final dbService = DatabaseService();
   try {
     await dbService.initialize();
-    if (kDebugMode) print('DB 초기화 성공');
+    if (kDebugMode) {
+      print('DB 초기화 성공');
+    }
 
     // 디버그: DB 상태 확인
-    if (kDebugMode) print('DB 초기화 완료. 상태 확인 중...');
+    if (kDebugMode) {
+      print('DB 초기화 완료. 상태 확인 중...');
+    }
     await dbService.printDatabaseStatus();
   } catch (e) {
-    if (kDebugMode) print('DB 초기화 실패: $e');
+    if (kDebugMode) {
+      print('DB 초기화 실패: $e');
+    }
   }
 
   // 알림 서비스 초기화
   try {
     await NotificationService().initialize();
-    if (kDebugMode) print('🔔 알림 서비스 초기화 성공');
+    if (kDebugMode) {
+      print('🔔 알림 서비스 초기화 성공');
+    }
   } catch (e) {
-    if (kDebugMode) print('❌ 알림 서비스 초기화 실패: $e');
+    if (kDebugMode) {
+      print('❌ 알림 서비스 초기화 실패: $e');
+    }
   }
 
   SystemChrome.setSystemUIOverlayStyle(

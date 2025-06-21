@@ -304,7 +304,7 @@ class _SelectTeamViewState extends State<SelectTeamView> {
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
         children: [
-          Container(
+          SizedBox(
             width: double.infinity,
             height: 56,
             child: TextButton(
@@ -358,9 +358,11 @@ class _SelectTeamViewState extends State<SelectTeamView> {
           onPressed:
               selectedTeam != null && !_isLoading
                   ? () {
-                    if (kDebugMode) print(
+                    if (kDebugMode) {
+                      print(
                       'SelectTeamView: Returning selected team - ${selectedTeam.name}',
                     );
+                    }
                     Navigator.pop(context, selectedTeam);
                   }
                   : null,
