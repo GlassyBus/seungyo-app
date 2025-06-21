@@ -120,23 +120,33 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     try {
       // 🚀 1단계: 기본 데이터 먼저 로드 (빠른 표시)
       print('MainScreen: Loading basic data first...');
-      
+
       final recordService = RecordService();
       final userProfile = await _userService.getUserProfile();
       final favoriteTeam = await _userService.getUserFavoriteTeam();
-      
+
       // 기본 통계 계산
       final allRecords = await recordService.getAllRecords();
-      final validRecords = allRecords.where((record) {
-        return record.result == GameResult.win ||
-            record.result == GameResult.lose ||
-            record.result == GameResult.draw;
-      }).toList();
+      final validRecords =
+          allRecords.where((record) {
+            return record.result == GameResult.win ||
+                record.result == GameResult.lose ||
+                record.result == GameResult.draw;
+          }).toList();
 
       final totalGames = validRecords.length;
-      final winCount = validRecords.where((record) => record.result == GameResult.win).length;
-      final drawCount = validRecords.where((record) => record.result == GameResult.draw).length;
-      final loseCount = validRecords.where((record) => record.result == GameResult.lose).length;
+      final winCount =
+          validRecords
+              .where((record) => record.result == GameResult.win)
+              .length;
+      final drawCount =
+          validRecords
+              .where((record) => record.result == GameResult.draw)
+              .length;
+      final loseCount =
+          validRecords
+              .where((record) => record.result == GameResult.lose)
+              .length;
 
       // 🎯 기본 화면 먼저 표시 (오늘 경기는 로딩 중)
       setState(() {
@@ -154,7 +164,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _isNewsLoading = true; // 뉴스도 여전히 로딩 중
       });
 
-      print('MainScreen: Basic data loaded, now loading today games and news...');
+      print(
+        'MainScreen: Basic data loaded, now loading today games and news...',
+      );
 
       // 🚀 2단계: 오늘 경기 빠르게 로드 (별도로)
       _loadTodayGamesAsync();
@@ -163,19 +175,21 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       _loadNewsAsync(favoriteTeam);
 
       // 🚀 4단계: 백그라운드에서 여러 달 데이터 미리 로드
-      _scheduleService.preloadSchedules().then((_) {
-        if (kDebugMode) {
-          print('MainScreen: 백그라운드 데이터 미리 로드 완료');
-        }
-      }).catchError((e) {
-        if (kDebugMode) {
-          print('MainScreen: 백그라운드 데이터 미리 로드 실패: $e');
-        }
-      });
-
+      _scheduleService
+          .preloadSchedules()
+          .then((_) {
+            if (kDebugMode) {
+              print('MainScreen: 백그라운드 데이터 미리 로드 완료');
+            }
+          })
+          .catchError((e) {
+            if (kDebugMode) {
+              print('MainScreen: 백그라운드 데이터 미리 로드 실패: $e');
+            }
+          });
     } catch (e) {
       print('MainScreen: Error loading basic data: $e');
-      
+
       // 오류 발생 시에도 기본값으로라도 UI 표시
       setState(() {
         _allRecords = [];
@@ -196,14 +210,14 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   Future<void> _loadTodayGamesAsync() async {
     try {
       print('MainScreen: Loading today\'s games asynchronously...');
-      
+
       final todayGames = await _scheduleService.getTodayGamesQuick();
-      
+
       setState(() {
         _todayGames = todayGames;
         _isTodayGamesLoading = false; // 로딩 완료
       });
-      
+
       print('MainScreen: Today games loaded - ${todayGames.length} games');
     } catch (e) {
       print('MainScreen: Error loading today games: $e');
@@ -214,19 +228,22 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     }
   }
 
-  /// 뉴스 데이터 비동기 로드  
+  /// 뉴스 데이터 비동기 로드
   Future<void> _loadNewsAsync(Team? favoriteTeam) async {
     try {
       print('MainScreen: Loading news asynchronously...');
-      
+
       final teamKeyword = favoriteTeam?.name ?? '두산';
-      final newsItems = await _newsService.getNewsByKeyword(teamKeyword, limit: 4);
-      
+      final newsItems = await _newsService.getNewsByKeyword(
+        teamKeyword,
+        limit: 4,
+      );
+
       setState(() {
         _newsItems = newsItems;
         _isNewsLoading = false; // 로딩 완료
       });
-      
+
       print('MainScreen: News loaded - ${newsItems.length} items');
     } catch (e) {
       print('MainScreen: Error loading news: $e');
@@ -387,9 +404,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               children: [
                 // 사용자 프로필 섹션
                 ProfileComponent(
-                  userProfile: _userProfile,
-                  favoriteTeam: _favoriteTeam,
-                  onMoreTap: _navigateToUserProfile,
+                  profile: _userProfile,
+                  team: _favoriteTeam,
+                  onTap: _navigateToUserProfile,
                 ),
                 // Divider
                 Container(height: 8, color: AppColors.gray10),
@@ -413,7 +430,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
                 Container(height: 8, color: AppColors.gray10),
                 // 최근 소식 섹션
                 NewsSection(
-                  newsItems: _newsItems, 
+                  newsItems: _newsItems,
                   onNewsUrlTap: _openNewsUrl,
                   isLoading: _isNewsLoading, // 로딩 상태 전달
                 ),
@@ -542,7 +559,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   /// 일정 탭 새로고침
   void _refreshSchedulePage() {
     setState(() {
-      _schedulePageKey = ValueKey('schedule_${DateTime.now().millisecondsSinceEpoch}');
+      _schedulePageKey = ValueKey(
+        'schedule_${DateTime.now().millisecondsSinceEpoch}',
+      );
     });
     print('MainScreen: Schedule page refreshed with new key');
   }
@@ -557,9 +576,5 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         _loadHomeData();
       }
     });
-  }
-
-  void _showNotificationSettings() {
-    // TODO: 알림 설정 모달 표시
   }
 }

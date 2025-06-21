@@ -149,10 +149,6 @@ class NotificationSettingsProvider extends ChangeNotifier {
 
       final prefs = await SharedPreferences.getInstance();
 
-      // 현재 설정 백업 (롤백용)
-      final backupGameStart = prefs.getBool(_gameStartKey);
-      final backupGameEnd = prefs.getBool(_gameEndKey);
-
       // 설정 저장 시도
       final results = await Future.wait([
         prefs.setBool(_gameStartKey, _gameStartNotification),

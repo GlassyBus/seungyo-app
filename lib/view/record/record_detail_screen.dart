@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:gal/gal.dart';
@@ -11,7 +10,6 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../models/game_record.dart';
 import '../../models/team.dart' as app_models;
-import '../../services/database_service.dart';
 import '../../services/image_save_service.dart';
 import '../../services/record_service.dart';
 import '../../theme/app_colors.dart';
@@ -29,61 +27,55 @@ class RecordDetailPage extends StatefulWidget {
 }
 
 class _RecordDetailPageState extends State<RecordDetailPage> {
-  List<app_models.Team> _teams = [];
+  final RecordService _recordService = RecordService();
+
+  late GameRecord _record;
   bool _isLoading = true;
-  String? _errorMessage;
-  GameRecord? _currentGame;
   bool _hasChanges = false;
   final GlobalKey _bodyKey = GlobalKey();
 
-  static const double _imageSectionHeight = 220.0;
+  // Constants for consistent spacing
   static const double _sectionPadding = 20.0;
   static const double _verticalSpacing = 25.0;
-  static const double _teamLogoSize = 30.0;
-  static const double _heartIconSize = 60.0;
   static const double _infoRowVerticalPadding = 18.0;
   static const double _labelWidth = 60.0;
+  static const double _imageSectionHeight = 180.0;
 
   @override
   void initState() {
     super.initState();
-    _currentGame = widget.game;
-    _initializeData();
+    _record = widget.game;
+    _loadTeamData();
   }
 
-  Future<void> _initializeData() async {
+  Future<void> _loadTeamData() async {
     try {
+      // 팀 데이터 로딩 로직이 있다면 여기에 추가
       setState(() {
-        _isLoading = true;
-        _errorMessage = null;
+        _isLoading = false;
       });
-
-      final teams = await DatabaseService().getTeamsAsAppModels();
-
-      if (mounted) {
-        setState(() {
-          _teams = teams;
-          _isLoading = false;
-        });
-      }
     } catch (e) {
-      // 팀 로딩 실패해도 화면은 표시하되, 팀 정보만 제한적으로 표시
-      if (mounted) {
-        setState(() {
-          _teams = []; // 빈 리스트로 설정
-          _isLoading = false;
-          // 에러 메시지는 설정하지 않아서 화면이 정상 표시되도록 함
-        });
-      }
+      print('Error loading team data: $e');
+      setState(() {
+        _record = widget.game.copyWith(
+          homeTeam: app_models.Team(
+            id: 'error',
+            name: '팀 로딩 실패',
+            shortName: '오류',
+            primaryColor: Color(Colors.grey.value),
+            secondaryColor: Color(Colors.grey.value),
+          ),
+          awayTeam: app_models.Team(
+            id: 'error',
+            name: '팀 로딩 실패',
+            shortName: '오류',
+            primaryColor: Color(Colors.grey.value),
+            secondaryColor: Color(Colors.grey.value),
+          ),
+        );
+        _isLoading = false;
+      });
     }
-  }
-
-  app_models.Team? _getTeamById(String teamId) {
-    return _teams.firstWhereOrNull((team) => team.id == teamId);
-  }
-
-  app_models.Team? _getTeamByName(String teamName) {
-    return _teams.firstWhereOrNull((team) => team.name == teamName);
   }
 
   bool _isImageFileValid(String imagePath) {
@@ -127,8 +119,8 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         onPressed: () {
           // 좋아요 상태가 변경되었는지 확인
           final hasChanged =
-              _currentGame != null &&
-              _currentGame!.isFavorite != widget.game.isFavorite;
+              _record != widget.game &&
+              _record.isFavorite != widget.game.isFavorite;
           Navigator.pop(context, hasChanged);
         },
       ),
@@ -154,7 +146,8 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
   }
 
   Widget _buildBody(ColorScheme colorScheme, TextTheme textTheme) {
-    if (_errorMessage != null) {
+    if (_record.homeTeam.name == '팀 로딩 실패' ||
+        _record.awayTeam.name == '팀 로딩 실패') {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -162,13 +155,13 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
             Icon(Icons.error_outline, size: 64, color: AppColors.gray50),
             const SizedBox(height: 16),
             Text(
-              _errorMessage!,
+              '팀 정보를 로딩하는 중 오류가 발생했습니다.',
               style: AppTextStyles.body2.copyWith(color: AppColors.gray80),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _initializeData,
+              onPressed: _loadTeamData,
               child: const Text('다시 시도'),
             ),
           ],
@@ -692,12 +685,12 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
             child: GestureDetector(
               onTap: _toggleFavorite,
               child: AnimatedScale(
-                scale: _currentGame?.isFavorite == true ? 1.1 : 1.0,
+                scale: _record.isFavorite == true ? 1.1 : 1.0,
                 duration: const Duration(milliseconds: 200),
                 child: Icon(
                   Icons.favorite,
                   color:
-                      _currentGame?.isFavorite == true
+                      _record.isFavorite == true
                           ? AppColors.negative
                           : AppColors.gray30,
                   size: 80,
@@ -756,21 +749,16 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     try {
       // UI 즉시 업데이트
       setState(() {
-        _currentGame = _currentGame!.copyWith(
-          isFavorite: !_currentGame!.isFavorite,
-        );
+        _record = _record.copyWith(isFavorite: !_record.isFavorite);
       });
 
       // RecordService를 사용하여 DB 업데이트
-      final recordService = RecordService();
-      final success = await recordService.toggleFavorite(_currentGame!.id);
+      final success = await _recordService.toggleFavorite(_record.id);
 
       if (!success) {
         // DB 업데이트 실패 시 UI 롤백
         setState(() {
-          _currentGame = _currentGame!.copyWith(
-            isFavorite: !_currentGame!.isFavorite,
-          );
+          _record = _record.copyWith(isFavorite: !_record.isFavorite);
         });
 
         if (mounted) {
@@ -790,7 +778,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                _currentGame!.isFavorite ? '즐겨찾기에 추가되었습니다.' : '즐겨찾기에서 제거되었습니다.',
+                _record.isFavorite ? '즐겨찾기에 추가되었습니다.' : '즐겨찾기에서 제거되었습니다.',
               ),
               duration: const Duration(seconds: 1),
             ),
@@ -800,9 +788,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     } catch (e) {
       // 에러 발생 시 UI 롤백
       setState(() {
-        _currentGame = _currentGame!.copyWith(
-          isFavorite: !_currentGame!.isFavorite,
-        );
+        _record = _record.copyWith(isFavorite: !_record.isFavorite);
       });
 
       if (mounted) {
@@ -963,8 +949,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       }
 
       // RecordService를 사용하여 DB에서 삭제
-      final recordService = RecordService();
-      final success = await recordService.deleteRecord(widget.game.id);
+      final success = await _recordService.deleteRecord(widget.game.id);
 
       // 로딩 스낵바 제거
       if (mounted) {
@@ -1139,7 +1124,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
       // Android 13 (API 33) 이상에서는 READ_MEDIA_IMAGES 권한 필요
       final androidInfo = await _getAndroidVersion();
       PermissionStatus permission;
-      
+
       if (androidInfo >= 33) {
         // Android 13+ : READ_MEDIA_IMAGES 권한 확인
         permission = await Permission.photos.request();
@@ -1147,23 +1132,22 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         // Android 12 이하에서는 WRITE_EXTERNAL_STORAGE 권한 필요
         permission = await Permission.storage.request();
       }
-      
+
       if (permission.isDenied) {
         throw Exception('저장소 접근 권한이 필요합니다.');
       }
-      
+
       if (permission.isPermanentlyDenied) {
         await _showPermissionDialog();
         throw Exception('설정에서 권한을 허용해주세요.');
       }
-      
     } else if (Platform.isIOS) {
       final permission = await Permission.photos.request();
-      
+
       if (permission.isDenied) {
         throw Exception('사진 접근 권한이 필요합니다.');
       }
-      
+
       if (permission.isPermanentlyDenied) {
         await _showPermissionDialog();
         throw Exception('설정에서 권한을 허용해주세요.');
@@ -1190,18 +1174,14 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
           ),
           content: Text(
             '이미지를 저장하려면 저장소 접근 권한이 필요합니다.\n설정에서 권한을 허용해주세요.',
-            style: AppTextStyles.body3.copyWith(
-              color: AppColors.gray80,
-            ),
+            style: AppTextStyles.body3.copyWith(color: AppColors.gray80),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 '취소',
-                style: AppTextStyles.button2.copyWith(
-                  color: AppColors.gray70,
-                ),
+                style: AppTextStyles.button2.copyWith(color: AppColors.gray70),
               ),
             ),
             TextButton(
@@ -1211,9 +1191,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
               },
               child: Text(
                 '설정으로 이동',
-                style: AppTextStyles.button2.copyWith(
-                  color: AppColors.navy,
-                ),
+                style: AppTextStyles.button2.copyWith(color: AppColors.navy),
               ),
             ),
           ],

@@ -5,7 +5,6 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
-import 'package:sqlite3/sqlite3.dart';
 
 part 'database.g.dart';
 
@@ -76,44 +75,67 @@ class AppDatabase extends _$AppDatabase {
   // 팀 DAO
   Future<List<Team>> getAllTeams() => select(teams).get();
 
-  Future<Team?> getTeamById(String id) => (select(teams)..where((t) => t.id.equals(id))).getSingleOrNull();
+  Future<Team?> getTeamById(String id) =>
+      (select(teams)..where((t) => t.id.equals(id))).getSingleOrNull();
 
   Future<int> insertTeam(TeamsCompanion team) => into(teams).insert(team);
 
   // 경기장 DAO
   Future<List<Stadium>> getAllStadiums() => select(stadiums).get();
 
-  Future<Stadium?> getStadiumById(String id) => (select(stadiums)..where((s) => s.id.equals(id))).getSingleOrNull();
+  Future<Stadium?> getStadiumById(String id) =>
+      (select(stadiums)..where((s) => s.id.equals(id))).getSingleOrNull();
 
-  Future<int> insertStadium(StadiumsCompanion stadium) => into(stadiums).insert(stadium);
+  Future<int> insertStadium(StadiumsCompanion stadium) =>
+      into(stadiums).insert(stadium);
 
   // 직관 기록 DAO
-  Future<List<Record>> getAllRecords() => (select(records)..orderBy([(r) => OrderingTerm.desc(r.date)])).get();
+  Future<List<Record>> getAllRecords() =>
+      (select(records)..orderBy([(r) => OrderingTerm.desc(r.date)])).get();
 
-  Future<List<Record>> getFavoriteRecords() => (select(records)..where((r) => r.isFavorite.equals(true))..orderBy([(r) => OrderingTerm.desc(r.date)])).get();
+  Future<List<Record>> getFavoriteRecords() =>
+      (select(records)
+            ..where((r) => r.isFavorite.equals(true))
+            ..orderBy([(r) => OrderingTerm.desc(r.date)]))
+          .get();
 
   Future<List<Record>> getRecordsByDate(DateTime date) {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
-    return (select(records)..where((r) => r.date.isBetween(Variable(startOfDay), Variable(endOfDay)))..orderBy([(r) => OrderingTerm.desc(r.date)])).get();
+    return (select(records)
+          ..where(
+            (r) => r.date.isBetween(Variable(startOfDay), Variable(endOfDay)),
+          )
+          ..orderBy([(r) => OrderingTerm.desc(r.date)]))
+        .get();
   }
 
   Future<List<Record>> getRecordsByTeam(String teamId) {
-    return (select(records)..where((r) => r.homeTeamId.equals(teamId) | r.awayTeamId.equals(teamId))..orderBy([(r) => OrderingTerm.desc(r.date)])).get();
+    return (select(records)
+          ..where(
+            (r) => r.homeTeamId.equals(teamId) | r.awayTeamId.equals(teamId),
+          )
+          ..orderBy([(r) => OrderingTerm.desc(r.date)]))
+        .get();
   }
 
-  Future<int> insertRecord(RecordsCompanion record) => into(records).insert(record);
+  Future<int> insertRecord(RecordsCompanion record) =>
+      into(records).insert(record);
 
-  Future<bool> updateRecord(RecordsCompanion record) => update(records).replace(record);
+  Future<bool> updateRecord(RecordsCompanion record) =>
+      update(records).replace(record);
 
-  Future<int> deleteRecord(int id) => (delete(records)..where((r) => r.id.equals(id))).go();
+  Future<int> deleteRecord(int id) =>
+      (delete(records)..where((r) => r.id.equals(id))).go();
 
   // 통계 관련 메서드
   Future<int> getWinCount(String myTeamId) async {
     final query = select(records)..where(
       (r) =>
-          (r.homeTeamId.equals(myTeamId) & r.homeScore.isBiggerThan(r.awayScore)) |
-          (r.awayTeamId.equals(myTeamId) & r.awayScore.isBiggerThan(r.homeScore)),
+          (r.homeTeamId.equals(myTeamId) &
+              r.homeScore.isBiggerThan(r.awayScore)) |
+          (r.awayTeamId.equals(myTeamId) &
+              r.awayScore.isBiggerThan(r.homeScore)),
     );
     final winRecords = await query.get();
     return winRecords.length;
@@ -122,8 +144,10 @@ class AppDatabase extends _$AppDatabase {
   Future<int> getLoseCount(String myTeamId) async {
     final query = select(records)..where(
       (r) =>
-          (r.homeTeamId.equals(myTeamId) & r.homeScore.isSmallerThan(r.awayScore)) |
-          (r.awayTeamId.equals(myTeamId) & r.awayScore.isSmallerThan(r.homeScore)),
+          (r.homeTeamId.equals(myTeamId) &
+              r.homeScore.isSmallerThan(r.awayScore)) |
+          (r.awayTeamId.equals(myTeamId) &
+              r.awayScore.isSmallerThan(r.homeScore)),
     );
     final loseRecords = await query.get();
     return loseRecords.length;
@@ -141,10 +165,10 @@ LazyDatabase _openConnection() {
     if (Platform.isAndroid) {
       await applyWorkaroundToOpenSqlite3OnOldAndroidVersions();
     }
-    
+
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'seungyo.db'));
-    
+
     return NativeDatabase.createInBackground(file, logStatements: true);
   });
 }

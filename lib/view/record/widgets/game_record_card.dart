@@ -264,7 +264,7 @@ class GameRecordCard extends StatelessWidget {
                   fontSize: 28,
                 ),
               )
-            else if (record.homeScore != null && record.awayScore != null)
+            else
               Text(
                 '${record.homeScore}:${record.awayScore}',
                 style: AppTextStyles.body1.copyWith(

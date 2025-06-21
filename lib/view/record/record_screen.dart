@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:seungyo/services/record_service.dart';
 import 'package:seungyo/theme/app_text_styles.dart';
-import 'package:seungyo/view/record/create_record_screen.dart';
 
 import '../../models/game_record.dart';
+import '../../services/record_service.dart';
 import 'record_detail_screen.dart';
 import 'widgets/game_record_card.dart';
 
@@ -318,17 +317,5 @@ class _RecordListPageState extends State<RecordListPage>
         );
       }
     }
-  }
-
-  void _handleAdd() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CreateRecordScreen()),
-    ).then((result) {
-      if (result == true) {
-        print('RecordScreen: Record added successfully, refreshing list...');
-        _loadRecords();
-      }
-    });
   }
 }

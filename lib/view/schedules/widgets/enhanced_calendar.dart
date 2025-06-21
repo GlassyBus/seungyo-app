@@ -31,7 +31,6 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
   late AnimationController _slideController;
   late AnimationController _scaleController;
   late Animation<double> _slideAnimation;
-  late Animation<double> _scaleAnimation;
 
   int _currentPageIndex = 1000; // 중간값으로 시작하여 양방향 스크롤 가능
   DateTime? _longPressedDate;
@@ -67,10 +66,6 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
     _slideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _slideController, curve: Curves.easeInOut),
     );
-
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
-    );
   }
 
   /// 컨트롤러 해제
@@ -104,7 +99,6 @@ class _EnhancedCalendarState extends State<EnhancedCalendar>
       child: Row(
         children:
             weekdayLabels.asMap().entries.map((entry) {
-              final index = entry.key;
               final label = entry.value;
 
               return Expanded(

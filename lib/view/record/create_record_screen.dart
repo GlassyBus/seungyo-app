@@ -1,15 +1,13 @@
 import 'dart:io';
-import 'dart:math';
 
-import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'package:collection/collection.dart';
 import 'package:seungyo/models/game_record_form.dart';
 import 'package:seungyo/models/game_schedule.dart';
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/services/record_service.dart';
-import 'package:seungyo/services/schedule_service.dart';
 import 'package:seungyo/utils/stadium_mapping.dart';
 
 import '../../models/game_record.dart';
@@ -37,7 +35,6 @@ class CreateRecordScreen extends StatefulWidget {
 class _CreateRecordScreenState extends State<CreateRecordScreen> {
   final _formKey = GlobalKey<FormState>();
   late RecordService _recordService;
-  late ScheduleService _scheduleService;
   late GameRecordForm _form;
   final TextEditingController _seatController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
@@ -45,7 +42,6 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   List<File> _selectedImages = [];
   bool _isMemorableGame = false;
   bool _isGameCanceled = false; // 경기취소 상태
-  bool _isLoading = false;
   bool _isImageLoading = false;
   bool _isSaving = false;
   List<app_models.Stadium> _stadiums = [];
@@ -55,7 +51,6 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
   void initState() {
     super.initState();
     _recordService = RecordService();
-    _scheduleService = ScheduleService();
     _form = GameRecordForm();
     _loadStadiums();
     _loadTeams();

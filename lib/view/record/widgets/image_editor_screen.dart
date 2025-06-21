@@ -1,15 +1,14 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'dart:async';
 import 'package:crop_your_image/crop_your_image.dart';
-import 'package:flutter/services.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
@@ -29,16 +28,14 @@ class ImageEditorScreen extends StatefulWidget {
 }
 
 class _ImageEditorScreenState extends State<ImageEditorScreen> {
-  late File _currentImage;
-  late File _originalImage; // 원본 이미지 보존
+  List<TextOverlay> _textOverlays = [];
+
   bool _isProcessing = false;
+
+  late File _currentImage;
   final CropController _cropController = CropController();
   bool _showCropDialog = false;
   Uint8List? _cropTargetBytes;
-
-  // 텍스트 오버레이
-  List<TextOverlay> _textOverlays = [];
-  int? _selectedTextIndex;
 
   // 자르기 비율 선택
   double? _selectedAspectRatio;
@@ -50,7 +47,6 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
   void initState() {
     super.initState();
     _currentImage = widget.image;
-    _originalImage = widget.image;
   }
 
   @override
@@ -163,7 +159,6 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
               left: overlay.position.dx,
               top: overlay.position.dy,
               child: GestureDetector(
-                onTap: () => _selectTextOverlay(index),
                 onPanUpdate: (details) => _moveTextOverlay(index, details),
                 onDoubleTap: () => _showTextDialog(editIndex: index),
                 child: Text(
@@ -409,16 +404,6 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         ),
       ),
     );
-  }
-
-  // 부드러운 비율 변경 처리 (더 이상 필요하지 않음)
-  void _updateAspectRatio(double? newRatio) {
-    // 단순히 setState만 사용하여 깜빡임 방지
-  }
-
-  // 크롭 위젯 새로고침 (더 이상 필요하지 않음)
-  void _refreshCropWidget() {
-    // Key 기반 방식으로 대체됨
   }
 
   // 텍스트 추가
@@ -717,10 +702,6 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                                     } else {
                                       _textOverlays.add(overlay);
                                     }
-                                    _selectedTextIndex =
-                                        isEditing
-                                            ? editIndex
-                                            : _textOverlays.length - 1;
                                   });
 
                                   Navigator.pop(context);
@@ -753,12 +734,6 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                 ),
           ),
     );
-  }
-
-  void _selectTextOverlay(int index) {
-    setState(() {
-      _selectedTextIndex = index;
-    });
   }
 
   void _moveTextOverlay(int index, DragUpdateDetails details) {
@@ -851,7 +826,6 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
 
       // 단순한 스케일링 (화면 너비 기준)
       final scaleX = imageWidth / screenSize.width;
-      final scaleY = imageHeight / screenSize.width; // 일관된 스케일 사용
 
       print('이미지 원본 크기: ${imageWidth}x${imageHeight}');
       print('화면 크기: ${screenSize.width}x${screenSize.height}');
@@ -937,7 +911,6 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
       if (await tempFile.exists() && await tempFile.length() > 100) {
         setState(() {
           _currentImage = tempFile;
-          _originalImage = tempFile; // 새로운 기준점 설정
           _showCropDialog = false;
           _cropTargetBytes = null;
           _selectedAspectRatio = null; // 비율 선택 초기화
@@ -1012,7 +985,6 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         if (mounted && await tempFile.exists()) {
           setState(() {
             _currentImage = tempFile;
-            _originalImage = tempFile; // 새로운 기준점으로 설정
           });
         } else {
           _showErrorMessage('회전된 이미지를 저장할 수 없습니다.');

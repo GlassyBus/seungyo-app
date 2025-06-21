@@ -65,7 +65,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _originalNickname = profile.nickname;
         _nicknameController.text = profile.nickname;
       });
-    } catch (e, stackTrace) {
+    } catch (e) {
       print('UserProfilePage: Error loading user data: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -116,15 +116,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
         Navigator.of(context).pop(_hasChanges);
       }
     } catch (e) {
+      print('Error saving profile: $e');
+      setState(() {
+        _isLoading = false;
+      });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('저장 중 오류가 발생했습니다: ${e.toString()}')),
+          SnackBar(
+            content: Text('프로필 저장 중 오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
-    } finally {
-      setState(() {
-        _isSaving = false;
-      });
     }
   }
 
