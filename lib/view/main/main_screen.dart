@@ -434,9 +434,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
               children: [
                 // 사용자 프로필 섹션
                 ProfileComponent(
-                  profile: _userProfile,
-                  team: _favoriteTeam,
-                  onTap: _navigateToUserProfile,
+                  userProfile: _userProfile,
+                  favoriteTeam: _favoriteTeam,
+                  onMoreTap: _navigateToUserProfile,
                 ),
                 // Divider
                 Container(height: 8, color: AppColors.gray10),
