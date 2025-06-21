@@ -1,5 +1,3 @@
-import 'package:intl/intl.dart';
-
 class AppConstants {
   // SharedPreferences Keys
   static const String isLoggedInKey = 'isLoggedIn';

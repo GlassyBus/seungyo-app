@@ -2,18 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:seungyo/repository/auth_repository.dart';
 import 'package:seungyo/routes.dart';
 
-class SplashViewModel extends ChangeNotifier {
+class SplashViewModel {
   final AuthRepository _authRepository = AuthRepository();
 
-  Future<void> handleNavigation(BuildContext context) async {
-    await Future.delayed(const Duration(milliseconds: 1500));
+  Future<void> checkAuthStatus(BuildContext context) async {
+    await Future.delayed(const Duration(seconds: 2));
 
     final isLoggedIn = await _authRepository.isLoggedIn();
 
-    if (isLoggedIn) {
-      Navigator.pushReplacementNamed(context, Routes.main);
-    } else {
-      Navigator.pushReplacementNamed(context, Routes.auth);
+    if (context.mounted) {
+      if (isLoggedIn) {
+        Navigator.pushReplacementNamed(context, Routes.main);
+      } else {
+        Navigator.pushReplacementNamed(context, Routes.auth);
+      }
     }
   }
 }

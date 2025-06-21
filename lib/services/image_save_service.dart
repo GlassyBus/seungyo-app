@@ -18,14 +18,18 @@ class ImageSaveService {
       // 1. 파일 존재 여부 확인
       final file = File(imagePath);
       if (!file.existsSync()) {
-        _showError(context, '이미지 파일을 찾을 수 없습니다.');
+        if (context.mounted) {
+          _showError(context, '이미지 파일을 찾을 수 없습니다.');
+        }
         return false;
       }
 
       // 2. 권한 확인 및 요청
       final hasPermission = await _requestPermission();
       if (!hasPermission) {
-        _showError(context, '갤러리 접근 권한이 필요합니다.');
+        if (context.mounted) {
+          _showError(context, '갤러리 접근 권한이 필요합니다.');
+        }
         return false;
       }
 
@@ -33,12 +37,16 @@ class ImageSaveService {
       await Gal.putImage(imagePath);
 
       // 4. 성공 메시지 표시
-      _showSuccess(context, '이미지가 갤러리에 저장되었습니다.');
+      if (context.mounted) {
+        _showSuccess(context, '이미지가 갤러리에 저장되었습니다.');
+      }
       return true;
     } catch (e) {
       // 5. 에러 처리
       debugPrint('이미지 저장 실패: $e');
-      _showError(context, '이미지 저장에 실패했습니다.');
+      if (context.mounted) {
+        _showError(context, '이미지 저장에 실패했습니다.');
+      }
       return false;
     }
   }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:seungyo/models/team.dart' as app_models;
+import 'package:flutter/foundation.dart';import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/theme/theme.dart';
 
 class TeamPickerModal extends StatefulWidget {
@@ -9,12 +9,12 @@ class TeamPickerModal extends StatefulWidget {
   final List<app_models.Team> teams;
 
   const TeamPickerModal({
-    Key? key,
+    super.key,
     required this.title,
     this.selectedTeam,
     required this.onTeamSelected,
     required this.teams,
-  }) : super(key: key);
+  });
 
   @override
   State<TeamPickerModal> createState() => _TeamPickerModalState();
@@ -38,7 +38,10 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
       ),
       child: Column(
         children: [
@@ -59,13 +62,15 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
           team.logo!,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            print('TeamPickerModal: Error loading team logo: ${team.logo}');
+            if (kDebugMode) print('TeamPickerModal: Error loading team logo: ${team.logo}');
             return _buildFallbackLogo(team);
           },
         );
       } else {
         // 이모지나 다른 텍스트
-        return Center(child: Text(team.logo!, style: const TextStyle(fontSize: 20)));
+        return Center(
+          child: Text(team.logo!, style: const TextStyle(fontSize: 20)),
+        );
       }
     } else {
       return _buildFallbackLogo(team);
@@ -78,23 +83,34 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
       return Center(
         child: Text(
           team.shortName.substring(0, 1),
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.navy),
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.navy,
+          ),
         ),
       );
     } else {
-      return const Center(child: Icon(Icons.sports_baseball, size: 20, color: AppColors.navy));
+      return const Center(
+        child: Icon(Icons.sports_baseball, size: 20, color: AppColors.navy),
+      );
     }
   }
 
   Widget _buildHeader(ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.gray10))),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.gray10)),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(widget.title, style: textTheme.titleLarge),
-          IconButton(icon: Icon(Icons.close, color: colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
+          IconButton(
+            icon: Icon(Icons.close, color: colorScheme.onSurface),
+            onPressed: () => Navigator.pop(context),
+          ),
         ],
       ),
     );
@@ -102,7 +118,12 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
 
   Widget _buildTeamList(ColorScheme colorScheme, TextTheme textTheme) {
     if (widget.teams.isEmpty) {
-      return Center(child: Text('팀이 없습니다.', style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline)));
+      return Center(
+        child: Text(
+          '팀이 없습니다.',
+          style: textTheme.bodyLarge?.copyWith(color: colorScheme.outline),
+        ),
+      );
     }
 
     return ListView.builder(
@@ -113,7 +134,10 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
         final isSelected = _selectedTeam == team.id;
 
         return ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 8,
+          ),
           leading: Container(
             width: 40,
             height: 40,
@@ -122,7 +146,12 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.gray20, width: 1),
             ),
-            child: ClipOval(child: Padding(padding: const EdgeInsets.all(8.0), child: _buildTeamLogo(team))),
+            child: ClipOval(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: _buildTeamLogo(team),
+              ),
+            ),
           ),
           title: Text(
             team.name,
@@ -131,7 +160,8 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
-          trailing: isSelected ? Icon(Icons.check, color: AppColors.mint) : null,
+          trailing:
+              isSelected ? Icon(Icons.check, color: AppColors.mint) : null,
           onTap: () {
             setState(() {
               _selectedTeam = team.id;
@@ -161,11 +191,15 @@ class _TeamPickerModalState extends State<TeamPickerModal> {
             foregroundColor: Colors.white,
             disabledBackgroundColor: AppColors.gray30,
             disabledForegroundColor: AppColors.gray50,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
           child: Text(
             '선택 완료',
-            style: AppTextStyles.button1.copyWith(color: _selectedTeam != null ? Colors.white : AppColors.gray50),
+            style: AppTextStyles.button1.copyWith(
+              color: _selectedTeam != null ? Colors.white : AppColors.gray50,
+            ),
           ),
         ),
       ),

@@ -16,11 +16,11 @@ class HeaderComponent extends StatelessWidget {
 
   /// 생성자
   const HeaderComponent({
-    Key? key,
+    super.key,
     this.nickname,
     this.title = '홈',
     this.iconAsset = 'assets/icons/bell-25px.svg',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
