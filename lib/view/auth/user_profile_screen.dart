@@ -45,7 +45,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _loadUserData() async {
-    if (kDebugMode) if (kDebugMode) print('UserProfilePage: Loading user data...');
+    if (kDebugMode) {
+      print('UserProfilePage: Loading user data...');
+    }
     setState(() {
       _isLoading = true;
     });
@@ -54,11 +56,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
       final profile = await _userService.getUserProfile();
       final team = await _userService.getUserFavoriteTeam();
 
-      if (kDebugMode) if (kDebugMode) print('UserProfilePage: Profile loaded - Nickname: ${profile.nickname}');
-      if (kDebugMode) if (kDebugMode) {
+      if (kDebugMode) {
         print(
-        'UserProfilePage: Team loaded - Name: ${team?.name}, Logo: ${team?.logo}',
-      );
+          'UserProfilePage: Profile loaded - Nickname: ${profile.nickname}',
+        );
+        print(
+          'UserProfilePage: Team loaded - Name: ${team?.name}, Logo: ${team?.logo}',
+        );
       }
 
       setState(() {
@@ -68,7 +72,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _nicknameController.text = profile.nickname;
       });
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('UserProfilePage: Error loading user data: $e');
+      if (kDebugMode) {
+        print('UserProfilePage: Error loading user data: $e');
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('사용자 정보를 불러오는 중 오류가 발생했습니다: $e')),
@@ -118,7 +124,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
         Navigator.of(context).pop(_hasChanges);
       }
     } catch (e) {
-      if (kDebugMode) if (kDebugMode) print('Error saving profile: $e');
+      if (kDebugMode) {
+        print('Error saving profile: $e');
+      }
       setState(() {
         _isLoading = false;
       });
@@ -432,10 +440,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
           _favoriteTeam!.logo!,
           fit: BoxFit.contain,
           errorBuilder: (context, error, stackTrace) {
-            if (kDebugMode) if (kDebugMode) {
+            if (kDebugMode) {
               print(
-              'UserProfilePage: Error loading team logo: ${_favoriteTeam!.logo}',
-            );
+                'UserProfilePage: Error loading team logo: ${_favoriteTeam!.logo}',
+              );
             }
             return _buildFallbackLogo();
           },

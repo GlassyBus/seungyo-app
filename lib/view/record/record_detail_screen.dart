@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -62,15 +63,15 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
             id: 'error',
             name: '팀 로딩 실패',
             shortName: '오류',
-            primaryColor: Color(Colors.grey.value),
-            secondaryColor: Color(Colors.grey.value),
+            primaryColor: Color(Colors.grey.toARGB32()),
+            secondaryColor: Color(Colors.grey.toARGB32()),
           ),
           awayTeam: app_models.Team(
             id: 'error',
             name: '팀 로딩 실패',
             shortName: '오류',
-            primaryColor: Color(Colors.grey.value),
-            secondaryColor: Color(Colors.grey.value),
+            primaryColor: Color(Colors.grey.toARGB32()),
+            secondaryColor: Color(Colors.grey.toARGB32()),
           ),
         );
         _isLoading = false;

@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -837,10 +838,12 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         final scaledY = overlay.position.dy * scaleX; // 동일한 스케일 사용
         final scaledFontSize = overlay.fontSize * scaleX;
 
-        if (kDebugMode) print('텍스트: ${overlay.text}');
-        if (kDebugMode) print('화면 좌표: (${overlay.position.dx}, ${overlay.position.dy})');
-        if (kDebugMode) print('이미지 좌표: ($scaledX, $scaledY)');
-        if (kDebugMode) print('폰트 크기: ${overlay.fontSize} -> $scaledFontSize');
+        if (kDebugMode) {
+          print('텍스트: ${overlay.text}');
+          print('화면 좌표: (${overlay.position.dx}, ${overlay.position.dy})');
+          print('이미지 좌표: ($scaledX, $scaledY)');
+          print('폰트 크기: ${overlay.fontSize} -> $scaledFontSize');
+        }
 
         // 메인 텍스트만 그리기 (그림자 효과 없음)
         final textPainter = TextPainter(
@@ -958,7 +961,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
 
   // 색상 비교 함수
   bool _areColorsEqual(Color color1, Color color2) {
-    return color1.value == color2.value;
+    return color1.toARGB32() == color2.toARGB32();
   }
 
   // 이미지 회전 - 개선된 버전

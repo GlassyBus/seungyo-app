@@ -389,12 +389,11 @@ class GameCard extends StatelessWidget {
                   height: 24,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
-                    if (kDebugMode)
-                      if (kDebugMode) {
-                        print(
-                          'GameCard: Failed to load team logo: $logoPath for $teamName',
-                        );
-                      }
+                    if (kDebugMode) {
+                      print(
+                        'GameCard: Failed to load team logo: $logoPath for $teamName',
+                      );
+                    }
                     // 로고 로드 실패 시 기본 색상 원 표시
                     return Container(
                       width: 24,
