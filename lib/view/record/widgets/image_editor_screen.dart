@@ -1,14 +1,14 @@
+import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'dart:ui' as ui;
 
+import 'package:crop_your_image/crop_your_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
-import 'package:photo_view/photo_view.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:async';
-import 'package:crop_your_image/crop_your_image.dart';
+import 'package:photo_view/photo_view.dart';
 
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_text_styles.dart';
@@ -709,31 +709,33 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                                         }
                                       });
 
-                                  Navigator.pop(context);
-                                  HapticFeedback.lightImpact();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.navy,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
+                                      Navigator.pop(context);
+                                      HapticFeedback.lightImpact();
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.navy,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: Text(
+                                      isEditing ? '수정' : '추가',
+                                      style: AppTextStyles.body2.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  elevation: 0,
                                 ),
-                                child: Text(
-                                  isEditing ? '수정' : '추가',
-                                  style: AppTextStyles.body2.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
