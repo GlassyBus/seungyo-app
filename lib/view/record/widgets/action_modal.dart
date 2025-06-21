@@ -5,8 +5,7 @@ class RecordActionModal extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
-  const RecordActionModal({Key? key, this.onEdit, this.onDelete})
-    : super(key: key);
+  const RecordActionModal({super.key, this.onEdit, this.onDelete});
 
   static Future<void> show(
     BuildContext context, {

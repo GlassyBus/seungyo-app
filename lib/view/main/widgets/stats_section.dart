@@ -10,12 +10,12 @@ class StatsSection extends StatelessWidget {
   final int loseCount;
 
   const StatsSection({
-    Key? key,
+    super.key,
     required this.totalGames,
     required this.winCount,
     required this.drawCount,
     required this.loseCount,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

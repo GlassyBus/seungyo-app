@@ -8,10 +8,10 @@ class NoScheduleView extends StatelessWidget {
   final bool hasNoSchedule; // 경기 자체가 없는지 여부
 
   const NoScheduleView({
-    Key? key,
+    super.key,
     this.isAllGamesCanceled = false,
     this.hasNoSchedule = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

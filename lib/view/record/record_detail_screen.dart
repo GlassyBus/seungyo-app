@@ -20,7 +20,7 @@ import 'widgets/action_modal.dart';
 class RecordDetailPage extends StatefulWidget {
   final GameRecord game;
 
-  const RecordDetailPage({Key? key, required this.game}) : super(key: key);
+  const RecordDetailPage({super.key, required this.game});
 
   @override
   State<RecordDetailPage> createState() => _RecordDetailPageState();

@@ -25,8 +25,7 @@ class CreateRecordScreen extends StatefulWidget {
   final GameRecord? gameRecord; // 수정할 기록 (null이면 새 기록)
   final GameSchedule? gameSchedule; // 미리 설정할 경기 정보 (null이면 빈 폼)
 
-  const CreateRecordScreen({Key? key, this.gameRecord, this.gameSchedule})
-    : super(key: key);
+  const CreateRecordScreen({super.key, this.gameRecord, this.gameSchedule});
 
   @override
   State<CreateRecordScreen> createState() => _CreateRecordScreenState();

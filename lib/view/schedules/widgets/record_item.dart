@@ -9,8 +9,7 @@ class RecordItem extends StatelessWidget {
   final GameRecord record;
   final VoidCallback? onTap;
 
-  const RecordItem({Key? key, required this.record, this.onTap})
-    : super(key: key);
+  const RecordItem({super.key, required this.record, this.onTap});
 
   @override
   Widget build(BuildContext context) {

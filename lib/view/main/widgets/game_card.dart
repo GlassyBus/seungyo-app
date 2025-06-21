@@ -12,11 +12,11 @@ class GameCard extends StatelessWidget {
   final VoidCallback? onEditTap;
 
   const GameCard({
-    Key? key,
+    super.key,
     required this.game,
     this.attendedRecord,
     this.onEditTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

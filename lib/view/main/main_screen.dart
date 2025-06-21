@@ -30,10 +30,10 @@ class MainScreen extends StatefulWidget {
   final ThemeMode currentThemeMode;
 
   const MainScreen({
-    Key? key,
+    super.key,
     this.onThemeModeChanged,
     this.currentThemeMode = ThemeMode.system,
-  }) : super(key: key);
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();

@@ -7,7 +7,7 @@ import '../../theme/theme.dart';
 import 'widgets/select_team_view.dart';
 
 class UserProfilePage extends StatefulWidget {
-  const UserProfilePage({Key? key}) : super(key: key);
+  const UserProfilePage({super.key});
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();

@@ -13,13 +13,13 @@ class EnhancedCalendar extends StatefulWidget {
   final Function(int) onMonthChanged;
 
   const EnhancedCalendar({
-    Key? key,
+    super.key,
     required this.selectedDate,
     required this.currentMonth,
     required this.scheduleMap,
     required this.onDateSelected,
     required this.onMonthChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<EnhancedCalendar> createState() => _EnhancedCalendarState();
@@ -476,12 +476,12 @@ class DateActionMenu extends StatelessWidget {
   final VoidCallback onViewSchedule;
 
   const DateActionMenu({
-    Key? key,
+    super.key,
     required this.date,
     required this.records,
     required this.onAddRecord,
     required this.onViewSchedule,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -10,8 +10,7 @@ class ScheduleItem extends StatelessWidget {
   final GameSchedule schedule;
   final VoidCallback? onTap;
 
-  const ScheduleItem({Key? key, required this.schedule, this.onTap})
-    : super(key: key);
+  const ScheduleItem({super.key, required this.schedule, this.onTap});
 
   @override
   Widget build(BuildContext context) {

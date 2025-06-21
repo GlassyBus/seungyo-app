@@ -18,10 +18,10 @@ class ImageEditorScreen extends StatefulWidget {
   final Function(String) onImageEdited;
 
   const ImageEditorScreen({
-    Key? key,
+    super.key,
     required this.image,
     required this.onImageEdited,
-  }) : super(key: key);
+  });
 
   @override
   State<ImageEditorScreen> createState() => _ImageEditorScreenState();

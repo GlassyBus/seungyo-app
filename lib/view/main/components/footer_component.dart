@@ -19,8 +19,7 @@ class FooterComponent extends StatelessWidget {
   ];
 
   /// 생성자
-  const FooterComponent({Key? key, this.currentIndex = 0, this.onTabChanged})
-    : super(key: key);
+  const FooterComponent({super.key, this.currentIndex = 0, this.onTabChanged});
 
   @override
   Widget build(BuildContext context) {

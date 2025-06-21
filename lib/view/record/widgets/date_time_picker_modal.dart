@@ -10,11 +10,11 @@ class DateTimePickerModal extends StatefulWidget {
   final List<GameSchedule>? gameSchedules; // 초기 경기 일정 데이터 (더 이상 필수 아님)
 
   const DateTimePickerModal({
-    Key? key,
+    super.key,
     this.initialDateTime,
     required this.onDateTimeSelected,
     this.gameSchedules,
-  }) : super(key: key);
+  });
 
   @override
   State<DateTimePickerModal> createState() => _DateTimePickerModalState();
