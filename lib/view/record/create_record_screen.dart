@@ -1051,9 +1051,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
+      }
     } finally {
       setState(() {
         _isImageLoading = false;
@@ -1082,9 +1084,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         });
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('이미지 로딩 중 오류가 발생했습니다: $e')));
+      }
     } finally {
       setState(() {
         _isImageLoading = false;
@@ -1240,9 +1244,11 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       if (kDebugMode) {
         print('CreateRecordScreen: Save failed with error: $e');
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('저장 중 오류가 발생했습니다: $e')));
+      }
     } finally {
       if (kDebugMode) {
         print('CreateRecordScreen: Resetting saving state');
@@ -1274,12 +1280,14 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
       if (kDebugMode) {
         print('CreateRecordScreen: Form isValid check failed');
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('경기 날짜, 구장, 홈팀, 원정팀 정보를 모두 입력해주세요.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       return;
     }
 
@@ -1341,9 +1349,7 @@ class _CreateRecordScreenState extends State<CreateRecordScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      setState(() => _isSaving = false);
     }
   }
 

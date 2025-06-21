@@ -11,7 +11,6 @@ import 'package:seungyo/view/auth/auth_screen.dart';
 import 'package:seungyo/view/main/main_screen.dart';
 import 'package:seungyo/view/splash/splash_screen.dart';
 import 'package:seungyo/viewmodel/auth_vm.dart';
-import 'package:seungyo/viewmodel/splash_vm.dart';
 import 'package:seungyo/providers/schedule_provider.dart';
 import 'package:seungyo/theme/theme.dart';
 import 'package:seungyo/services/database_service.dart';
@@ -86,7 +85,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => SplashViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => ScheduleProvider()),
       ],

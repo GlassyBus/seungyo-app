@@ -769,7 +769,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
       File finalImage = _currentImage;
 
       if (_textOverlays.isNotEmpty) {
-        finalImage = await _renderImageWithText();
+        finalImage = await _combineTextWithImage(finalImage);
       }
 
       // 파일이 존재하는지 확인
@@ -798,31 +798,33 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
     }
   }
 
-  // 텍스트 오버레이를 이미지에 합성하는 함수
-  Future<File> _renderImageWithText() async {
+  Future<File> _combineTextWithImage(File imageFile) async {
     try {
-      // 현재 이미지의 크기 정보 가져오기
-      final bytes = await _currentImage.readAsBytes();
-      final baseImage = img.decodeImage(bytes);
+      setState(() => _isProcessing = true);
 
-      if (baseImage == null) {
-        throw Exception('이미지를 디코딩할 수 없습니다');
+      // MediaQuery를 async 함수 외부로 이동
+      final screenSize = MediaQuery.of(context).size;
+
+      // 원본 이미지 읽기
+      final bytes = await imageFile.readAsBytes();
+      final originalImage = img.decodeImage(bytes);
+      if (originalImage == null) {
+        throw Exception('이미지를 읽을 수 없습니다');
       }
 
-      final imageWidth = baseImage.width.toDouble();
-      final imageHeight = baseImage.height.toDouble();
+      final imageWidth = originalImage.width.toDouble();
+      final imageHeight = originalImage.height.toDouble();
 
-      // Canvas를 사용하여 텍스트를 직접 그리기
+      if (kDebugMode) print('텍스트 오버레이 개수: ${_textOverlays.length}');
+
+      // Canvas 설정
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
 
-      // 기본 이미지 그리기
+      // 원본 이미지 그리기
       final codec = await ui.instantiateImageCodec(bytes);
       final frame = await codec.getNextFrame();
       canvas.drawImage(frame.image, Offset.zero, Paint());
-
-      // 화면 크기 정보
-      final screenSize = MediaQuery.of(context).size;
 
       // 단순한 스케일링 (화면 너비 기준)
       final scaleX = imageWidth / screenSize.width;

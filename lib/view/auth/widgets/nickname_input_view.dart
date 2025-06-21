@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';import 'package:provider/provider.dart';
+import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 import 'package:seungyo/models/team.dart' as app_models;
 import 'package:seungyo/services/database_service.dart';
 import 'package:seungyo/theme/app_colors.dart';
@@ -50,10 +51,20 @@ class _NicknameInputViewState extends State<NicknameInputView> {
   }
 
   Future<void> _loadTeams() async {
+    // context.read()를 async 함수 외부로 이동
+    final vm = context.read<AuthViewModel>();
+
     try {
-      if (kDebugMode) print('NicknameInputView: Loading teams from database...');
+      if (kDebugMode) {
+        print('NicknameInputView: Loading teams from database...');
+      }
       final teams = await DatabaseService().getTeamsAsAppModels();
       if (kDebugMode) print('NicknameInputView: Loaded ${teams.length} teams');
+
+      // mounted 체크 추가
+      if (!mounted) {
+        return;
+      }
 
       setState(() {
         _teams = teams;
@@ -61,17 +72,23 @@ class _NicknameInputViewState extends State<NicknameInputView> {
       });
 
       // 선택된 팀 찾기
-      final vm = context.read<AuthViewModel>();
       if (vm.team != null && _teams.isNotEmpty) {
         final selectedTeam =
             _teams.where((team) => team.id == vm.team).firstOrNull;
         setState(() {
           _selectedTeam = selectedTeam;
         });
-        if (kDebugMode) print('NicknameInputView: Selected team - ${selectedTeam?.name}');
+        if (kDebugMode) {
+          print('NicknameInputView: Selected team - ${selectedTeam?.name}');
+        }
       }
     } catch (e) {
-      if (kDebugMode) print('NicknameInputView: Error loading teams: $e');
+      if (kDebugMode) {
+        print('NicknameInputView: Error loading teams: $e');
+      }
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _isLoadingTeams = false;
       });

@@ -115,12 +115,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
         _hasChanges = true;
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('변경사항이 저장되었습니다')));
-
-      // 저장 완료 후 화면 닫기
       if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('변경사항이 저장되었습니다')));
+
+        // 저장 완료 후 화면 닫기
         Navigator.of(context).pop(_hasChanges);
       }
     } catch (e) {
@@ -164,13 +164,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
           _hasChanges = true;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('응원 구단이 ${selectedTeam.name}로 변경되었습니다')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('응원 구단이 ${selectedTeam.name}로 변경되었습니다')),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('구단 변경 중 오류가 발생했습니다: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('구단 변경 중 오류가 발생했습니다: $e')));
+        }
       }
     }
   }

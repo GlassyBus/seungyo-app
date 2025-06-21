@@ -130,7 +130,21 @@ class NotificationSettingsScreen extends StatelessWidget {
       return;
     }
 
-    // 알림을 켜는 경우 권한 확인 및 요청
+    // 권한 요청 후 토글 처리
+    await _requestPermissionAndToggle(context, onSuccess);
+  }
+
+  /// 권한 요청 후 토글 처리
+  Future<void> _requestPermissionAndToggle(
+    BuildContext context,
+    VoidCallback onSuccess,
+  ) async {
+    // Provider를 async 함수 시작 부분에서 가져오기
+    final provider = Provider.of<NotificationSettingsProvider>(
+      context,
+      listen: false,
+    );
+
     final notificationService = NotificationService();
     final hasPermission =
         await notificationService.requestNotificationPermission();
@@ -139,7 +153,7 @@ class NotificationSettingsScreen extends StatelessWidget {
       onSuccess();
     } else {
       // 권한이 없으면 off 상태 유지
-      Provider.of<NotificationSettingsProvider>(context, listen: false)
+      provider
         ..setGameStartNotification(false)
         ..setGameEndNotification(false);
     }

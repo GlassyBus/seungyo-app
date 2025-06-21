@@ -317,18 +317,22 @@ class NotificationService {
       );
 
       // 알림 타입에 따른 네비게이션
-      await _navigateBasedOnNotificationType(
-        notificationType,
-        gameSchedule,
-        context,
-      );
+      if (context.mounted) {
+        await _navigateBasedOnNotificationType(
+          notificationType,
+          gameSchedule,
+          context,
+        );
+      }
     } catch (error) {
       if (kDebugMode) {
         if (kDebugMode) print('❌ 알림 탭 처리 실패: $error');
       }
 
       // 에러 발생 시 기본적으로 일정 화면으로 이동
-      await _navigateToScheduleTab(context);
+      if (context.mounted) {
+        await _navigateToScheduleTab(context);
+      }
     }
   }
 
@@ -344,7 +348,9 @@ class NotificationService {
         if (kDebugMode) {
           if (kDebugMode) print('📅 경기 시작 알림 - 일정 화면으로 이동');
         }
-        await _navigateToScheduleTab(context);
+        if (context.mounted) {
+          await _navigateToScheduleTab(context);
+        }
         break;
 
       case 'game_end':
@@ -352,14 +358,18 @@ class NotificationService {
         if (kDebugMode) {
           if (kDebugMode) print('✍️ 경기 종료 알림 - 직관 기록 작성 화면으로 이동');
         }
-        await _navigateToCreateRecord(context, gameSchedule);
+        if (context.mounted) {
+          await _navigateToCreateRecord(context, gameSchedule);
+        }
         break;
 
       default:
         if (kDebugMode) {
           if (kDebugMode) print('⚠️ 알 수 없는 알림 타입: $notificationType');
         }
-        await _navigateToScheduleTab(context);
+        if (context.mounted) {
+          await _navigateToScheduleTab(context);
+        }
         break;
     }
   }
@@ -368,14 +378,20 @@ class NotificationService {
   Future<void> _navigateToScheduleTab(BuildContext context) async {
     try {
       // 메인 화면으로 돌아가기 (모든 다른 화면들을 제거)
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      if (context.mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      }
 
       if (kDebugMode) {
-        if (kDebugMode) print('📅 일정 화면으로 네비게이션 완료 (메인 화면으로 복귀)');
+        if (kDebugMode) {
+          print('📅 일정 화면으로 네비게이션 완료 (메인 화면으로 복귀)');
+        }
       }
     } catch (error) {
       if (kDebugMode) {
-        if (kDebugMode) print('❌ 일정 화면 이동 실패: $error');
+        if (kDebugMode) {
+          print('❌일정 화면 이동 실패: $error');
+        }
       }
     }
   }
@@ -387,24 +403,35 @@ class NotificationService {
   ) async {
     try {
       // 메인 화면으로 돌아간 후 직관 기록 작성 화면으로 이동
-      Navigator.of(context).popUntil((route) => route.isFirst);
+      if (context.mounted) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
 
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => CreateRecordScreen(gameSchedule: gameSchedule),
-        ),
-      );
+        if (context.mounted) {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder:
+                  (context) => CreateRecordScreen(gameSchedule: gameSchedule),
+            ),
+          );
+        }
+      }
 
       if (kDebugMode) {
-        if (kDebugMode) print('✍️ 직관 기록 작성 화면으로 네비게이션 완료');
+        if (kDebugMode) {
+          print('✍️ 직관 기록 작성 화면으로 네비게이션 완료');
+        }
       }
     } catch (error) {
       if (kDebugMode) {
-        if (kDebugMode) print('❌ 직관 기록 작성 화면 이동 실패: $error');
+        if (kDebugMode) {
+          print('❌ 직관 기록 작성 화면 이동 실패: $error');
+        }
       }
 
       // 실패 시 일정 화면으로 대체 이동
-      await _navigateToScheduleTab(context);
+      if (context.mounted) {
+        await _navigateToScheduleTab(context);
+      }
     }
   }
 
@@ -490,16 +517,16 @@ class NotificationService {
       if (kDebugMode) {
         if (kDebugMode) {
           print(
-          '📱 전체 ${schedules.length}개 경기 중 응원팀(${favoriteTeam.name}, ID: ${favoriteTeam.id}) 경기: ${favoriteTeamSchedules.length}개',
-        );
+            '📱 전체 ${schedules.length}개 경기 중 응원팀(${favoriteTeam.name}, ID: ${favoriteTeam.id}) 경기: ${favoriteTeamSchedules.length}개',
+          );
         }
 
         // 필터링된 경기들 상세 로그
         for (final schedule in favoriteTeamSchedules) {
           if (kDebugMode) {
             print(
-            '   ✅ ${schedule.homeTeam} vs ${schedule.awayTeam} (홈: ${_getTeamIdByName(schedule.homeTeam)}, 원정: ${_getTeamIdByName(schedule.awayTeam)})',
-          );
+              '   ✅ ${schedule.homeTeam} vs ${schedule.awayTeam} (홈: ${_getTeamIdByName(schedule.homeTeam)}, 원정: ${_getTeamIdByName(schedule.awayTeam)})',
+            );
           }
         }
       }
@@ -518,18 +545,18 @@ class NotificationService {
       if (kDebugMode) {
         if (kDebugMode) {
           print(
-          '📱 응원팀 ${favoriteTeamSchedules.length}개 경기 중 $scheduledCount개 경기에 대한 알림 설정 완료',
-        );
+            '📱 응원팀 ${favoriteTeamSchedules.length}개 경기 중 $scheduledCount개 경기에 대한 알림 설정 완료',
+          );
         }
         if (kDebugMode) {
           print(
-          '  - 경기 시작 알림: ${settingsProvider.gameStartNotification ? '활성화' : '비활성화'}',
-        );
+            '  - 경기 시작 알림: ${settingsProvider.gameStartNotification ? '활성화' : '비활성화'}',
+          );
         }
         if (kDebugMode) {
           print(
-          '  - 경기 종료 알림: ${settingsProvider.gameEndNotification ? '활성화' : '비활성화'}',
-        );
+            '  - 경기 종료 알림: ${settingsProvider.gameEndNotification ? '활성화' : '비활성화'}',
+          );
         }
       }
     } catch (error) {
@@ -555,8 +582,8 @@ class NotificationService {
         if (kDebugMode) {
           if (kDebugMode) {
             print(
-            '⏭️ 스킵: ${schedule.homeTeam} vs ${schedule.awayTeam} (${schedule.status.displayName})',
-          );
+              '⏭️ 스킵: ${schedule.homeTeam} vs ${schedule.awayTeam} (${schedule.status.displayName})',
+            );
           }
         }
         return false;
@@ -580,13 +607,13 @@ class NotificationService {
         if (kDebugMode) {
           if (kDebugMode) {
             print(
-            '🚫 응원팀(${favoriteTeam.name}, ID: ${favoriteTeam.id}) 경기가 아님: ${schedule.homeTeam} vs ${schedule.awayTeam}',
-          );
+              '🚫 응원팀(${favoriteTeam.name}, ID: ${favoriteTeam.id}) 경기가 아님: ${schedule.homeTeam} vs ${schedule.awayTeam}',
+            );
           }
           if (kDebugMode) {
             print(
-            '   홈팀 ID: ${_getTeamIdByName(schedule.homeTeam)}, 원정팀 ID: ${_getTeamIdByName(schedule.awayTeam)}',
-          );
+              '   홈팀 ID: ${_getTeamIdByName(schedule.homeTeam)}, 원정팀 ID: ${_getTeamIdByName(schedule.awayTeam)}',
+            );
           }
         }
         return false;
@@ -615,8 +642,8 @@ class NotificationService {
           if (kDebugMode) {
             if (kDebugMode) {
               print(
-              '🔔 응원팀 경기 시작 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} ($startNotificationTime)',
-            );
+                '🔔 응원팀 경기 시작 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} ($startNotificationTime)',
+              );
             }
           }
         }
@@ -642,8 +669,8 @@ class NotificationService {
           if (kDebugMode) {
             if (kDebugMode) {
               print(
-              '📝 응원팀 경기 종료 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} ($endNotificationTime)',
-            );
+                '📝 응원팀 경기 종료 알림 예약: ${schedule.homeTeam} vs ${schedule.awayTeam} ($endNotificationTime)',
+              );
             }
           }
         }
@@ -665,9 +692,13 @@ class NotificationService {
           await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
 
       if (kDebugMode) {
-        if (kDebugMode) print('📱 예약된 알림 목록 (${pendingNotifications.length}개):');
+        if (kDebugMode) {
+          print('📱 예약된 알림 목록 (${pendingNotifications.length}개):');
+        }
         for (final notification in pendingNotifications) {
-          if (kDebugMode) print('  - ID: ${notification.id}, 제목: ${notification.title}');
+          if (kDebugMode) {
+            print('  - ID: ${notification.id}, 제목: ${notification.title}');
+          }
         }
       }
     } catch (error) {

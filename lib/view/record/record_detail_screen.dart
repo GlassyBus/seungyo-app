@@ -134,10 +134,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
         ),
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.download),
-          onPressed: _handleDownload,
-        ),
+        IconButton(icon: const Icon(Icons.download), onPressed: _shareAsImage),
         IconButton(
           icon: const Icon(Icons.more_horiz),
           onPressed: _showActionModal,
@@ -729,15 +726,19 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     ).then((result) {
       if (result == true) {
         // 수정 성공 시 메시지 표시
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('기록이 수정되었습니다.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('기록이 수정되었습니다.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
 
-        Navigator.pop(context, true); // 수정이 완료되면 true 반환
+        if (mounted) {
+          Navigator.pop(context, true); // 수정이 완료되면 true 반환
+        }
       }
     });
   }
@@ -996,12 +997,16 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     }
   }
 
-  Future<void> _handleDownload() async {
+  Future<void> _shareAsImage() async {
     try {
+      // Theme 정보를 async 함수 시작 부분으로 이동
+      final colorScheme = Theme.of(context).colorScheme;
+      final textTheme = Theme.of(context).textTheme;
+
       // 권한 요청
       await _requestPermissions();
 
-      // 로딩 표시
+      // 로딩 스낵바 표시
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1016,16 +1021,13 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
                   ),
                 ),
                 SizedBox(width: 16),
-                Text('이미지를 저장하는 중...'),
+                Text('이미지를 생성하고 있습니다...'),
               ],
             ),
             duration: Duration(seconds: 10),
           ),
         );
       }
-
-      final colorScheme = Theme.of(context).colorScheme;
-      final textTheme = Theme.of(context).textTheme;
 
       // 캡처용 위젯을 별도로 생성하여 이미지화
       final captureWidget = _buildCaptureWidget(colorScheme, textTheme);
@@ -1097,6 +1099,10 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
 
   // 위젯을 화면 밖에서 렌더링하는 헬퍼 메서드
   Future<void> _buildOffstageWidget(Widget widget) async {
+    // context가 여전히 유효한지 확인
+    if (!mounted) return;
+
+    // Overlay.of(context)를 async 함수 외부로 이동
     final overlay = Overlay.of(context);
     OverlayEntry? overlayEntry;
 
