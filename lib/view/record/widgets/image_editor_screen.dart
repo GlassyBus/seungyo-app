@@ -422,324 +422,36 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder:
-          (context) => StatefulBuilder(
-            builder:
-                (context, setDialogState) => Dialog(
-                  backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height * 0.8,
-                    ),
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 헤더
-                            Text(
-                              isEditing ? '텍스트 수정' : '텍스트 추가',
-                              style: AppTextStyles.h3.copyWith(
-                                color: AppColors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
+      builder: (context) {
+        return _TextEditDialog(
+          initialText: text,
+          initialTextColor: textColor,
+          initialFontSize: fontSize,
+          isEditing: isEditing,
+          onSave: (finalText, finalTextColor, finalFontSize) {
+            final overlay = TextOverlay(
+              text: finalText.isEmpty ? '텍스트' : finalText,
+              position: Offset(
+                MediaQuery.of(context).size.width / 2 - 50,
+                200,
+              ),
+              textColor: finalTextColor,
+              backgroundColor: Colors.transparent,
+              fontSize: finalFontSize,
+            );
 
-                            // 텍스트 입력
-                            Text(
-                              '내용',
-                              style: AppTextStyles.body2.copyWith(
-                                color: AppColors.black,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppColors.gray5,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.gray20),
-                              ),
-                              child: TextField(
-                                controller: TextEditingController(text: text),
-                                onChanged: (value) {
-                                  setDialogState(() {
-                                    text = value;
-                                  });
-                                },
-                                maxLines: 3,
-                                decoration: InputDecoration(
-                                  hintText: '텍스트를 입력하세요',
-                                  hintStyle: TextStyle(color: AppColors.gray60),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.all(16),
-                                ),
-                                style: TextStyle(
-                                  color: AppColors.black,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
+            setState(() {
+              if (isEditing) {
+                _textOverlays[editIndex!] = overlay;
+              } else {
+                _textOverlays.add(overlay);
+              }
+            });
 
-                            // 실시간 미리보기
-                            Container(
-                              width: double.infinity,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: AppColors.gray10,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.gray20),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  text.isEmpty ? '미리보기' : text,
-                                  style: TextStyle(
-                                    color: textColor,
-                                    fontSize: fontSize * 0.6, // 미리보기용 작은 크기
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-
-                            // 텍스트 색상
-                            Text(
-                              '텍스트 색상',
-                              style: AppTextStyles.body2.copyWith(
-                                color: AppColors.black,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: AppColors.gray5,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.gray20),
-                              ),
-                              child: Wrap(
-                                spacing: 12,
-                                runSpacing: 12,
-                                children:
-                                    [
-                                      Colors.white, // 화이트
-                                      AppColors.black, // 블랙
-                                      AppColors.navy, // 네이비 (브랜드)
-                                      AppColors.mint, // 민트 (브랜드)
-                                      AppColors.gray70, // 딥 그레이
-                                      AppColors.positive, // 포지티브 그린
-                                      AppColors.warning, // 워닝 옐로우
-                                      AppColors.negative, // 네거티브 레드
-                                    ].map((color) {
-                                      final isSelected = _areColorsEqual(
-                                        textColor,
-                                        color,
-                                      );
-                                      return GestureDetector(
-                                        onTap: () {
-                                          setDialogState(() {
-                                            textColor = color;
-                                          });
-                                        },
-                                        child: Container(
-                                          width: 44,
-                                          height: 44,
-                                          decoration: BoxDecoration(
-                                            color: color,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color:
-                                                  isSelected
-                                                      ? AppColors.navy
-                                                      : AppColors.gray20,
-                                              width: isSelected ? 3 : 1,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: AppColors.black
-                                                    .withValues(alpha: 0.1),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child:
-                                              isSelected
-                                                  ? Icon(
-                                                    Icons.check,
-                                                    color:
-                                                        color == Colors.white ||
-                                                                color ==
-                                                                    AppColors
-                                                                        .mint ||
-                                                                color ==
-                                                                    AppColors
-                                                                        .warning
-                                                            ? AppColors.black
-                                                            : Colors.white,
-                                                    size: 20,
-                                                  )
-                                                  : null,
-                                        ),
-                                      );
-                                    }).toList(),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-
-                            // 글자 크기
-                            Text(
-                              '글자 크기',
-                              style: AppTextStyles.body2.copyWith(
-                                color: AppColors.black,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.gray5,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.gray20),
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    '작게',
-                                    style: AppTextStyles.caption.copyWith(
-                                      color: AppColors.gray60,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Slider(
-                                      value: fontSize,
-                                      min: 12,
-                                      max: 48,
-                                      divisions: 36,
-                                      activeColor: AppColors.navy,
-                                      inactiveColor: AppColors.gray30,
-                                      onChanged: (value) {
-                                        setDialogState(() {
-                                          fontSize = value;
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                  Text(
-                                    '크게',
-                                    style: AppTextStyles.caption.copyWith(
-                                      color: AppColors.gray60,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Center(
-                              child: Text(
-                                '${fontSize.round()}px',
-                                style: AppTextStyles.caption.copyWith(
-                                  color: AppColors.gray60,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-
-                            // 버튼들
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    style: TextButton.styleFrom(
-                                      backgroundColor: AppColors.gray10,
-                                      foregroundColor: AppColors.gray70,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      '취소',
-                                      style: AppTextStyles.body2.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      // 빈 텍스트도 허용 (공백 문자열도 텍스트로 취급)
-                                      final overlay = TextOverlay(
-                                        text: text.isEmpty ? '텍스트' : text,
-                                        // 빈 경우 기본값
-                                        position: Offset(
-                                          MediaQuery.of(context).size.width /
-                                                  2 -
-                                              50,
-                                          200,
-                                        ),
-                                        textColor: textColor,
-                                        backgroundColor: Colors.transparent,
-                                        fontSize: fontSize,
-                                      );
-
-                                      setState(() {
-                                        if (isEditing) {
-                                          _textOverlays[editIndex] = overlay;
-                                        } else {
-                                          _textOverlays.add(overlay);
-                                        }
-                                      });
-
-                                      Navigator.pop(context);
-                                      HapticFeedback.lightImpact();
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.navy,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      elevation: 0,
-                                    ),
-                                    child: Text(
-                                      isEditing ? '수정' : '추가',
-                                      style: AppTextStyles.body2.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-          ),
+            HapticFeedback.lightImpact();
+          },
+        );
+      },
     );
   }
 
@@ -1029,4 +741,341 @@ class TextOverlay {
     required this.backgroundColor,
     required this.fontSize,
   });
+}
+
+// 별도의 텍스트 편집 다이얼로그 위젯
+class _TextEditDialog extends StatefulWidget {
+  final String initialText;
+  final Color initialTextColor;
+  final double initialFontSize;
+  final bool isEditing;
+  final Function(String, Color, double) onSave;
+
+  const _TextEditDialog({
+    required this.initialText,
+    required this.initialTextColor,
+    required this.initialFontSize,
+    required this.isEditing,
+    required this.onSave,
+  });
+
+  @override
+  State<_TextEditDialog> createState() => _TextEditDialogState();
+}
+
+class _TextEditDialogState extends State<_TextEditDialog> {
+  late TextEditingController _textController;
+  late String _text;
+  late Color _textColor;
+  late double _fontSize;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController = TextEditingController(text: widget.initialText);
+    _text = widget.initialText;
+    _textColor = widget.initialTextColor;
+    _fontSize = widget.initialFontSize;
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 헤더
+                Text(
+                  widget.isEditing ? '텍스트 수정' : '텍스트 추가',
+                  style: AppTextStyles.h3.copyWith(
+                    color: AppColors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 텍스트 입력
+                Text(
+                  '내용',
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.gray5,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.gray20),
+                  ),
+                  child: TextField(
+                    controller: _textController,
+                    onChanged: (value) {
+                      setState(() {
+                        _text = value;
+                      });
+                    },
+                    maxLines: 3,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    autocorrect: true,
+                    enableSuggestions: true,
+                    decoration: InputDecoration(
+                      hintText: '텍스트를 입력하세요',
+                      hintStyle: TextStyle(color: AppColors.gray60),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.all(16),
+                    ),
+                    style: TextStyle(
+                      color: AppColors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 실시간 미리보기
+                Container(
+                  width: double.infinity,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: AppColors.gray10,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.gray20),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _text.isEmpty ? '미리보기' : _text,
+                      style: TextStyle(
+                        color: _textColor,
+                        fontSize: _fontSize * 0.6, // 미리보기용 작은 크기
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 텍스트 색상
+                Text(
+                  '텍스트 색상',
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.gray5,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.gray20),
+                  ),
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      Colors.white, // 화이트
+                      AppColors.black, // 블랙
+                      AppColors.navy, // 네이비 (브랜드)
+                      AppColors.mint, // 민트 (브랜드)
+                      AppColors.gray70, // 딥 그레이
+                      AppColors.positive, // 포지티브 그린
+                      AppColors.warning, // 워닝 옐로우
+                      AppColors.negative, // 네거티브 레드
+                    ].map((color) {
+                      final isSelected = _areColorsEqual(_textColor, color);
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _textColor = color;
+                          });
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.navy
+                                  : AppColors.gray20,
+                              width: isSelected ? 3 : 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.black.withValues(alpha: 0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: isSelected
+                              ? Icon(
+                                  Icons.check,
+                                  color: color == Colors.white ||
+                                          color == AppColors.mint ||
+                                          color == AppColors.warning
+                                      ? AppColors.black
+                                      : Colors.white,
+                                  size: 20,
+                                )
+                              : null,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // 글자 크기
+                Text(
+                  '글자 크기',
+                  style: AppTextStyles.body2.copyWith(
+                    color: AppColors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.gray5,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.gray20),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        '작게',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.gray60,
+                        ),
+                      ),
+                      Expanded(
+                        child: Slider(
+                          value: _fontSize,
+                          min: 12,
+                          max: 48,
+                          divisions: 36,
+                          activeColor: AppColors.navy,
+                          inactiveColor: AppColors.gray30,
+                          onChanged: (value) {
+                            setState(() {
+                              _fontSize = value;
+                            });
+                          },
+                        ),
+                      ),
+                      Text(
+                        '크게',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.gray60,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: Text(
+                    '${_fontSize.round()}px',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.gray60,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // 버튼들
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: AppColors.gray10,
+                          foregroundColor: AppColors.gray70,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          '취소',
+                          style: AppTextStyles.body2.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final finalText = _textController.text;
+                          widget.onSave(finalText, _textColor, _fontSize);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.navy,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          widget.isEditing ? '수정' : '추가',
+                          style: AppTextStyles.body2.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 색상 비교 함수
+  bool _areColorsEqual(Color color1, Color color2) {
+    return color1.toARGB32() == color2.toARGB32();
+  }
 }
